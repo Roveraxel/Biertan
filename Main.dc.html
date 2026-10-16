@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Biertan Welcome Screen</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&amp;family=IM+Fell+English+SC&amp;family=UnifrakturCook:wght@700&amp;display=swap">
+<style>
+body{margin:0;background:#0b0d14}
+.menu-item{appearance:none;background:none;border:0;margin:0;cursor:pointer;display:flex;align-items:center;gap:16px;min-height:48px;padding:0 8px;text-align:left;font-family:'IM Fell English','Georgia',serif;font-size:30px;color:#cfc6b3;transition:color .2s,transform .2s}
+.menu-item .mk{width:14px;height:14px;opacity:0;transform:translateX(-8px);transition:opacity .2s,transform .2s}
+.menu-item:hover,.menu-item:focus-visible{color:#f3ead6;transform:translateX(6px);outline:none}
+.menu-item:hover .mk,.menu-item:focus-visible .mk{opacity:1;transform:none}
+.menu-item.primary{color:#f3ead6}
+.menu-item.primary .mk{opacity:1;transform:none}
+@keyframes drift{from{transform:translateX(-80px)}to{transform:translateX(80px)}}
+@keyframes flicker{0%,100%{opacity:1}42%{opacity:.75}48%{opacity:1}70%{opacity:.85}}
+@keyframes fly{0%{transform:translate(0,0)}25%{transform:translate(-200px,-60px)}50%{transform:translate(-380px,10px)}75%{transform:translate(-190px,70px)}100%{transform:translate(0,0)}}
+@keyframes flap{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.25)}}
+.mist{position:absolute;left:-80px;width:1600px;height:240px;background:radial-gradient(ellipse at center,rgba(150,160,175,.32) 0%,rgba(150,160,175,0) 68%);filter:blur(14px);animation:drift 38s ease-in-out infinite alternate}
+.win{animation:flicker 4.6s ease-in-out infinite}
+.bat{position:absolute;width:56px;height:28px;animation:fly 12s ease-in-out infinite}
+.bat svg{width:56px;height:28px;transform-origin:center;animation:flap .3s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.mist,.win{animation:none}}
+</style>
+</helmet>
+<div style="position: relative; width: 1440px; height: 810px; overflow: hidden; background: #0b0d14; box-sizing: border-box">
+
+<svg aria-hidden="true" viewBox="0 0 1440 810" width="1440" height="810" style="position: absolute; left: 0; top: 0">
+<defs>
+<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#090b12"></stop>
+<stop offset="0.55" stop-color="#141420"></stop>
+<stop offset="1" stop-color="#3b1618"></stop>
+</linearGradient>
+<radialGradient id="glow" gradientUnits="userSpaceOnUse" cx="1110" cy="310" r="340">
+<stop offset="0" stop-color="{{accent}}" stop-opacity="0.5"></stop>
+<stop offset="1" stop-color="{{accent}}" stop-opacity="0"></stop>
+</radialGradient>
+<path id="pine" d="M0 0 L-14 40 L-6 40 L-22 80 L-8 80 L-30 125 L-4 125 L-4 140 L4 140 L4 125 L30 125 L8 80 L22 80 L6 40 L14 40 Z"></path>
+</defs>
+<rect x="0" y="0" width="1440" height="810" fill="url(#sky)"></rect>
+<rect x="0" y="0" width="1440" height="810" fill="url(#glow)"></rect>
+<g fill="#cfd6e0" opacity="0.6">
+<circle cx="1320" cy="70" r="1.5"></circle>
+<circle cx="1240" cy="140" r="1"></circle>
+<circle cx="1390" cy="190" r="1.2"></circle>
+<circle cx="880" cy="90" r="1.2"></circle>
+<circle cx="940" cy="170" r="1"></circle>
+<circle cx="760" cy="60" r="1"></circle>
+<circle cx="1000" cy="50" r="1.5"></circle>
+<circle cx="1180" cy="40" r="1"></circle>
+<circle cx="640" cy="150" r="1"></circle>
+<circle cx="560" cy="80" r="1.2"></circle>
+<circle cx="1420" cy="320" r="1"></circle>
+<circle cx="700" cy="260" r="1"></circle>
+</g>
+<circle cx="1110" cy="310" r="118" fill="{{accent}}" opacity="0.92"></circle>
+<g fill="#000" opacity="0.12">
+<circle cx="1075" cy="280" r="22"></circle>
+<circle cx="1142" cy="352" r="16"></circle>
+<circle cx="1100" cy="372" r="9"></circle>
+<circle cx="1152" cy="268" r="10"></circle>
+</g>
+<path d="M0 560 L90 520 L180 548 L290 490 L400 540 L520 500 L640 545 L760 505 L880 540 L1000 520 L1120 548 L1240 505 L1360 535 L1440 515 L1440 810 L0 810 Z" fill="#1a1822"></path>
+<path d="M0 640 L120 600 L240 640 L380 585 L520 635 L660 600 L800 640 L900 610 L900 810 L0 810 Z" fill="#131119"></path>
+<g fill="#07070b">
+<rect x="860" y="548" width="380" height="64"></rect>
+<line x1="860" y1="544" x2="1240" y2="544" stroke="#07070b" stroke-width="8" stroke-dasharray="12 8"></line>
+<rect x="850" y="520" width="30" height="80"></rect>
+<polygon points="845,522 865,490 885,522"></polygon>
+<rect x="1225" y="525" width="28" height="80"></rect>
+<polygon points="1220,527 1239,498 1258,527"></polygon>
+<rect x="905" y="516" width="290" height="70"></rect>
+<line x1="905" y1="512" x2="1195" y2="512" stroke="#07070b" stroke-width="8" stroke-dasharray="12 8"></line>
+<rect x="893" y="462" width="42" height="120"></rect>
+<polygon points="886,464 914,410 942,464"></polygon>
+<rect x="1167" y="474" width="42" height="110"></rect>
+<polygon points="1160,476 1188,424 1216,476"></polygon>
+<rect x="985" y="446" width="108" height="80"></rect>
+<polygon points="972,448 1039,386 1106,448"></polygon>
+<rect x="1086" y="372" width="46" height="154"></rect>
+<rect x="1082" y="366" width="54" height="8"></rect>
+<polygon points="1080,368 1109,296 1138,368"></polygon>
+<line x1="1109" y1="296" x2="1109" y2="278" stroke="#07070b" stroke-width="2"></line>
+</g>
+<g fill="#e8a94a" class="win">
+<rect x="1002" y="468" width="6" height="16"></rect>
+<rect x="1030" y="468" width="6" height="16"></rect>
+<rect x="1058" y="468" width="6" height="16"></rect>
+<rect x="1105" y="396" width="7" height="16"></rect>
+<rect x="1105" y="440" width="7" height="12"></rect>
+<rect x="910" y="486" width="6" height="14"></rect>
+<rect x="1184" y="498" width="6" height="14"></rect>
+<rect x="960" y="530" width="4" height="10"></rect>
+<rect x="1140" y="532" width="4" height="10"></rect>
+</g>
+<path d="M520 810 L520 720 C660 690 800 640 905 604 C960 582 1020 574 1050 574 C1080 574 1140 582 1200 602 C1300 632 1380 660 1440 668 L1440 810 Z" fill="#0c0b11"></path>
+<g fill="#050508">
+<use href="#pine" transform="translate(30,564) scale(1.9)"></use>
+<use href="#pine" transform="translate(120,648) scale(1.3)"></use>
+<use href="#pine" transform="translate(210,536) scale(2.1)"></use>
+<use href="#pine" transform="translate(300,676) scale(1.1)"></use>
+<use href="#pine" transform="translate(560,704) scale(0.9)"></use>
+<use href="#pine" transform="translate(640,690) scale(1)"></use>
+<use href="#pine" transform="translate(720,636) scale(1.4)"></use>
+<use href="#pine" transform="translate(1250,662) scale(1.2)"></use>
+<use href="#pine" transform="translate(1330,578) scale(1.8)"></use>
+<use href="#pine" transform="translate(1400,494) scale(2.4)"></use>
+<rect x="0" y="780" width="1440" height="30"></rect>
+</g>
+</svg>
+
+<div class="mist" style="top: 520px"></div>
+<div class="mist" style="top: 600px; animation-duration: 52s; animation-direction: alternate-reverse; opacity: 0.8"></div>
+
+<div class="bat" style="left: 900px; top: 250px; animation-duration: 15s"><svg aria-hidden="true" viewBox="-20 -8 40 20"><path d="M0 0 C-6 -6 -14 -6 -20 0 C-14 -2 -8 -1 0 4 C8 -1 14 -2 20 0 C14 -6 6 -6 0 0 Z" fill="#050508"></path></svg></div>
+<div class="bat" style="left: 1290px; top: 190px; animation-duration: 11s; animation-delay: -4s"><svg aria-hidden="true" viewBox="-20 -8 40 20"><path d="M0 0 C-6 -6 -14 -6 -20 0 C-14 -2 -8 -1 0 4 C8 -1 14 -2 20 0 C14 -6 6 -6 0 0 Z" fill="#050508"></path></svg></div>
+<div class="bat" style="left: 820px; top: 380px; animation-duration: 18s; animation-delay: -9s"><svg aria-hidden="true" viewBox="-20 -8 40 20"><path d="M0 0 C-6 -6 -14 -6 -20 0 C-14 -2 -8 -1 0 4 C8 -1 14 -2 20 0 C14 -6 6 -6 0 0 Z" fill="#050508"></path></svg></div>
+
+<div style="position: absolute; left: 0; top: 0; width: 760px; height: 810px; background: linear-gradient(90deg, rgba(5,5,8,0.88) 0%, rgba(5,5,8,0.6) 55%, rgba(5,5,8,0) 100%)"></div>
+
+<div style="position: absolute; left: 0; top: 0; width: 1440px; height: 810px; box-sizing: border-box; padding: 0 96px; display: flex; flex-direction: column; justify-content: center; gap: 14px">
+<div style="font-family: 'IM Fell English SC', Georgia, serif; font-size: 16px; letter-spacing: 0.32em; color: #aab3bd">Anno MDXXI · Siebenbürgen</div>
+<h1 style="margin: 0; font-family: 'UnifrakturCook', 'IM Fell English', Georgia, serif; font-weight: 700; font-size: 156px; line-height: 1; color: #f3ead6; text-shadow: 0 0 40px rgba(179,55,47,0.45), 0 4px 0 rgba(0,0,0,0.6)">Biertan</h1>
+<div style="display: flex; align-items: center; gap: 14px">
+<div style="width: 90px; height: 1px; background: {{accent}}"></div>
+<svg aria-hidden="true" width="10" height="10" viewBox="0 0 10 10"><path d="M5 0 L10 5 L5 10 L0 5 Z" fill="{{accent}}"></path></svg>
+<div style="font-family: 'IM Fell English', Georgia, serif; font-style: italic; font-size: 24px; color: #aab3bd">A Hunter’s Ballad of Transylvania</div>
+</div>
+<nav aria-label="Main menu" style="display: flex; flex-direction: column; gap: 2px; margin-top: 26px">
+<button class="menu-item primary" type="button"><svg class="mk" aria-hidden="true" viewBox="0 0 10 10"><path d="M5 0 L10 5 L5 10 L0 5 Z" fill="{{accent}}"></path></svg>Begin the Hunt</button>
+<button class="menu-item" type="button"><svg class="mk" aria-hidden="true" viewBox="0 0 10 10"><path d="M5 0 L10 5 L5 10 L0 5 Z" fill="{{accent}}"></path></svg>Continue</button>
+<button class="menu-item" type="button"><svg class="mk" aria-hidden="true" viewBox="0 0 10 10"><path d="M5 0 L10 5 L5 10 L0 5 Z" fill="{{accent}}"></path></svg>Bestiary</button>
+<button class="menu-item" type="button"><svg class="mk" aria-hidden="true" viewBox="0 0 10 10"><path d="M5 0 L10 5 L5 10 L0 5 Z" fill="{{accent}}"></path></svg>Settings</button>
+<button class="menu-item" type="button"><svg class="mk" aria-hidden="true" viewBox="0 0 10 10"><path d="M5 0 L10 5 L5 10 L0 5 Z" fill="{{accent}}"></path></svg>Leave the Valley</button>
+</nav>
+</div>
+
+<div style="position: absolute; right: 64px; bottom: 40px; font-family: 'IM Fell English', Georgia, serif; font-style: italic; font-size: 20px; color: #aab3bd">Salt for the dead. Silver for what walks.</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#b3372f","options":["#b3372f","#8a2a4a","#c4622d","#4f7a6a"]},"$preview":{"width":1440,"height":810}}'>
+class Component extends DCLogic {
+renderVals() {
+return { accent: this.props.accent ?? '#b3372f' };
+}
+}
+</script>
+</body>
+</html>
