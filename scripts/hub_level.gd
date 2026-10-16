@@ -11,6 +11,7 @@ func build() -> void:
 	size = Vector2(1800, 1200)
 	spawn = Vector2(900, 900)
 	ground = Color("3c4a2c")
+	tile_tint = Color(1.7, 1.55, 1.2)
 	rng.seed = 11
 	scatter(Rect2(0, 0, 1800, 1200), 520, [Color("55683a"), Color("2f3d22"), Color("6a7a44")], [0, 0, 1])
 	scatter(Rect2(190, 150, 1420, 900), 260, [Color("7d7360"), Color("5a5142")], [1, 1])
@@ -42,21 +43,27 @@ func build() -> void:
 	add_prop("npc", "anna", "Frau Anna Roth · Innkeeper", Vector2(410, 420), Color("8a3a4a"), "E   Speak with Anna")
 	add_prop("npc", "hans", "Master Hans · Blacksmith", Vector2(1350, 410), Color("5a4a3a"), "E   Speak with Hans")
 	add_prop("npc", "ileana", "Old Ileana · Herbalist", Vector2(1540, 610), Color("5a6a4a"), "E   Speak with Ileana")
-	add_prop("npc", "gheorghe", "Gheorghe · Shepherd", Vector2(1100, 880), Color("7a6a4a"), "E   Speak with Gheorghe")
+	add_prop("npc", "gheorghe", "Gheorghe · Shepherd", Vector2(1000, 900), Color("7a6a4a"), "E   Speak with Gheorghe")
 	# light
-	add_brazier(Vector2(760, 730))
-	add_brazier(Vector2(1060, 730))
-	add_torch(Vector2(1590, 505), 260)
-	add_torch(Vector2(1590, 695), 260)
+	add_brazier(Vector2(760, 730)).base_energy = 0.7
+	add_brazier(Vector2(1060, 730)).base_energy = 0.7
+	add_torch(Vector2(1590, 505), 240, Color(1.0, 0.68, 0.34), 0.7)
+	add_torch(Vector2(1590, 695), 240, Color(1.0, 0.68, 0.34), 0.7)
 	add_torch(Vector2(400, 372), 230, Color(1.0, 0.75, 0.4))
-	add_torch(Vector2(1350, 360), 260, Color(1.0, 0.45, 0.2), 1.3)
-	add_torch(Vector2(900, 470), 300, Color(1.0, 0.8, 0.5), 0.8)
+	add_torch(Vector2(1350, 360), 240, Color(1.0, 0.45, 0.2), 0.8)
+	add_torch(Vector2(900, 470), 280, Color(1.0, 0.8, 0.5), 0.45)
 	add_trigger(Rect2(1720, 520, 80, 160), main.try_leave_hub)
 
 
 func draw_ground() -> void:
 	super.draw_ground()
-	draw_rect(Rect2(184, 144, 1432, 916), COBBLE)
+	var ct := G.tex("res://assets/tiles/cobble.svg")
+	if ct != null:
+		var k := 0.55
+		draw_set_transform(Vector2.ZERO, 0, Vector2(k, k))
+		draw_texture_rect(ct, Rect2(184 / k, 144 / k, 1432 / k, 916 / k), true, Color(0.62, 0.6, 0.58))
+		draw_set_transform(Vector2.ZERO, 0, Vector2.ONE)
+	else:
+		draw_rect(Rect2(184, 144, 1432, 916), COBBLE)
 	draw_rect(Rect2(1616, 530, 184, 140), COBBLE.darkened(0.15))
-	draw_rect(Rect2(760, 700, 280, 300), COBBLE.lightened(0.06))
 	draw_rect(Rect2(184, 144, 1432, 916), Color(0, 0, 0, 0.18), false, 6.0)

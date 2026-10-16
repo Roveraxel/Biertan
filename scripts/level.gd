@@ -9,6 +9,8 @@ var ground := Color("2b3a26")
 var rng := RandomNumberGenerator.new()
 var details: Array = []
 var title := ""
+var tile_path := "res://assets/tiles/grass.svg"
+var tile_tint := Color.WHITE
 var subtitle := ""
 
 
@@ -110,6 +112,9 @@ func scatter(r: Rect2, n: int, cols: Array, kinds := [0, 1, 2]) -> void:
 
 func draw_ground() -> void:
 	draw_rect(Rect2(Vector2.ZERO, size), ground)
+	var gt := G.tex(tile_path) if tile_path != "" else null
+	if gt != null:
+		draw_texture_rect(gt, Rect2(Vector2.ZERO, size), true, tile_tint)
 
 
 func _draw() -> void:

@@ -120,7 +120,7 @@ func hurt(amount: float, dir: Vector2) -> void:
 		died.emit()
 
 
-func _draw() -> void:
+func _draw_fallback() -> void:
 	var blink := inv_t > 0.0 and int(inv_t * 30.0) % 2 == 0
 	var a := 0.45 if blink else 1.0
 	draw_set_transform(Vector2(0, 2), 0, Vector2(1, 0.45))
@@ -142,5 +142,28 @@ func _draw() -> void:
 	var lp := Vector2(-11, -12 + bob)
 	draw_circle(lp, 7, Color(1, 0.8, 0.4, 0.25))
 	draw_circle(lp, 3.5, G.AMBER)
+	if hurt_flash > 0.0:
+		draw_circle(Vector2(0, -18), 18, Color(1, 0.2, 0.2, hurt_flash * 2.0))
+
+
+func _draw() -> void:
+	var path := "res://assets/sprites/wanderer_idle.svg"
+	if attack_t > 0.0:
+		path = "res://assets/sprites/wanderer_attack.svg"
+	elif velocity.length() > 40.0 and int(walk_t / 1.6) % 2 == 1:
+		path = "res://assets/sprites/wanderer_walk.svg"
+	var tex := G.tex(path)
+	if tex == null:
+		_draw_fallback()
+		return
+	var blink := inv_t > 0.0 and int(inv_t * 30.0) % 2 == 0
+	var flip := attack_t > 0.0 and facing.x < 0.0
+	draw_set_transform(Vector2.ZERO, 0, Vector2(-1.0 if flip else 1.0, 1.0))
+	draw_texture_rect(tex, Rect2(-40, -69, 80, 80), false, Color(1, 1, 1, 0.45 if blink else 1.0))
+	draw_set_transform(Vector2.ZERO, 0, Vector2.ONE)
+	if attack_t > 0.0:
+		var k := 1.0 - attack_t / 0.18
+		var ang := facing.angle()
+		draw_arc(Vector2(0, -16), 62, ang - 1.2 + 2.4 * k - 0.9, ang - 1.2 + 2.4 * k, 10, Color(1, 0.95, 0.8, 0.85), 4.0)
 	if hurt_flash > 0.0:
 		draw_circle(Vector2(0, -18), 18, Color(1, 0.2, 0.2, hurt_flash * 2.0))

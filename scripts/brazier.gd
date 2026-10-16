@@ -4,6 +4,7 @@ extends StaticBody2D
 var lit := true
 var lit_t := 0.0
 var decays := false
+var base_energy := 1.25
 var light: PointLight2D
 var t := 0.0
 
@@ -53,7 +54,7 @@ func _process(delta: float) -> void:
 		if lit_t <= 0.0:
 			set_lit(false)
 	if light and lit:
-		light.energy = 1.25 + 0.15 * sin(t * 13.0) + 0.08 * sin(t * 29.0)
+		light.energy = base_energy + 0.12 * sin(t * 13.0) + 0.06 * sin(t * 29.0)
 	queue_redraw()
 
 

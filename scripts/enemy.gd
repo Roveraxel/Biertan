@@ -129,7 +129,7 @@ func die() -> void:
 	queue_free()
 
 
-func _draw() -> void:
+func _draw_fallback() -> void:
 	var tint := Color(1, 1, 1, 1)
 	if flash > 0.0:
 		tint = Color(2, 2, 2, 1)
@@ -179,3 +179,34 @@ func _draw() -> void:
 		var w := 30.0
 		draw_rect(Rect2(-w / 2.0, -radius * 3.2 - 6.0, w, 4), Color(0, 0, 0, 0.7))
 		draw_rect(Rect2(-w / 2.0, -radius * 3.2 - 6.0, w * hp / max_hp, 4), Color("c0392b"))
+
+
+func draw_health_bar() -> void:
+	if hp < max_hp:
+		var w := 30.0
+		draw_rect(Rect2(-w / 2.0, -radius * 3.2 - 6.0, w, 4), Color(0, 0, 0, 0.7))
+		draw_rect(Rect2(-w / 2.0, -radius * 3.2 - 6.0, w * hp / max_hp, 4), Color("c0392b"))
+
+
+func _draw() -> void:
+	if kind == "wolf" or kind == "pricolici":
+		var path := "res://assets/sprites/wolf_idle.svg"
+		if state == "windup" or state == "lunge":
+			path = "res://assets/sprites/wolf_lunge.svg"
+		elif velocity.length() > 40.0 and int(t * 8.0) % 2 == 0:
+			path = "res://assets/sprites/wolf_run.svg"
+		var tex := G.tex(path)
+		if tex != null:
+			var s := 1.3 if kind == "pricolici" else 1.0
+			var tint := Color(1.25, 0.88, 0.75) if kind == "pricolici" else Color.WHITE
+			if flash > 0.0:
+				tint = Color(2, 2, 2)
+			var flip := face.x < 0.0
+			draw_set_transform(Vector2.ZERO, 0, Vector2(-s if flip else s, s))
+			draw_texture_rect(tex, Rect2(-46.5, -61, 96, 72), false, tint)
+			draw_set_transform(Vector2.ZERO, 0, Vector2.ONE)
+			if state == "windup":
+				draw_circle(Vector2(0, -14), 24 * s, Color(1, 0.2, 0.1, 0.22 + 0.18 * sin(t * 30.0)))
+			draw_health_bar()
+			return
+	_draw_fallback()

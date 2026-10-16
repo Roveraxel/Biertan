@@ -53,8 +53,8 @@ func _draw() -> void:
 			draw_circle(Vector2(0, -30 + bob), 8, Color("d9b48f"))
 			draw_circle(Vector2(0, -34 + bob), 8, col.darkened(0.45))
 			draw_circle(Vector2(0, -30 + bob), 5.5, Color("d9b48f"))
-			draw_string_outline(f, Vector2(-70, -50), display, HORIZONTAL_ALIGNMENT_CENTER, 140, 13, 4, Color(0, 0, 0, 0.9))
-			draw_string(f, Vector2(-70, -50), display, HORIZONTAL_ALIGNMENT_CENTER, 140, 13, G.TEXT)
+			draw_string_outline(f, Vector2(-110, -50), display, HORIZONTAL_ALIGNMENT_CENTER, 220, 13, 4, Color(0, 0, 0, 0.9))
+			draw_string(f, Vector2(-110, -50), display, HORIZONTAL_ALIGNMENT_CENTER, 220, 13, G.TEXT)
 			if main != null and main.marker_for(id):
 				draw_string_outline(f, Vector2(-10, -66 + sin(t * 4.0) * 2.0), "!", HORIZONTAL_ALIGNMENT_CENTER, 20, 22, 5, Color(0, 0, 0, 0.9))
 				draw_string(f, Vector2(-10, -66 + sin(t * 4.0) * 2.0), "!", HORIZONTAL_ALIGNMENT_CENTER, 20, 22, G.AMBER)

@@ -16,6 +16,7 @@ func build() -> void:
 	size = Vector2(1400, 1400)
 	spawn = Vector2(700, 1130)
 	ground = Color("101510")
+	tile_path = ""
 	rng.seed = 5
 	scatter(Rect2(0, 0, 1400, 1400), 500, [Color("1c261a"), Color("0d130d")], [0, 1])
 	var body := StaticBody2D.new()

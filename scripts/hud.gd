@@ -24,7 +24,7 @@ var stars := [
 
 
 func _ready() -> void:
-	set_anchors_preset(Control.PRESET_FULL_RECT)
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	font = ThemeDB.fallback_font
 
@@ -45,7 +45,7 @@ func _process(delta: float) -> void:
 # ------------------------------------------------------------- title input
 
 func menu_rect(i: int) -> Rect2:
-	return Rect2(88, 478 + i * 58, 520, 52)
+	return Rect2(88, 462 + i * 56, 520, 52)
 
 
 func title_input(event: InputEvent) -> void:
@@ -179,7 +179,7 @@ func draw_title() -> void:
 	for m in [[520.0, 0.16, 0.0], [600.0, 0.12, 1.7]]:
 		var mx: float = 720.0 + sin(t * m[1] + m[2]) * 80.0
 		draw_set_transform_matrix(Transform2D(0.0, Vector2(s * 1.0, s * 0.17), 0.0, Vector2(mx * s, (m[0] + 120.0) * s)))
-		draw_circle(Vector2.ZERO, 820, Color(0.59, 0.63, 0.69, 0.17))
+		draw_circle(Vector2.ZERO, 820, Color(0.59, 0.63, 0.69, 0.07))
 	draw_set_transform_matrix(design)
 	# bats
 	for i in 3:
@@ -187,8 +187,9 @@ func draw_title() -> void:
 		var by := 270.0 + i * 70.0 + sin(t * 0.8 + i) * 50.0
 		var fl2 := 0.3 + 0.7 * absf(sin(t * 10.0 + i))
 		draw_colored_polygon(PackedVector2Array([Vector2(bx, by), Vector2(bx - 16, by - 8 * fl2), Vector2(bx - 28, by + 2), Vector2(bx - 8, by + 4), Vector2(bx + 8, by + 4), Vector2(bx + 28, by + 2), Vector2(bx + 16, by - 8 * fl2)]), pc)
-	for i in 40:
-		draw_rect(Rect2(i * 19, 0, 20, 810), Color(0.02, 0.02, 0.03, 0.88 * pow(1.0 - i / 40.0, 1.4)))
+	draw_polygon(
+		PackedVector2Array([Vector2(0, 0), Vector2(760, 0), Vector2(760, 810), Vector2(0, 810)]),
+		PackedColorArray([Color(0.02, 0.02, 0.03, 0.88), Color(0.02, 0.02, 0.03, 0.0), Color(0.02, 0.02, 0.03, 0.0), Color(0.02, 0.02, 0.03, 0.88)]))
 	txt(Vector2(96, 250), "Anno MDXXI · Siebenbürgen", 20, G.MUTED.darkened(0.15))
 	draw_string_outline(font, Vector2(92, 372), "Biertan", HORIZONTAL_ALIGNMENT_LEFT, -1, 132, 10, Color(0, 0, 0, 0.8))
 	draw_string(font, Vector2(92, 372), "Biertan", HORIZONTAL_ALIGNMENT_LEFT, -1, 132, G.TEXT)
@@ -204,8 +205,8 @@ func draw_title() -> void:
 			var py := r.position.y + r.size.y / 2.0
 			draw_colored_polygon(PackedVector2Array([Vector2(r.position.x + 8, py), Vector2(r.position.x + 16, py - 7), Vector2(r.position.x + 24, py), Vector2(r.position.x + 16, py + 7)]), G.BLOOD)
 		txt(Vector2(r.position.x + 40 + off, r.position.y + 38), ITEMS[i], 32, col)
-	txt(Vector2(96, 782), "Salt for the dead. Silver for what walks.", 18, G.MUTED.darkened(0.3))
-	txt(Vector2(1344, 782), "WASD move · Mouse attack · Space dodge · E interact · Q tincture", 15, G.MUTED.darkened(0.35), HORIZONTAL_ALIGNMENT_RIGHT, 700)
+	txt(Vector2(96, 790), "Salt for the dead. Silver for what walks.", 18, G.MUTED.darkened(0.3))
+	txt(Vector2(1344, 790), "WASD move · Mouse attack · Space dodge · E interact · Q tincture", 15, G.MUTED.darkened(0.35), HORIZONTAL_ALIGNMENT_RIGHT, 700)
 	if msg_t > 0.0:
 		txt(Vector2(96, 760), msg, 20, Color(G.AMBER, minf(1.0, msg_t)))
 	draw_set_transform_matrix(Transform2D.IDENTITY)

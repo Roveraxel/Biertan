@@ -17,6 +17,7 @@ var voice_started := false
 var voice_trapped := false
 var voice_rewarded := false
 var night_t := 0.0
+var lurk_t := 5.0
 
 
 func build() -> void:
@@ -117,8 +118,32 @@ func reward_voice() -> void:
 		main.toast("You did not answer. The voice falls silent.  +30 coins")
 
 
+func spawn_lurker() -> bool:
+	var pl = main.player
+	var cap := 4 if G.dusk > 0.8 else 3
+	if get_tree().get_nodes_in_group("lurkers").size() >= cap:
+		return false
+	for i in 12:
+		var p: Vector2 = pl.global_position + Vector2.from_angle(randf() * TAU) * randf_range(250.0, 420.0)
+		if p.x < 80 or p.y < 80 or p.x > size.x - 80 or p.y > size.y - 80:
+			continue
+		if dist_to_path(p) < 130.0:
+			continue
+		var l := Lurker.new()
+		l.position = p
+		add_child(l)
+		return true
+	return false
+
+
 func _process(delta: float) -> void:
-	if main == null or main.state != "play" or G.dusk < 0.85:
+	if main == null or main.state != "play":
+		return
+	lurk_t -= delta
+	if lurk_t <= 0.0:
+		lurk_t = lerpf(9.0, 3.5, G.dusk) + randf() * 3.0
+		spawn_lurker()
+	if G.dusk < 0.85:
 		return
 	night_t += delta
 	if night_t > 7.0 and get_tree().get_nodes_in_group("enemies").size() < 10:

@@ -10,6 +10,17 @@ const NIGHT := Color("0b0d14")
 
 static var dusk := 0.3
 static var _tex: Texture2D
+static var _cache := {}
+
+
+static func tex(path: String) -> Texture2D:
+	if _cache.has(path):
+		return _cache[path]
+	var t: Texture2D = null
+	if ResourceLoader.exists(path):
+		t = load(path)
+	_cache[path] = t
+	return t
 
 
 static func light_tex() -> Texture2D:
@@ -17,6 +28,7 @@ static func light_tex() -> Texture2D:
 		var g := Gradient.new()
 		g.set_color(0, Color(1, 1, 1, 1))
 		g.set_color(1, Color(1, 1, 1, 0))
+		g.add_point(0.5, Color(1, 1, 1, 0.38))
 		var t := GradientTexture2D.new()
 		t.gradient = g
 		t.fill = GradientTexture2D.FILL_RADIAL

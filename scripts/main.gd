@@ -38,7 +38,7 @@ func _ready() -> void:
 	add_child(fl)
 	fade = ColorRect.new()
 	fade.color = Color(0, 0, 0, 1)
-	fade.set_anchors_preset(Control.PRESET_FULL_RECT)
+	fade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	fl.add_child(fade)
 	mod = CanvasModulate.new()
@@ -129,7 +129,7 @@ func goto(name: String, at := Vector2(-1, -1)) -> void:
 	cam.limit_bottom = int(level.size.y)
 	cam.reset_smoothing()
 	if name == "hub":
-		G.dusk = 0.3
+		G.dusk = 0.45
 	elif name == "forest" and G.dusk < 0.15:
 		G.dusk = 0.15
 	if was_play or state == "play":
@@ -204,7 +204,7 @@ func _process(delta: float) -> void:
 		if current == "forest":
 			G.dusk = minf(1.0, G.dusk + delta / 240.0)
 		elif current == "hub":
-			G.dusk = move_toward(G.dusk, 0.3, delta * 0.4)
+			G.dusk = move_toward(G.dusk, 0.45, delta * 0.4)
 	player.frozen = (state == "dialogue" or state == "dead")
 
 
@@ -373,6 +373,7 @@ func run_test() -> void:
 		if not cond:
 			fails.append(msg)
 	await get_tree().create_timer(1.0).timeout
+	await snap("00_title")
 	start_game()
 	await get_tree().create_timer(1.5).timeout
 	chk.call(current == "hub" and level != null, "hub loaded")
@@ -391,6 +392,9 @@ func run_test() -> void:
 	chk.call(current == "forest", "forest loaded")
 	var total := get_tree().get_nodes_in_group("enemies").size()
 	chk.call(total >= 14, "forest has enemies (%d)" % total)
+	chk.call((level as ForestLevel).spawn_lurker(), "red-eyed lurker spawns in the forest")
+	await get_tree().create_timer(1.2).timeout
+	chk.call(get_tree().get_nodes_in_group("lurkers").size() >= 1, "lurker is watching")
 	await snap("02_forest_start")
 	var killed := 0
 	for i in 400:
