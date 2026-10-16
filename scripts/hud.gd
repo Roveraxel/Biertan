@@ -227,10 +227,10 @@ func draw_hud() -> void:
 		draw_rect(Rect2(Vector2.ZERO, sz), Color(0.7, 0.05, 0.05, p.hurt_flash * 0.8))
 	bar(Rect2(24, 24, 250, 18), p.hp / p.max_hp, Color("b3372f"))
 	txt(Vector2(30, 38), "HEALTH  %d / %d" % [int(p.hp), int(p.max_hp)], 13, G.TEXT)
-	if main.current == "forest" or main.current == "hills":
+	if main.current in ["forest", "hills", "vineyard"]:
 		bar(Rect2(24, 54, 250, 8), G.dusk, Color("5a6aa8").lerp(Color("e8a94a"), 1.0 - G.dusk))
 		txt(Vector2(284, 62), "DUSK" if G.dusk < 0.85 else "NIGHT FALLS", 12, G.TEXT if G.dusk < 0.85 else G.BLOOD)
-	elif main.current == "hub" or main.current == "richis":
+	elif main.current in ["hub", "richis", "mosna"]:
 		txt(Vector2(24, 62), "SAFE HAVEN", 12, G.AMBER)
 	var inv := "Coins %d      Tinctures %d%s" % [p.coins, p.potions, "" if G.touch_mode else "  (Q)"]
 	if p.salt_unlocked:
@@ -247,7 +247,13 @@ func draw_hud() -> void:
 			0: q = "Speak with the pastor of Richiș."
 			1: q = "Quest: The Singing Children. Cross the Hollow Hills and the Salt Caves." if not main.met_vasile else "Quest: The Singing Children. Find Muma Pădurii's Hollow beyond the Salt Caves."
 			2: q = "Return to the pastor of Richiș."
-			3: q = "Level 2 complete. Moșna awaits."
+			3: q = "Level 2 complete. Take Richiș's east gate to Moșna."
+	if main.visited_mosna:
+		match main.quest3:
+			0: q = "Speak with Meister Konrad, the bell-founder."
+			1: q = "Quest: The Road to Biertan. Slay the Balaur in the drowned quarry."
+			2: q = "Return to Meister Konrad in Moșna."
+			3: q = "Level 3 complete. Biertan awaits."
 	txt(Vector2(24, 112), q, 14, G.MUTED)
 	for i in toasts.size():
 		var a: float = minf(1.0, toasts[i][1])

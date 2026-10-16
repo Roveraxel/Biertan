@@ -23,6 +23,8 @@ var quest2 := 0  # 0 none, 1 accepted, 2 Muma slain, 3 complete
 var visited_richis := false
 var met_vasile := false
 var rozalia_thanked := false
+var quest3 := 0  # 0 none, 1 accepted, 2 Balaur slain, 3 complete
+var visited_mosna := false
 const SAVE_PATH := "user://biertan_save.json"
 var dlg_speaker := ""
 var dlg_lines: Array = []
@@ -116,6 +118,8 @@ func start_game() -> void:
 	visited_richis = false
 	met_vasile = false
 	rozalia_thanked = false
+	quest3 = 0
+	visited_mosna = false
 	G.dusk = 0.3
 	state = "play"
 	await goto("hub")
@@ -149,6 +153,12 @@ func goto(name: String, at := Vector2(-1, -1)) -> void:
 			level = CavesLevel.new()
 		"hollow":
 			level = HollowLevel.new()
+		"mosna":
+			level = MosnaLevel.new()
+		"vineyard":
+			level = VineyardLevel.new()
+		"gorge":
+			level = GorgeLevel.new()
 	current = name
 	level.main = self
 	add_child(level)
@@ -160,6 +170,8 @@ func goto(name: String, at := Vector2(-1, -1)) -> void:
 	cam.limit_top = 0
 	cam.limit_right = int(level.size.x)
 	cam.limit_bottom = int(level.size.y)
+	cam.zoom = Vector2(0.95, 0.95) if name == "gorge" else Vector2(1.3, 1.3)
+	cam.offset = Vector2(0, -150) if name == "gorge" else Vector2.ZERO
 	cam.reset_smoothing()
 	if name == "hub":
 		G.audio.set_music("music_hub", -9.0)
@@ -182,13 +194,26 @@ func goto(name: String, at := Vector2(-1, -1)) -> void:
 	elif name == "hollow":
 		G.audio.set_music("music_muma", -8.0)
 		G.audio.set_ambient("amb_wind", -16.0)
+	elif name == "mosna":
+		G.audio.set_music("music_hub", -10.0)
+		G.audio.set_ambient("amb_fire", -16.0)
+	elif name == "vineyard":
+		G.audio.set_music("music_vineyard", -9.0)
+		G.audio.set_ambient("amb_wind", -11.0)
+	elif name == "gorge":
+		G.audio.set_music("music_balaur", -8.0)
+		G.audio.set_ambient("amb_cave", -12.0)
 	if name == "richis":
 		visited_richis = true
-	if name == "hub" or name == "richis":
+	if name == "mosna":
+		visited_mosna = true
+	if name == "hub" or name == "richis" or name == "mosna":
 		G.dusk = 0.45
 		save_game.call_deferred()
 	elif name == "hills" and G.dusk < 0.2:
 		G.dusk = 0.2
+	elif name == "vineyard" and G.dusk < 0.45:
+		G.dusk = 0.45
 	elif name == "forest" and G.dusk < 0.15:
 		G.dusk = 0.15
 	if was_play or state == "play":
@@ -233,10 +258,41 @@ func leave_richis_east() -> void:
 		toast("Speak with the pastor before you leave.")
 		player.velocity = Vector2(-300, 0)
 	elif quest2 >= 3:
-		toast("The road to Moșna is not yet walked. (Level 3 in development)")
-		player.velocity = Vector2(-300, 0)
+		goto("mosna", Vector2(300, 620))
 	else:
 		goto("hills")
+
+
+func leave_mosna_west() -> void:
+	if state == "play" and not transitioning:
+		goto("richis", Vector2(1540, 600))
+
+
+func leave_mosna_east() -> void:
+	if state != "play" or transitioning:
+		return
+	if quest3 == 0:
+		toast("Speak with Meister Konrad before you leave.")
+		player.velocity = Vector2(-300, 0)
+	elif quest3 >= 3:
+		toast("Biertan lies ahead. (The final level is in development)")
+		player.velocity = Vector2(-300, 0)
+	else:
+		goto("vineyard")
+
+
+func leave_vineyard_west() -> void:
+	if state == "play" and not transitioning:
+		goto("mosna", Vector2(1640, 620))
+
+
+func enter_gorge() -> void:
+	if state == "play" and not transitioning:
+		if quest3 >= 2:
+			toast("The quarry is quiet now. The road to Biertan is open.")
+			player.velocity = Vector2(-300, 0)
+		else:
+			goto("gorge")
 
 
 func leave_hills_west() -> void:
@@ -260,11 +316,13 @@ func enter_hollow() -> void:
 
 
 func home() -> String:
+	if visited_mosna:
+		return "mosna"
 	return "richis" if visited_richis else "hub"
 
 
 func home_name() -> String:
-	return "Richiș" if visited_richis else "Saschiz"
+	return {"mosna": "Moșna", "richis": "Richiș", "hub": "Saschiz"}[home()]
 
 
 func enter_arena() -> void:
@@ -310,13 +368,26 @@ func on_muma_dead() -> void:
 	goto("richis", Vector2(900, 760))
 
 
+func on_balaur_dead() -> void:
+	banner("THE BALAUR IS SLAIN", "Three necks seared. The road to Biertan lies open.")
+	await get_tree().create_timer(3.0).timeout
+	quest3 = 2
+	player.dmg += 4.0
+	player.coins += 40
+	toast("Received: Balaur Scale  (+4 damage)")
+	toast("+40 coins from the serpent's hoard")
+	await get_tree().create_timer(2.5).timeout
+	goto("mosna", Vector2(950, 860))
+
+
 # ---------------------------------------------------------------- save
 
 func save_game() -> void:
 	var p := player
 	var d := {
 		"v": 1, "quest": quest, "quest2": quest2, "smith": smith_level, "ileana": met_ileana,
-		"richis": visited_richis, "vasile": met_vasile, "rozalia": rozalia_thanked,
+		"richis": visited_richis, "vasile": met_vasile, "rozalia": rozalia_thanked, "quest3": quest3, "mosna": visited_mosna,
+		"garlic": p.garlic, "torch": p.torch,
 		"max_hp": p.max_hp, "dmg": p.dmg, "potions": p.potions, "coins": p.coins,
 		"charm_dodge": p.charm_dodge, "red_thread": p.red_thread, "salt": p.salt,
 		"salt_unlocked": p.salt_unlocked, "wormwood": p.wormwood, "oak": p.oak_heart,
@@ -349,6 +420,8 @@ func continue_game() -> void:
 	visited_richis = bool(d.get("richis", false))
 	met_vasile = bool(d.get("vasile", false))
 	rozalia_thanked = bool(d.get("rozalia", false))
+	quest3 = int(d.get("quest3", 0))
+	visited_mosna = bool(d.get("mosna", false))
 	var p := player
 	p.max_hp = float(d.get("max_hp", 100.0))
 	p.hp = p.max_hp
@@ -361,6 +434,8 @@ func continue_game() -> void:
 	p.salt_unlocked = bool(d.get("salt_unlocked", false))
 	p.wormwood = bool(d.get("wormwood", false))
 	p.oak_heart = bool(d.get("oak", false))
+	p.garlic = bool(d.get("garlic", false))
+	p.torch = bool(d.get("torch", false))
 	G.dusk = 0.45
 	state = "play"
 	await goto(home())
@@ -375,9 +450,9 @@ func _process(delta: float) -> void:
 	else:
 		mod.color = Color.WHITE
 	if state == "play":
-		if current == "forest" or current == "hills":
+		if current == "forest" or current == "hills" or current == "vineyard":
 			G.dusk = minf(1.0, G.dusk + delta / 240.0)
-		elif current == "hub" or current == "richis":
+		elif current == "hub" or current == "richis" or current == "mosna":
 			G.dusk = move_toward(G.dusk, 0.45, delta * 0.4)
 	player.frozen = (state == "dialogue" or state == "dead")
 
@@ -436,7 +511,8 @@ func voice(s: String) -> void:
 
 func marker_for(id: String) -> bool:
 	return (id == "anna" and (quest == 0 or quest == 2)) or (id == "ileana" and not met_ileana) \
-		or (id == "pastor" and (quest2 == 0 or quest2 == 2)) or (id == "vasile" and not met_vasile and quest2 >= 1)
+		or (id == "pastor" and (quest2 == 0 or quest2 == 2)) or (id == "vasile" and not met_vasile and quest2 >= 1) \
+		or (id == "konrad" and (quest3 == 0 or quest3 == 2))
 
 
 # ---------------------------------------------------------------- dialogue
@@ -497,6 +573,12 @@ func prop_used(p: Prop) -> void:
 			if p.id == "cave_sign":
 				start_dialogue("Miners' post", ["THE SALT CAVES. Imperial salt workings, closed by order.", "Below, someone has carved: 'Thirty men went down. Thirty came up. Count them again.'"])
 				return
+			if p.id == "yard_sign":
+				start_dialogue("Churchyard gate", ["'HIER RUHEN DIE TOTEN VON MESCHEN.' Here rest the dead of Moșna.", "Someone has scratched beneath it in Romanian: 'Not all of them.' The earth of every second grave is turned."])
+				return
+			if p.id == "quarry_sign":
+				start_dialogue("Waymark", ["BIRTHÄLM, 2 hours. The Biertan road runs past the old quarry.", "Fresh claw marks run down the stone, wider than a cart."])
+				return
 			if p.id == "lake_sign":
 				start_dialogue("Scratched into the salt", ["'She sings from the far side of the lake. The children follow the singing. Do not follow the singing.'"])
 				return
@@ -505,6 +587,42 @@ func prop_used(p: Prop) -> void:
 
 func talk(id: String) -> void:
 	match id:
+		"konrad":
+			if quest3 == 0:
+				start_dialogue("Meister Konrad", [
+					"Let me see that. A bell clapper... my father's mark is on it. He cast it for the great bell of Biertan.",
+					"No cart has come from Biertan in a month. The road runs past the old quarry, and something has coiled itself in the flooded pit. Three heads, the carters say. A balaur.",
+					"Old Saxon law: you do not cut a balaur's head, you cut and burn it. Cut only, and it grows back by evening.",
+					"Take this torch from my furnace. It does not go out. Sear every neck you cut.",
+				], func():
+					quest3 = 1
+					player.torch = true
+					player.potions += 1
+					banner("QUEST: THE ROAD TO BIERTAN", "Slay the Balaur in the drowned quarry.")
+					toast("Received: Founder's Torch  (sears stumps)"))
+			elif quest3 == 1:
+				start_dialogue("Meister Konrad", ["Cut, then burn. Do not forget it.", "If your blade is dull, I can whet it. Twenty-five coins."], sharpen)
+			elif quest3 == 2:
+				start_dialogue("Meister Konrad", [
+					"You hear that? The carters are already hitching their horses.",
+					"Biertan lies two hours down the road. Whatever silenced its bells is waiting for you there.",
+					"I will fit the clapper to a hanger. When you reach the great bell, ring it. The dead of Biertan should hear it.",
+				], func():
+					quest3 = 3
+					player.coins += 50
+					player.hp = player.max_hp
+					G.sfx("bell", -2.0)
+					banner("LEVEL 3 COMPLETE", "+50 coins.  The road to Biertan is open.")
+					save_game())
+			else:
+				start_dialogue("Meister Konrad", ["Ring the great bell of Biertan, Wanderer. Twenty-five coins for a whetting, if you want it."], sharpen)
+		"hannes":
+			start_dialogue("Hannes", ["Every family of Moșna keeps its ham in the tower, and on Sundays we cut a slice. That is how a village survives a siege.", "Smoked ham and plum brandy, ten coins. Heals like a tincture, tastes better."], buy_potion)
+		"veta":
+			if not player.garlic:
+				start_dialogue("Veta", ["My husband sang in the church for forty years. They buried him in the yard below the vineyards, and last week he came to the window.", "A strigoi drinks what it bites. Wear garlic and its teeth slide off. Forty coins for the wreath."], buy_garlic)
+			else:
+				start_dialogue("Veta", ["If you see a cantor with a grey beard among them... lay him down gently."])
 		"pastor":
 			if quest2 == 0:
 				start_dialogue("Pfarrer Lukas", [
@@ -627,6 +745,15 @@ func buy_salt() -> void:
 		toast("Three pinches of salt.  -10 coins")
 	else:
 		toast("You need ten coins.")
+
+
+func buy_garlic() -> void:
+	if player.coins >= 40:
+		player.coins -= 40
+		player.garlic = true
+		toast("Garlic wreath.  Strigoi bite half as hard and cannot drink.")
+	else:
+		toast("You need forty coins.")
 
 
 func buy_wormwood() -> void:
@@ -881,6 +1008,107 @@ func run_test() -> void:
 	await continue_game()
 	await get_tree().create_timer(0.8).timeout
 	chk.call(player.coins == c_saved and quest2 == 3 and current == "richis", "Continue restores the save")
+	# ------------------------------------------------ Level 3
+	player.god = true
+	leave_richis_east()
+	await get_tree().create_timer(1.2).timeout
+	chk.call(current == "mosna", "travelled to Moșna")
+	await snap("17_mosna")
+	leave_mosna_east()
+	await get_tree().create_timer(0.3).timeout
+	chk.call(current == "mosna", "east gate waits for Konrad")
+	talk("konrad")
+	while state == "dialogue":
+		advance_dialogue()
+	chk.call(quest3 == 1 and player.torch, "Konrad's quest and torch")
+	player.coins = 100
+	talk("veta")
+	while state == "dialogue":
+		advance_dialogue()
+	chk.call(player.garlic and player.coins == 60, "garlic wreath bought")
+	leave_mosna_east()
+	await get_tree().create_timer(1.2).timeout
+	chk.call(current == "vineyard", "Burnt Vineyards loaded")
+	var sg := 0
+	var bt_n := 0
+	var road: Enemy = null
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if e.kind == "strigoi":
+			sg += 1
+			if e.state != "dormant" and road == null:
+				road = e
+		elif e.kind == "bat":
+			bt_n += 1
+	chk.call(sg >= 7 and bt_n >= 5, "strigoi (%d) and bats (%d)" % [sg, bt_n])
+	player.global_position = road.global_position + Vector2(220, 0)
+	cam.reset_smoothing()
+	var land := player.global_position
+	road.state = "chase"
+	road.atk_cd = 0.0
+	await get_tree().create_timer(0.75).timeout
+	await snap("18_vineyard_leap")
+	await get_tree().create_timer(0.6).timeout
+	chk.call(road.global_position.distance_to(land) < 90.0, "strigoi leaps onto the hunter")
+	road.hp = 20.0
+	road.bite(Vector2.RIGHT, 1.0)
+	chk.call(road.hp == 20.0, "garlic stops the strigoi drinking")
+	G.dusk = 0.9
+	player.global_position = Vector2(1820, 1220)
+	cam.reset_smoothing()
+	await get_tree().create_timer(1.4).timeout
+	await snap("19_churchyard_night")
+	var woke := 0
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if e.kind == "strigoi" and e.state != "dormant":
+			woke += 1
+	chk.call(woke >= 3, "strigoi rise from the churchyard (%d)" % woke)
+	G.dusk = 0.4
+	await clear_enemies()
+	chk.call(get_tree().get_nodes_in_group("enemies").is_empty(), "all vineyard enemies killable")
+	enter_gorge()
+	await get_tree().create_timer(0.8).timeout
+	chk.call(current == "gorge" and boss is Balaur, "the Balaur spawned")
+	player.global_position = Vector2(800, 860)
+	cam.reset_smoothing()
+	await get_tree().create_timer(3.3).timeout
+	await snap("20_gorge")
+	var bl: Balaur = boss
+	var h0: BalaurHead = bl.heads[0]
+	h0.hurt(200.0, Vector2.UP)
+	chk.call(h0.hstate == "stump" and h0.can_interact(), "head cut to a stump")
+	h0.regrow_t = 0.05
+	await get_tree().create_timer(0.2).timeout
+	chk.call(h0.hstate == "sway" and h0.hp == 78.0, "unseared head grows back")
+	h0.hurt(200.0, Vector2.UP)
+	h0.interact()
+	chk.call(h0.sealed and not h0.can_interact(), "stump seared shut")
+	var fh: BalaurHead = bl.heads[1]
+	fh.hstate = "sway"
+	fh.cd = 0.0
+	await get_tree().create_timer(1.1).timeout
+	var patches := 0
+	for c in level.get_children():
+		if c is FirePatch:
+			patches += 1
+	chk.call(patches > 0, "fire head breathes flame (%d)" % patches)
+	await snap("21_gorge_fire")
+	for i in [1, 2]:
+		var hh: BalaurHead = bl.heads[i]
+		hh.hurt(500.0, Vector2.UP)
+		hh.interact()
+	await get_tree().create_timer(0.3).timeout
+	chk.call(boss == null, "the Balaur slain")
+	await get_tree().create_timer(6.5).timeout
+	chk.call(quest3 == 2 and current == "mosna", "returned to Moșna")
+	talk("konrad")
+	while state == "dialogue":
+		advance_dialogue()
+	chk.call(quest3 == 3, "Level 3 completed with Konrad")
+	await snap("22_mosna_end")
+	quest3 = 0
+	await continue_game()
+	await get_tree().create_timer(0.8).timeout
+	chk.call(quest3 == 3 and current == "mosna" and player.torch and player.garlic, "Continue restores Level 3")
 	player.god = false
 	player.hurt(9999.0, Vector2.RIGHT)
 	chk.call(state == "dead", "death state")

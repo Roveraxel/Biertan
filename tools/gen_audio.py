@@ -334,3 +334,78 @@ for b in range(16):
             place(m, note(float(rng.choice(cimb)), 0.6, "pluck", 0.16), b * bar + (j * 1.75) * eighth)
 save("music_muma", loopify(lp(m, 4800), 0.8), 0.65)
 print("level 2 audio written")
+
+# ============================================================ Level 3
+# serpent hiss
+d = 1.0
+tt = t_(d)
+save("hiss", hp(noise(d), 3000) * env(len(tt), 0.08, 0.5) * (0.8 + 0.2 * np.sin(2 * np.pi * 9 * tt)), 0.6)
+
+# fire breath
+d = 1.4
+tt = t_(d)
+x = lp(noise(d), 900) * 1.5 + 0.5 * bp(noise(d), 900, 3000) * (0.6 + 0.4 * np.sin(2 * np.pi * 13 * tt))
+save("fire", x * env(len(tt), 0.08, 0.6), 0.8)
+
+# strigoi shriek
+d = 0.8
+tt = t_(d)
+f = 900 + 700 * np.exp(-4 * tt) + 60 * np.sin(2 * np.pi * 30 * tt)
+x = bp(signal.sawtooth(2 * np.pi * np.cumsum(f) / SR) + 0.5 * noise(d), 600, 4000) * env(len(tt), 0.01, 0.5)
+save("shriek", x, 0.6)
+
+# bat squeaks
+d = 0.4
+x = np.zeros(int(d * SR))
+for at in (0.0, 0.11, 0.2):
+    tc = t_(0.06)
+    place(x, np.sin(2 * np.pi * np.cumsum(np.linspace(6000, 3500, len(tc))) / SR) * np.sin(np.pi * tc / 0.06), at)
+save("bat", x, 0.35)
+
+# searing a stump
+d = 1.2
+tt = t_(d)
+x = hp(noise(d), 2500) * (0.5 + 0.5 * (rng.random(len(tt)) > 0.97)) * env(len(tt), 0.02, 0.8) + 0.4 * lp(noise(d), 300) * decay(tt, 4)
+save("sear", x, 0.6)
+
+# church bell toll
+d = 5.0
+tt = t_(d)
+x = sum(a * np.sin(2 * np.pi * 196.0 * m_ * tt) * decay(tt, k) for m_, a, k in [(0.5, 0.6, 0.5), (1, 1, 0.8), (1.19, 0.5, 1.1), (1.5, 0.35, 1.3), (2.0, 0.4, 1.6), (2.52, 0.2, 2.2), (3.0, 0.15, 2.8)])
+save("bell", x * env(len(tt), 0.005, 1.0), 0.75)
+
+# vineyard music: slow minor waltz on a plucked string over a cold drone
+d = 30.0
+tt = t_(d)
+m = 0.6 * np.sin(2 * np.pi * 61.74 * tt) * (0.7 + 0.3 * np.sin(2 * np.pi * tt / 10)) + 0.3 * np.sin(2 * np.pi * 92.5 * tt)
+m += 0.1 * lp(noise(d), 250)
+waltz = scale_notes(246.94, [0, 2, 3, 7, 8], (0, 1))
+beat_ = 0.75
+for i in range(int(d / beat_) - 4):
+    at = i * beat_
+    if i % 3 == 0:
+        place(m, note(123.47, 1.2, "pluck", 0.3), at)
+    elif rng.random() < 0.55:
+        place(m, note(float(rng.choice(waltz)), 1.4, "pluck", 0.18), at)
+save("music_vineyard", loopify(lp(m, 3800), 1.5), 0.6)
+
+# Balaur: heavy slow drums, brass-like drone, rising semitone dread. 84 bpm
+beat_ = 60.0 / 84
+d = beat_ * 32
+tt = t_(d)
+m = np.zeros(len(tt))
+for fr, vel in ((36.7, 1.0), (38.9, 0.5), (55.0, 0.4)):
+    m += vel * signal.sawtooth(2 * np.pi * fr * tt) * 0.3
+m = lp(m, 380) * 1.6
+for i in range(32):
+    tb = t_(0.5)
+    kick = np.sin(2 * np.pi * np.cumsum(90 * np.exp(-7 * tb) + 38) / SR) * decay(tb, 7)
+    if i % 4 in (0, 3):
+        place(m, kick * (1.0 if i % 4 == 0 else 0.7), i * beat_)
+    if i % 8 == 6:
+        place(m, hp(noise(0.4), 600) * decay(t_(0.4), 9) * 0.3, i * beat_)
+for bar in range(8):
+    fr = (146.83, 155.56)[bar % 2]
+    place(m, note(fr, beat_ * 4, "pad", 0.22), bar * 4 * beat_)
+save("music_balaur", loopify(lp(m, 4200), 1.0), 0.65)
+print("level 3 audio written")

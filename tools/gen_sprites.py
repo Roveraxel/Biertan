@@ -239,6 +239,95 @@ def muma(pose):
 for p in ("idle", "cast", "sweep"):
     sprites[f"muma_{p}"] = muma(p)
 
+
+# ================================================================ Level 3
+sprites["npc_konrad"] = human(
+    "#3a3028", "#4e4034", "#a98266",
+    '<path d="M41 37 Q48 56 55 37 Q48 46 41 37Z" fill="#6a6a6a"/><ellipse cx="48" cy="27" rx="7" ry="3" fill="#a98266"/>',
+    belt="#2a1c12",
+    front='<path d="M38 44 L58 44 L60 80 Q48 84 36 80Z" fill="#5a3a22" opacity="0.95"/><circle cx="44" cy="58" r="2" fill="#1a1410" opacity="0.6"/><circle cx="53" cy="66" r="2.5" fill="#1a1410" opacity="0.6"/>',
+    hand="#a98266",
+    held_l='<path d="M21 66 Q21 54 28 52 Q35 54 35 66Z" fill="#b08a3a" stroke="#0b0d14" stroke-width="1"/><circle cx="28" cy="67" r="2" fill="#6a4a1a"/>')
+
+sprites["npc_hannes"] = human(
+    "#6a4a2a", "#86603a", "#c09c80",
+    '<path d="M38 30 Q38 20 48 20 Q58 20 58 30Z" fill="#2a2420" stroke="#0b0d14" stroke-width="1.5"/><path d="M36 30 L60 30" stroke="#2a2420" stroke-width="3"/>'
+    '<path d="M42 40 Q48 44 54 40" stroke="#5a3a22" stroke-width="2.5" fill="none"/>',
+    belt="#2a1c12",
+    front='<path d="M36 46 L60 46 L60 62 L36 62Z" fill="#d8d2c0" opacity="0.85"/>',
+    hand="#c09c80",
+    held_r='<ellipse cx="72" cy="66" rx="8" ry="11" fill="#8a3a2a" stroke="#0b0d14" stroke-width="1"/><ellipse cx="72" cy="66" rx="5" ry="7" fill="#c06a4a"/><rect x="70" y="52" width="4" height="6" fill="#e8e0cc"/>')
+
+sprites["npc_veta"] = human(
+    "#16141a", "#24202a", "#b0907a",
+    '<path d="M37 38 Q36 19 48 19 Q60 19 59 38 Q56 27 48 26 Q40 27 37 38Z" fill="#0e0c10" stroke="#0b0d14" stroke-width="1.5"/>'
+    '<path d="M38 34 L35 50 L42 42Z M58 34 L61 50 L54 42Z" fill="#0e0c10"/>',
+    belt="#3a2a2a",
+    hand="#b0907a",
+    held_l='<path d="M28 46 L28 76" stroke="#8a7a5a" stroke-width="2"/><circle cx="28" cy="52" r="4" fill="#f0eadc" stroke="#0b0d14" stroke-width="0.8"/><circle cx="28" cy="60" r="4" fill="#f0eadc" stroke="#0b0d14" stroke-width="0.8"/><circle cx="28" cy="68" r="4" fill="#f0eadc" stroke="#0b0d14" stroke-width="0.8"/>')
+
+# ---- Strigoi: the restless dead, leaping blood-drinkers
+def strigoi(pose):
+    if pose == "leap":
+        return f'''<svg {W}><ellipse cx="48" cy="88" rx="12" ry="3" fill="#000" opacity="0.3"/>
+<path d="M22 50 Q48 20 74 50 L66 62 Q48 48 30 62Z" fill="#1a1418" stroke="#0b0d14" stroke-width="2"/>
+<path d="M30 50 L12 40 L8 46 M66 50 L84 40 L88 46" stroke="#c8c0c8" stroke-width="4" stroke-linecap="round" fill="none"/>
+<path d="M36 60 L30 76 M60 60 L66 76" stroke="#2a2228" stroke-width="6" stroke-linecap="round"/>
+<ellipse cx="48" cy="38" rx="9" ry="10" fill="#d0c8d0" stroke="#0b0d14" stroke-width="1.5"/>
+<path d="M39 34 Q48 22 57 34 Q52 28 48 28 Q44 28 39 34Z" fill="#1a1418"/>
+<circle cx="44" cy="38" r="5" fill="#ff2a1a" opacity="0.3"/><circle cx="52" cy="38" r="5" fill="#ff2a1a" opacity="0.3"/>
+<circle cx="44" cy="38" r="1.8" fill="#ff2a1a"/><circle cx="52" cy="38" r="1.8" fill="#ff2a1a"/>
+<path d="M44 44 Q48 48 52 44" fill="#3a0a0a"/><path d="M45 44 L46 48 L47 44 M49 44 L50 48 L51 44" fill="#f3ead6"/></svg>'''
+    return f'''<svg {W}><ellipse cx="48" cy="86" rx="18" ry="5" fill="#000" opacity="0.45"/>
+<rect x="39" y="70" width="7" height="14" rx="2" fill="#2a2228"/><rect x="50" y="70" width="7" height="14" rx="2" fill="#2a2228"/>
+<path d="M30 80 L36 40 Q48 30 60 40 L66 80 Q56 76 48 82 Q40 76 30 80Z" fill="#1a1418" stroke="#0b0d14" stroke-width="2"/>
+<path d="M36 40 L30 30 L42 36Z M60 40 L66 30 L54 36Z" fill="#3a1418"/>
+<path d="M36 46 Q24 58 26 70 M60 46 Q72 58 70 70" stroke="#1a1418" stroke-width="7" fill="none" stroke-linecap="round"/>
+<path d="M26 70 L22 76 M26 70 L26 77 M26 70 L30 76 M70 70 L66 76 M70 70 L70 77 M70 70 L74 76" stroke="#c8c0c8" stroke-width="1.6" stroke-linecap="round"/>
+<ellipse cx="48" cy="32" rx="8" ry="10" fill="#d0c8d0" stroke="#0b0d14" stroke-width="1.5"/>
+<path d="M39 30 Q40 16 48 16 Q56 16 57 30 Q54 22 48 22 Q42 22 39 30Z" fill="#1a1418"/>
+<circle cx="45" cy="32" r="4.5" fill="#ff2a1a" opacity="0.3"/><circle cx="51" cy="32" r="4.5" fill="#ff2a1a" opacity="0.3"/>
+<circle cx="45" cy="32" r="1.6" fill="#ff2a1a"/><circle cx="51" cy="32" r="1.6" fill="#ff2a1a"/>
+<path d="M46 38 L46.5 41 L47 38 M49 38 L49.5 41 L50 38" fill="#f3ead6" stroke="#f3ead6" stroke-width="0.8"/>
+<path d="M47 42 L47 45" stroke="#8a1a1a" stroke-width="1"/></svg>'''
+
+sprites["strigoi_stand"] = strigoi("stand")
+sprites["strigoi_leap"] = strigoi("leap")
+
+def bat(up):
+    w = 'M48 50 Q36 30 18 34 Q26 40 24 48 Q32 44 36 52 Q40 48 48 54 Q56 48 60 52 Q64 44 72 48 Q70 40 78 34 Q60 30 48 50Z' if up else \
+        'M48 48 Q36 52 18 64 Q28 62 30 58 Q34 64 38 58 Q42 62 48 54 Q54 62 58 58 Q62 64 66 58 Q68 62 78 64 Q60 52 48 48Z'
+    return f'''<svg {W}><ellipse cx="48" cy="86" rx="8" ry="2" fill="#000" opacity="0.3"/>
+<path d="{w}" fill="#2a2228" stroke="#0b0d14" stroke-width="1.5"/>
+<ellipse cx="48" cy="50" rx="6" ry="8" fill="#3a3038" stroke="#0b0d14" stroke-width="1.2"/>
+<path d="M44 44 L43 38 L46 42 M52 44 L53 38 L50 42" fill="#3a3038" stroke="#0b0d14" stroke-width="1"/>
+<circle cx="46" cy="48" r="1.3" fill="#ff3a2a"/><circle cx="50" cy="48" r="1.3" fill="#ff3a2a"/></svg>'''
+
+sprites["bat_a"] = bat(True)
+sprites["bat_b"] = bat(False)
+
+# ---- Balaur: three-headed serpent of the old quarry
+sprites["balaur_body"] = f'''<svg {BW}><defs><radialGradient id="sc"><stop offset="0" stop-color="#3a5a3a"/><stop offset="1" stop-color="#16261a"/></radialGradient></defs>
+<ellipse cx="96" cy="118" rx="80" ry="16" fill="#0a1418" opacity="0.7"/>
+<path d="M20 110 Q30 70 70 78 Q110 86 120 60 Q130 40 160 52 Q184 64 172 100 Q160 124 120 118 Q90 114 60 122 Q30 128 20 110Z" fill="url(#sc)" stroke="#0b0d14" stroke-width="2.5"/>
+<path d="M40 104 Q70 92 100 100 Q130 106 160 92" stroke="#c8b46a" stroke-width="5" fill="none" opacity="0.55"/>
+<path d="M36 100 L44 92 L50 101 L58 93 L64 102 L72 94 L78 103 M120 64 L128 54 L134 64 L142 55 L148 66 L156 58 L162 70" stroke="#0e1a12" stroke-width="3" fill="none"/>
+<g fill="#2a4a2e" opacity="0.8"><circle cx="60" cy="110" r="3"/><circle cx="76" cy="106" r="3"/><circle cx="92" cy="108" r="3"/><circle cx="140" cy="84" r="3"/><circle cx="154" cy="78" r="3"/><circle cx="130" cy="96" r="3"/></g>
+<path d="M170 96 Q186 108 182 124 Q176 114 168 110Z" fill="#16261a" stroke="#0b0d14" stroke-width="2"/></svg>'''
+
+HW = 'xmlns="http://www.w3.org/2000/svg" width="192" height="104" viewBox="0 -4 96 52"'
+def bhead(open_jaw, col):
+    jaw = ('<path d="M30 28 L82 34 L76 42 Q50 44 30 34Z" fill="#1e3220" stroke="#0b0d14" stroke-width="1.5"/>'
+           '<path d="M40 27 L42 33 L45 27 M54 28 L56 34 L59 28 M68 30 L70 35 L72 30" fill="#f3ead6"/>'
+           '<path d="M38 30 Q60 34 80 32" stroke="#8a1a1a" stroke-width="3"/>') if open_jaw else \
+          '<path d="M30 26 L84 26 L78 32 Q52 36 30 30Z" fill="#1e3220" stroke="#0b0d14" stroke-width="1.5"/><path d="M70 26 L72 30 L74 26" fill="#f3ead6"/>'
+    return f'''<svg {HW}><path d="M8 24 Q20 10 46 12 L86 18 Q92 22 86 26 L30 28 Q16 30 8 24Z" fill="{col}" stroke="#0b0d14" stroke-width="2"/>{jaw}
+<path d="M28 12 L20 0 L36 10 M40 11 L36 -2 L48 11" fill="#16261a" stroke="#0b0d14" stroke-width="1.2"/>
+<circle cx="52" cy="17" r="6" fill="#ffcc3a" opacity="0.3"/><circle cx="52" cy="17" r="2.6" fill="#ffcc3a"/><path d="M52 14.5 L52 19.5" stroke="#0b0d14" stroke-width="1.2"/>
+<circle cx="84" cy="21" r="1.2" fill="#0b0d14"/></svg>'''
+
+sprites["balaur_head"] = bhead(False, "#2e4a30")
+sprites["balaur_head_open"] = bhead(True, "#2e4a30")
 os.makedirs(OUT, exist_ok=True)
 for name, svg in sprites.items():
     with open(os.path.join(OUT, name + ".svg"), "w") as f:

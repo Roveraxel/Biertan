@@ -46,6 +46,9 @@ func _draw() -> void:
 			top = Color("8d877a"); face = Color("5d584f")
 		"rock":
 			top = Color("4a4540"); face = Color("2c2926")
+		"vine":
+			_draw_vines(w, d)
+			return
 	draw_rect(Rect2(-w / 2.0, -h, w, h), face)
 	draw_rect(Rect2(-w / 2.0, -d - h, w, d), top)
 	draw_rect(Rect2(-w / 2.0, -d - h, w, d), Color(0, 0, 0, 0.35), false, 2.0)
@@ -73,3 +76,21 @@ func _draw() -> void:
 		for i in n:
 			var wx := -w / 2.0 + (i + 0.5) * w / n - 4.0
 			draw_rect(Rect2(wx, -h + 8.0, 8, h * 0.45), G.AMBER)
+
+
+func _draw_vines(w: float, d: float) -> void:
+	draw_rect(Rect2(-w / 2.0, -d, w, d), Color(0.12, 0.09, 0.06, 0.6))
+	var x := -w / 2.0 + 6.0
+	while x < w / 2.0:
+		draw_line(Vector2(x, -d / 2.0), Vector2(x, -d / 2.0 - 30.0), Color("3a2a1c"), 3.0)
+		x += 40.0
+	draw_line(Vector2(-w / 2.0, -d / 2.0 - 24.0), Vector2(w / 2.0, -d / 2.0 - 24.0), Color(0.5, 0.5, 0.5, 0.5), 1.0)
+	x = -w / 2.0 + 16.0
+	var i := 0
+	while x < w / 2.0 - 6.0:
+		var c := Color("2a1e14") if i % 3 else Color("4a2a1a")
+		draw_polyline(PackedVector2Array([Vector2(x, -d / 2.0), Vector2(x - 6, -d / 2.0 - 12.0), Vector2(x + 4, -d / 2.0 - 20.0), Vector2(x - 2, -d / 2.0 - 26.0)]), c, 2.5)
+		if i % 4 == 1:
+			draw_circle(Vector2(x + 3, -d / 2.0 - 18.0), 3.0, Color("3a1a2a"))
+		x += 20.0
+		i += 1

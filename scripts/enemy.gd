@@ -44,6 +44,11 @@ func setup(k: String) -> void:
 		"moroi":
 			hp = 60.0; speed = 76.0; dmg = 14.0; radius = 15.0; coin = 8; aggro = 190.0
 			state = "dormant"
+		"strigoi":
+			hp = 52.0; speed = 118.0; dmg = 12.0; radius = 14.0; coin = 9; aggro = 380.0
+		"bat":
+			hp = 6.0; speed = 235.0; dmg = 4.0; radius = 8.0; coin = 1; aggro = 380.0
+			orbit = randf() * TAU
 	max_hp = hp
 
 
@@ -72,6 +77,15 @@ func _physics_process(delta: float) -> void:
 	var d := to.length()
 	var mult := 1.0 + 0.4 * G.dusk
 	salted = maxf(0.0, salted - delta)
+	if kind == "bat" and bat_step(delta, to, d, mult):
+		move_and_slide()
+		queue_redraw()
+		return
+	if kind == "strigoi" and strigoi_step(delta, to, d, mult):
+		knock = knock.move_toward(Vector2.ZERO, 900.0 * delta)
+		move_and_slide()
+		queue_redraw()
+		return
 	if kind == "iele" and iele_step(delta, to, d, mult):
 		knock = knock.move_toward(Vector2.ZERO, 900.0 * delta)
 		move_and_slide()
@@ -81,10 +95,13 @@ func _physics_process(delta: float) -> void:
 		"dormant", "idle":
 			velocity = knock
 			if d < aggro:
-				if kind == "moroi" and state == "dormant":
+				if (kind == "moroi" or kind == "strigoi") and state == "dormant":
 					state = "rise"
 					t = 0.0
-					G.sfx("moroi", -4.0, randf_range(0.85, 1.1))
+					if kind == "moroi":
+						G.sfx("moroi", -4.0, randf_range(0.85, 1.1))
+					else:
+						G.sfx("shriek", -8.0, randf_range(0.8, 0.95))
 				else:
 					state = "chase"
 		"rise":
@@ -124,7 +141,79 @@ func _physics_process(delta: float) -> void:
 
 
 func undead() -> bool:
-	return kind in ["iele", "moroi", "shade"]
+	return kind in ["iele", "moroi", "shade", "strigoi"]
+
+
+## Bats: erratic swoops, nip and veer away.
+func bat_step(delta: float, to: Vector2, d: float, mult: float) -> bool:
+	orbit += delta * 7.0
+	if state == "idle":
+		velocity = Vector2.from_angle(orbit * 0.4) * 40.0
+		if d < aggro:
+			state = "chase"
+			G.sfx("bat", -10.0, randf_range(0.9, 1.3))
+		return true
+	var dir := to.normalized()
+	face = dir
+	if state == "retreat":
+		velocity = -dir * speed * 0.8 + dir.orthogonal() * sin(orbit) * 120.0
+		if t > 0.8:
+			state = "chase"
+		return true
+	velocity = dir * speed * mult + dir.orthogonal() * sin(orbit) * 160.0 + knock
+	knock = knock.move_toward(Vector2.ZERO, 900.0 * delta)
+	if d < radius + 22.0 and atk_cd <= 0.0:
+		player.hurt(dmg * mult, dir)
+		atk_cd = 0.9
+		state = "retreat"
+		t = 0.0
+	return true
+
+
+## Strigoi: stalk, crouch, then leap onto where the hunter stood. Bites
+## drink blood and heal the strigoi, unless the hunter wears garlic.
+func strigoi_step(_delta: float, to: Vector2, d: float, mult: float) -> bool:
+	match state:
+		"chase":
+			face = to.normalized()
+			velocity = face * speed * mult + knock + separation()
+			if d > 110.0 and d < 330.0 and atk_cd <= 0.0:
+				state = "crouch"
+				t = 0.0
+				home = player.global_position
+			elif d < radius + 26.0 and atk_cd <= 0.0:
+				bite(face, mult)
+			return true
+		"crouch":
+			velocity = knock
+			if t > 0.55:
+				state = "leap"
+				t = 0.0
+				lunge_dir = global_position
+				G.sfx("shriek", -6.0, randf_range(0.95, 1.2))
+			return true
+		"leap":
+			var k := clampf(t / 0.45, 0.0, 1.0)
+			velocity = Vector2.ZERO
+			global_position = lunge_dir.lerp(home, k)
+			if k >= 1.0:
+				state = "chase"
+				atk_cd = 2.0
+				G.fx_ring(get_parent(), global_position, Color(0.6, 0.1, 0.1, 0.7), 60, 0.35)
+				if player.global_position.distance_to(global_position) < 62.0:
+					bite((player.global_position - global_position).normalized(), mult)
+			return true
+	return false
+
+
+func bite(dir: Vector2, mult: float) -> void:
+	var garlic: bool = player.garlic
+	var amount := dmg * mult * (0.5 if garlic else 1.0)
+	player.hurt(amount, dir)
+	atk_cd = 1.1
+	if not garlic:
+		hp = minf(max_hp, hp + amount * 0.5)
+		G.fx_text(get_parent(), global_position + Vector2(0, -40), "drinks", Color("c0392b"))
 
 
 func salt_hit(ring: Node2D, delta: float) -> void:
@@ -294,6 +383,35 @@ func _draw() -> void:
 			draw_texture_rect(itex, Rect2(-36, -66 + hov, 72, 72), false, Color(2, 2, 2) if flash > 0.0 else Color(1, 1, 1, al))
 			if state == "windup":
 				draw_circle(Vector2(0, -26), 22, Color(0.7, 0.8, 1.0, 0.25 + 0.2 * sin(t * 30.0)))
+			draw_health_bar()
+			return
+	if kind == "bat":
+		var btex := G.tex("res://assets/sprites/bat_%s.svg" % ("a" if int(t * 12.0) % 2 == 0 else "b"))
+		if btex != null:
+			draw_texture_rect(btex, Rect2(-26, -58, 52, 52), false, Color(2, 2, 2) if flash > 0.0 else Color.WHITE)
+			return
+	if kind == "strigoi":
+		if state == "dormant":
+			draw_rect(Rect2(-14, -6, 28, 14), Color("1a1410"))
+			draw_rect(Rect2(-16, -8, 32, 4), Color("3a2c1e"))
+			return
+		var stex := G.tex("res://assets/sprites/strigoi_%s.svg" % ("leap" if state in ["leap", "crouch"] else "stand"))
+		if stex != null:
+			var lift := 0.0
+			if state == "leap":
+				lift = -sin(PI * clampf(t / 0.45, 0.0, 1.0)) * 70.0
+				draw_set_transform(Vector2(0, 2), 0, Vector2(1, 0.45))
+				draw_circle(Vector2.ZERO, 14, Color(0, 0, 0, 0.35))
+				draw_set_transform(Vector2.ZERO, 0, Vector2.ONE)
+			if state == "crouch":
+				draw_set_transform(home - global_position, 0, Vector2(1, 0.45))
+				draw_arc(Vector2.ZERO, 58, 0, TAU, 32, Color(1, 0.15, 0.1, 0.4 + 0.3 * sin(t * 30.0)), 3.0)
+				draw_set_transform(Vector2.ZERO, 0, Vector2.ONE)
+			var rise := clampf(t / 0.8, 0.0, 1.0) if state == "rise" else 1.0
+			var flip := face.x < 0.0
+			draw_set_transform(Vector2(0, lift + 12.0 * (1.0 - rise)), 0, Vector2(-1.0 if flip else 1.0, rise))
+			draw_texture_rect(stex, Rect2(-40, -69, 80, 80), false, Color(2, 2, 2) if flash > 0.0 else Color.WHITE)
+			draw_set_transform(Vector2.ZERO, 0, Vector2.ONE)
 			draw_health_bar()
 			return
 	if kind == "moroi":

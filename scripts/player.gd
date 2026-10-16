@@ -29,6 +29,8 @@ var salt := 0
 var salt_unlocked := false
 var wormwood := false
 var oak_heart := false
+var garlic := false
+var torch := false
 var pull := Vector2.ZERO
 var salt_cd := 0.0
 
@@ -59,6 +61,8 @@ func reset_stats() -> void:
 	salt_unlocked = false
 	wormwood = false
 	oak_heart = false
+	garlic = false
+	torch = false
 
 
 func _physics_process(delta: float) -> void:
