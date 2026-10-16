@@ -13,6 +13,7 @@ static var _tex: Texture2D
 static var _cache := {}
 static var _snd := {}
 static var audio: Audio
+static var touch_mode := false
 
 
 static func tex(path: String) -> Texture2D:

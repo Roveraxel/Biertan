@@ -64,9 +64,22 @@ func _physics_process(delta: float) -> void:
 		queue_redraw()
 		return
 	var dir := Input.get_vector("move_left", "move_right", "move_up", "move_down")
-	var md := get_global_mouse_position() - global_position
-	if md.length() > 8.0:
-		facing = md.normalized()
+	if G.touch_mode:
+		var best := 300.0
+		var bd := Vector2.ZERO
+		for e in get_tree().get_nodes_in_group("enemies"):
+			var to: Vector2 = e.global_position - global_position
+			if to.length() < best:
+				best = to.length()
+				bd = to.normalized()
+		if bd != Vector2.ZERO:
+			facing = bd
+		elif dir != Vector2.ZERO:
+			facing = dir
+	else:
+		var md := get_global_mouse_position() - global_position
+		if md.length() > 8.0:
+			facing = md.normalized()
 	if dodge_t > 0.0:
 		dodge_t -= delta
 		velocity = dodge_dir * (600.0 if charm_dodge else 540.0)

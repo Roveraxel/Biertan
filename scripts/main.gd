@@ -8,6 +8,8 @@ var player: Player
 var cam: Camera2D
 var mod: CanvasModulate
 var hud: Hud
+var touch: TouchUI
+var touch_test := false
 var ui: CanvasLayer
 var fade: ColorRect
 var boss: Node = null
@@ -35,6 +37,10 @@ func _ready() -> void:
 	hud = Hud.new()
 	hud.main = self
 	ui.add_child(hud)
+	G.touch_mode = OS.has_feature("web_android") or OS.has_feature("web_ios")
+	touch = TouchUI.new()
+	touch.main = self
+	ui.add_child(touch)
 	var fl := CanvasLayer.new()
 	fl.layer = 20
 	add_child(fl)
@@ -54,7 +60,11 @@ func _ready() -> void:
 	cam.position_smoothing_speed = 7.0
 	player.add_child(cam)
 	for a in OS.get_cmdline_user_args():
-		if a == "--autotest":
+		if a == "--touchtest":
+			test_mode = true
+			touch_test = true
+			G.touch_mode = true
+		elif a == "--autotest":
 			test_mode = true
 		elif a.begins_with("--shots="):
 			shots_dir = a.substr(8)
@@ -63,7 +73,10 @@ func _ready() -> void:
 	var tw := create_tween()
 	tw.tween_property(fade, "color:a", 0.0, 0.8)
 	if test_mode:
-		run_test()
+		if touch_test:
+			run_touch_test()
+		else:
+			run_test()
 
 
 func setup_input() -> void:
@@ -233,17 +246,23 @@ func _physics_process(_delta: float) -> void:
 					hover = n
 
 
+func _input(event: InputEvent) -> void:
+	if (event is InputEventMouseMotion or event is InputEventMouseButton) and not touch_test:
+		G.touch_mode = false
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if state == "title":
 		hud.title_input(event)
 		return
-	var pressed: bool = event.is_action_pressed("interact") or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT)
+	var tap: bool = event is InputEventScreenTouch and event.pressed
+	var pressed: bool = tap or event.is_action_pressed("interact") or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT)
 	if not pressed:
 		return
 	if state == "dialogue":
 		advance_dialogue()
 	elif state == "dead":
-		if event.is_action_pressed("interact"):
+		if tap or event.is_action_pressed("interact"):
 			respawn()
 	elif state == "play" and event.is_action_pressed("interact") and hover != null:
 		hover.interact()
@@ -496,3 +515,50 @@ func snap(name: String) -> void:
 	var img := get_viewport().get_texture().get_image()
 	if img != null:
 		img.save_png("%s/%s.png" % [shots_dir, name])
+
+
+func run_touch_test() -> void:
+	var fails: Array = []
+	var chk := func(cond: bool, msg: String) -> void:
+		print(("  ok   " if cond else "  FAIL ") + msg)
+		if not cond:
+			fails.append(msg)
+	await get_tree().create_timer(1.0).timeout
+	start_game()
+	await get_tree().create_timer(1.5).timeout
+	var p0 := player.global_position
+	var down := InputEventScreenTouch.new()
+	down.index = 0
+	down.pressed = true
+	down.position = Vector2(200, 560)
+	touch._input(down)
+	var drag := InputEventScreenDrag.new()
+	drag.index = 0
+	drag.position = Vector2(290, 560)
+	touch._input(drag)
+	await get_tree().create_timer(0.6).timeout
+	chk.call(player.global_position.x > p0.x + 20.0, "thumbstick moves player right")
+	var up := InputEventScreenTouch.new()
+	up.index = 0
+	up.pressed = false
+	up.position = Vector2(290, 560)
+	touch._input(up)
+	await get_tree().create_timer(0.2).timeout
+	var p1 := player.global_position
+	await get_tree().create_timer(0.3).timeout
+	chk.call(player.global_position.distance_to(p1) < 2.0, "releasing stick stops player")
+	var b := InputEventScreenTouch.new()
+	b.index = 1
+	b.pressed = true
+	b.position = Vector2(vp_size().x - 130, vp_size().y - 130)
+	touch._input(b)
+	await get_tree().create_timer(0.1).timeout
+	b.pressed = false
+	touch._input(b)
+	chk.call(G.touch_mode, "touch mode on")
+	print("TOUCH TEST ", "PASS" if fails.is_empty() else "FAIL")
+	get_tree().quit(0 if fails.is_empty() else 1)
+
+
+func vp_size() -> Vector2:
+	return get_viewport_rect().size

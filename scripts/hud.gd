@@ -55,7 +55,7 @@ func title_input(event: InputEvent) -> void:
 		for i in ITEMS.size():
 			if menu_rect(i).has_point(p):
 				menu_idx = i
-	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+	elif (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT) or (event is InputEventScreenTouch and event.pressed):
 		var p: Vector2 = event.position / s
 		for i in ITEMS.size():
 			if menu_rect(i).has_point(p):
@@ -206,7 +206,7 @@ func draw_title() -> void:
 			draw_colored_polygon(PackedVector2Array([Vector2(r.position.x + 8, py), Vector2(r.position.x + 16, py - 7), Vector2(r.position.x + 24, py), Vector2(r.position.x + 16, py + 7)]), G.BLOOD)
 		txt(Vector2(r.position.x + 40 + off, r.position.y + 38), ITEMS[i], 32, col)
 	txt(Vector2(96, 790), "Salt for the dead. Silver for what walks.", 18, G.MUTED.darkened(0.3))
-	txt(Vector2(1344, 790), "WASD move · Mouse attack · Space dodge · E interact · Q tincture", 15, G.MUTED.darkened(0.35), HORIZONTAL_ALIGNMENT_RIGHT, 700)
+	txt(Vector2(1344, 790), "Tap to begin · Left thumb moves · Strike auto-aims" if G.touch_mode else "WASD move · Mouse attack · Space dodge · E interact · Q tincture", 15, G.MUTED.darkened(0.35), HORIZONTAL_ALIGNMENT_RIGHT, 700)
 	if msg_t > 0.0:
 		txt(Vector2(96, 760), msg, 20, Color(G.AMBER, minf(1.0, msg_t)))
 	draw_set_transform_matrix(Transform2D.IDENTITY)
@@ -214,7 +214,9 @@ func draw_title() -> void:
 
 func draw_hud() -> void:
 	var p: Player = main.player
-	var sz := size
+	var k := 1.3 if G.touch_mode else 1.0
+	draw_set_transform_matrix(Transform2D(0.0, Vector2(k, k), 0.0, Vector2.ZERO))
+	var sz := size / k
 	if p.hurt_flash > 0.0:
 		draw_rect(Rect2(Vector2.ZERO, sz), Color(0.7, 0.05, 0.05, p.hurt_flash * 0.8))
 	bar(Rect2(24, 24, 250, 18), p.hp / p.max_hp, Color("b3372f"))
@@ -234,7 +236,7 @@ func draw_hud() -> void:
 	txt(Vector2(24, 112), q, 14, G.MUTED)
 	for i in toasts.size():
 		var a: float = minf(1.0, toasts[i][1])
-		txt(Vector2(sz.x - 24, 40 + i * 26), toasts[i][0], 15, Color(G.TEXT, a), HORIZONTAL_ALIGNMENT_RIGHT, 760)
+		txt(Vector2(sz.x - 24, (84 if G.touch_mode else 40) + i * 26), toasts[i][0], 15, Color(G.TEXT, a), HORIZONTAL_ALIGNMENT_RIGHT, 760)
 	if banner_t > 0.0:
 		var a := minf(1.0, banner_t) * minf(1.0, (3.6 - banner_t) * 3.0)
 		txt(Vector2(0, 150), banner_text, 44, Color(G.TEXT, a), HORIZONTAL_ALIGNMENT_CENTER, sz.x)
@@ -249,17 +251,21 @@ func draw_hud() -> void:
 		if bs.phase >= 2 and not bs.vulnerable():
 			txt(Vector2(0, 98), "Shrouded in shadow. Strike it only near a lit brazier.", 14, G.AMBER, HORIZONTAL_ALIGNMENT_CENTER, sz.x)
 	if main.state == "play" and main.hover != null:
-		txt(Vector2(0, sz.y - 70), main.hover.prompt_text(), 20, G.AMBER, HORIZONTAL_ALIGNMENT_CENTER, sz.x)
+		var pt: String = main.hover.prompt_text()
+		if G.touch_mode:
+			pt = pt.replace("E   ", "")
+		txt(Vector2(0, sz.y - 70), pt, 20, G.AMBER, HORIZONTAL_ALIGNMENT_CENTER, sz.x)
 	if main.state == "dialogue":
 		var r := Rect2(150, sz.y - 210, sz.x - 300, 170)
 		draw_rect(r, Color(0.03, 0.03, 0.05, 0.92))
 		draw_rect(r, G.AMBER.darkened(0.3), false, 2.0)
 		txt(Vector2(r.position.x + 24, r.position.y + 34), main.dlg_speaker, 20, G.AMBER)
 		draw_multiline_string(font, Vector2(r.position.x + 24, r.position.y + 68), main.dlg_lines[main.dlg_idx], HORIZONTAL_ALIGNMENT_LEFT, r.size.x - 48, 19, -1, G.TEXT)
-		txt(Vector2(r.end.x - 24, r.end.y - 14), "E / click  >", 14, G.MUTED, HORIZONTAL_ALIGNMENT_RIGHT, 200)
+		txt(Vector2(r.end.x - 24, r.end.y - 14), ("tap  >" if G.touch_mode else "E / click  >"), 14, G.MUTED, HORIZONTAL_ALIGNMENT_RIGHT, 200)
 	if main.state == "dead":
 		draw_rect(Rect2(Vector2.ZERO, sz), Color(0.1, 0, 0, 0.6))
 		txt(Vector2(0, sz.y / 2.0), "YOU HAVE FALLEN", 56, G.BLOOD, HORIZONTAL_ALIGNMENT_CENTER, sz.x)
 		txt(Vector2(0, sz.y / 2.0 + 44), "Press E to rise again in Saschiz", 20, G.MUTED, HORIZONTAL_ALIGNMENT_CENTER, sz.x)
 	if play_time < 25.0 and main.state != "dead":
-		txt(Vector2(24, sz.y - 24), "WASD move · Mouse aim + click attack · Space dodge · E interact · Q tincture", 14, Color(G.MUTED, clampf(25.0 - play_time, 0.0, 1.0)))
+		var hint := "Left thumb: move · Strike auto-aims · tap USE near people" if G.touch_mode else "WASD move · Mouse aim + click attack · Space dodge · E interact · Q tincture"
+		txt(Vector2(24, sz.y - 24), hint, 14, Color(G.MUTED, clampf(25.0 - play_time, 0.0, 1.0)))
