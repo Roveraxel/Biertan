@@ -19,6 +19,11 @@ var t := 0.0
 var quest := 0  # 0 none, 1 accepted, 2 boss slain, 3 complete
 var smith_level := 0
 var met_ileana := false
+var quest2 := 0  # 0 none, 1 accepted, 2 Muma slain, 3 complete
+var visited_richis := false
+var met_vasile := false
+var rozalia_thanked := false
+const SAVE_PATH := "user://biertan_save.json"
 var dlg_speaker := ""
 var dlg_lines: Array = []
 var dlg_idx := 0
@@ -84,7 +89,7 @@ func setup_input() -> void:
 		"move_up": [KEY_W, KEY_UP], "move_down": [KEY_S, KEY_DOWN],
 		"move_left": [KEY_A, KEY_LEFT], "move_right": [KEY_D, KEY_RIGHT],
 		"dodge": [KEY_SPACE, KEY_SHIFT], "interact": [KEY_E, KEY_ENTER],
-		"potion": [KEY_Q], "attack": [KEY_J],
+		"potion": [KEY_Q], "attack": [KEY_J], "salt": [KEY_R],
 	}
 	for a in map:
 		if not InputMap.has_action(a):
@@ -107,6 +112,10 @@ func start_game() -> void:
 	quest = 0
 	smith_level = 0
 	met_ileana = false
+	quest2 = 0
+	visited_richis = false
+	met_vasile = false
+	rozalia_thanked = false
 	G.dusk = 0.3
 	state = "play"
 	await goto("hub")
@@ -132,6 +141,14 @@ func goto(name: String, at := Vector2(-1, -1)) -> void:
 			level = ForestLevel.new()
 		"arena":
 			level = ArenaLevel.new()
+		"richis":
+			level = RichisLevel.new()
+		"hills":
+			level = HillsLevel.new()
+		"caves":
+			level = CavesLevel.new()
+		"hollow":
+			level = HollowLevel.new()
 	current = name
 	level.main = self
 	add_child(level)
@@ -153,8 +170,25 @@ func goto(name: String, at := Vector2(-1, -1)) -> void:
 	elif name == "arena":
 		G.audio.set_music("music_boss", -8.0)
 		G.audio.set_ambient("amb_wind", -14.0)
-	if name == "hub":
+	elif name == "richis":
+		G.audio.set_music("music_hub", -9.0)
+		G.audio.set_ambient("amb_fire", -16.0)
+	elif name == "hills":
+		G.audio.set_music("music_hills", -9.0)
+		G.audio.set_ambient("amb_wind", -12.0)
+	elif name == "caves":
+		G.audio.set_music("music_cave", -8.0)
+		G.audio.set_ambient("amb_cave", -8.0)
+	elif name == "hollow":
+		G.audio.set_music("music_muma", -8.0)
+		G.audio.set_ambient("amb_wind", -16.0)
+	if name == "richis":
+		visited_richis = true
+	if name == "hub" or name == "richis":
 		G.dusk = 0.45
+		save_game.call_deferred()
+	elif name == "hills" and G.dusk < 0.2:
+		G.dusk = 0.2
 	elif name == "forest" and G.dusk < 0.15:
 		G.dusk = 0.15
 	if was_play or state == "play":
@@ -177,8 +211,7 @@ func try_leave_hub() -> void:
 		toast("Speak with Frau Anna before you leave.")
 		player.velocity = Vector2(-300, 0)
 	elif quest >= 3:
-		toast("The road to Richiș is not yet walked. (Level 2 in development)")
-		player.velocity = Vector2(-300, 0)
+		goto("richis", Vector2(300, 600))
 	else:
 		goto("forest")
 
@@ -186,6 +219,52 @@ func try_leave_hub() -> void:
 func leave_forest_west() -> void:
 	if state == "play" and not transitioning:
 		goto("hub", Vector2(1540, 600))
+
+
+func leave_richis_west() -> void:
+	if state == "play" and not transitioning:
+		goto("hub", Vector2(1540, 600))
+
+
+func leave_richis_east() -> void:
+	if state != "play" or transitioning:
+		return
+	if quest2 == 0:
+		toast("Speak with the pastor before you leave.")
+		player.velocity = Vector2(-300, 0)
+	elif quest2 >= 3:
+		toast("The road to Moșna is not yet walked. (Level 3 in development)")
+		player.velocity = Vector2(-300, 0)
+	else:
+		goto("hills")
+
+
+func leave_hills_west() -> void:
+	if state == "play" and not transitioning:
+		goto("richis", Vector2(1540, 600))
+
+
+func enter_caves() -> void:
+	if state == "play" and not transitioning:
+		goto("caves")
+
+
+func leave_caves_west() -> void:
+	if state == "play" and not transitioning:
+		goto("hills", Vector2(2880, 810))
+
+
+func enter_hollow() -> void:
+	if state == "play" and not transitioning:
+		goto("hollow")
+
+
+func home() -> String:
+	return "richis" if visited_richis else "hub"
+
+
+func home_name() -> String:
+	return "Richiș" if visited_richis else "Saschiz"
 
 
 func enter_arena() -> void:
@@ -204,7 +283,7 @@ func respawn() -> void:
 	player.frozen = false
 	state = "play"
 	G.dusk = 0.3
-	goto("hub")
+	goto(home())
 
 
 func on_boss_dead() -> void:
@@ -218,6 +297,75 @@ func on_boss_dead() -> void:
 	goto("hub", Vector2(900, 880))
 
 
+func on_muma_dead() -> void:
+	banner("MUMA PĂDURII IS FELLED", "The wood grows quiet. Far off, children wake.")
+	await get_tree().create_timer(3.0).timeout
+	player.oak_heart = true
+	player.max_hp += 15.0
+	player.hp = player.max_hp
+	quest2 = 2
+	toast("Received: Heart of Oak  (+15 max health)")
+	toast("Found in her hollow: the clapper of a great bell")
+	await get_tree().create_timer(2.5).timeout
+	goto("richis", Vector2(900, 760))
+
+
+# ---------------------------------------------------------------- save
+
+func save_game() -> void:
+	var p := player
+	var d := {
+		"v": 1, "quest": quest, "quest2": quest2, "smith": smith_level, "ileana": met_ileana,
+		"richis": visited_richis, "vasile": met_vasile, "rozalia": rozalia_thanked,
+		"max_hp": p.max_hp, "dmg": p.dmg, "potions": p.potions, "coins": p.coins,
+		"charm_dodge": p.charm_dodge, "red_thread": p.red_thread, "salt": p.salt,
+		"salt_unlocked": p.salt_unlocked, "wormwood": p.wormwood, "oak": p.oak_heart,
+	}
+	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	if f != null:
+		f.store_string(JSON.stringify(d))
+
+
+static func has_save() -> bool:
+	return FileAccess.file_exists(SAVE_PATH)
+
+
+func continue_game() -> void:
+	if transitioning:
+		return
+	var f := FileAccess.open(SAVE_PATH, FileAccess.READ)
+	if f == null:
+		start_game()
+		return
+	var d = JSON.parse_string(f.get_as_text())
+	if typeof(d) != TYPE_DICTIONARY:
+		start_game()
+		return
+	player.reset_stats()
+	quest = int(d.get("quest", 0))
+	quest2 = int(d.get("quest2", 0))
+	smith_level = int(d.get("smith", 0))
+	met_ileana = bool(d.get("ileana", false))
+	visited_richis = bool(d.get("richis", false))
+	met_vasile = bool(d.get("vasile", false))
+	rozalia_thanked = bool(d.get("rozalia", false))
+	var p := player
+	p.max_hp = float(d.get("max_hp", 100.0))
+	p.hp = p.max_hp
+	p.dmg = float(d.get("dmg", 12.0))
+	p.potions = int(d.get("potions", 1))
+	p.coins = int(d.get("coins", 20))
+	p.charm_dodge = bool(d.get("charm_dodge", false))
+	p.red_thread = bool(d.get("red_thread", false))
+	p.salt = int(d.get("salt", 0))
+	p.salt_unlocked = bool(d.get("salt_unlocked", false))
+	p.wormwood = bool(d.get("wormwood", false))
+	p.oak_heart = bool(d.get("oak", false))
+	G.dusk = 0.45
+	state = "play"
+	await goto(home())
+
+
 # ---------------------------------------------------------------- frame
 
 func _process(delta: float) -> void:
@@ -227,9 +375,9 @@ func _process(delta: float) -> void:
 	else:
 		mod.color = Color.WHITE
 	if state == "play":
-		if current == "forest":
+		if current == "forest" or current == "hills":
 			G.dusk = minf(1.0, G.dusk + delta / 240.0)
-		elif current == "hub":
+		elif current == "hub" or current == "richis":
 			G.dusk = move_toward(G.dusk, 0.45, delta * 0.4)
 	player.frozen = (state == "dialogue" or state == "dead")
 
@@ -287,7 +435,8 @@ func voice(s: String) -> void:
 
 
 func marker_for(id: String) -> bool:
-	return (id == "anna" and (quest == 0 or quest == 2)) or (id == "ileana" and not met_ileana)
+	return (id == "anna" and (quest == 0 or quest == 2)) or (id == "ileana" and not met_ileana) \
+		or (id == "pastor" and (quest2 == 0 or quest2 == 2)) or (id == "vasile" and not met_vasile and quest2 >= 1)
 
 
 # ---------------------------------------------------------------- dialogue
@@ -323,12 +472,94 @@ func prop_used(p: Prop) -> void:
 			toast("A shepherd's coin sack.  +15 coins")
 		"fleece":
 			start_dialogue("Torn fleece", ["The wool is shredded. Three nights of throats opened, and not a drop of blood on the grass.", "Wolf prints circle the hut, but they stop where the moonlight ends. Something walks beside them."])
+		"crystal":
+			p.regrow = 20.0
+			player.salt += 2
+			player.salt_unlocked = true
+			G.sfx("crystal", -4.0, randf_range(0.9, 1.1))
+			G.fx_ring(p.get_parent(), p.global_position, Color(0.9, 0.95, 1.0, 0.8), 50)
+			toast("You chip off raw salt.  +2 salt  (R to throw)")
+		"cross":
+			p.used = true
+			player.hp = player.max_hp
+			G.sfx("potion", -4.0, 0.8)
+			G.fx_ring(p.get_parent(), player.global_position, Color(1.0, 0.85, 0.5, 0.8), 60)
+			start_dialogue("Wayside cross", ["A troiță of carved oak, painted with suns and a little roof against the rain. Someone has left bread at its foot.", "You stand a moment. The wind drops. Your wounds close."])
+		"greenman":
+			start_dialogue("The Green Man", ["A stone face wreathed in oak leaves, carved by Saxon masons three hundred years ago.", "Some say it guards the church from the wood. Some say the wood is watching through it."])
+		"bones":
+			p.used = true
+			player.coins += 25
+			player.potions += 1
+			G.sfx("coin", -4.0)
+			toast("A miner's purse and a stoppered flask.  +25 coins, +1 tincture")
 		"sign":
+			if p.id == "cave_sign":
+				start_dialogue("Miners' post", ["THE SALT CAVES. Imperial salt workings, closed by order.", "Below, someone has carved: 'Thirty men went down. Thirty came up. Count them again.'"])
+				return
+			if p.id == "lake_sign":
+				start_dialogue("Scratched into the salt", ["'She sings from the far side of the lake. The children follow the singing. Do not follow the singing.'"])
+				return
 			start_dialogue("Carved post", ["Beyond this post, the Moon Clearing. Old shepherds say the Varcolac sleeps there between eclipses.", "Light the braziers if the sky goes dark. Beasts that swallow the moon fear a hearth."])
 
 
 func talk(id: String) -> void:
 	match id:
+		"pastor":
+			if quest2 == 0:
+				start_dialogue("Pfarrer Lukas", [
+					"You carry the fang of a varcolac. Then God has sent you, or something older has.",
+					"Seven nights ago our children began to walk out of their beds, singing. Three are gone: little Ioan, Mitzi and Grete.",
+					"The Iele dance in the Hollow Hills and lead the young away. The women say the singing ends at the Salt Caves, and past them lies the Hollow, where Muma Pădurii keeps her house.",
+					"The Forest Mother takes children to keep the wood young. Bring them home. Vasile knows the caves, and salt is what the old dead cannot cross.",
+				], func():
+					quest2 = 1
+					player.potions += 1
+					banner("QUEST: THE SINGING CHILDREN", "Find the children beyond the Salt Caves.")
+					toast("The pastor gives you a garlic tincture."))
+			elif quest2 == 1:
+				start_dialogue("Pfarrer Lukas", ["The east gate leads to the Hollow Hills. Whatever you hear out there, do not dance."])
+			elif quest2 == 2:
+				start_dialogue("Pfarrer Lukas", [
+					"They walked in at dawn, all three, with moss in their hair and no memory of the night. The bells rang for them.",
+					"And this... a bell clapper, cast in Biertan. Muma Pădurii was keeping it in her hollow.",
+					"Someone silenced the bells of Biertan on purpose, and paid the old powers to keep them quiet. Go on to Moșna. Take the clapper home.",
+				], func():
+					quest2 = 3
+					player.coins += 60
+					player.hp = player.max_hp
+					banner("LEVEL 2 COMPLETE", "+60 coins.  Moșna awaits.")
+					save_game())
+			else:
+				start_dialogue("Pfarrer Lukas", ["Moșna is the next fortress on the road to Biertan. The clapper must go home."])
+		"vasile":
+			if not met_vasile:
+				start_dialogue("Vasile", [
+					"Going down into the salt? Then you will want this pouch.",
+					"Throw salt at your feet and it makes a circle the dead cannot cross. Anything unclean inside it burns. Iele hate it too.",
+					"Thirty years I cut salt down there. Miners buried in salt do not rot, and some of them got up again. Moroi, the old women call them.",
+				], func():
+					met_vasile = true
+					player.salt_unlocked = true
+					player.salt += 4
+					toast("Salt pouch.  +4 salt  (%s to throw)" % ("SALT" if G.touch_mode else "R")))
+			else:
+				start_dialogue("Vasile", ["The caves are full of salt-stone. Chip a piece where it glows.", "Or three pinches for ten coins, if you'd rather not bend."], buy_salt)
+		"katharina":
+			if not player.wormwood:
+				start_dialogue("Katharina", ["Wormwood and garlic, my dear. The Iele cannot bear the smell of pelin.", "Wear a sprig and their song will not hold your legs. Forty coins."], buy_wormwood)
+			else:
+				start_dialogue("Katharina", ["Garlic tincture, ten coins. The road east is long."], buy_potion)
+		"rozalia":
+			if quest2 < 2:
+				start_dialogue("Rozalia", ["My Ioan walked out singing. His eyes were open but he did not see me.", "Please. Bring him home."])
+			elif not rozalia_thanked:
+				start_dialogue("Rozalia", ["He is home. He remembers only a green woman and honey cake.", "Take these. I made them for him, but he has his mother now."], func():
+					rozalia_thanked = true
+					player.potions += 2
+					toast("Rozalia gives you two tinctures."))
+			else:
+				start_dialogue("Rozalia", ["God keep you on the road, Wanderer."])
 		"anna":
 			if quest == 0:
 				start_dialogue("Frau Anna Roth", [
@@ -352,7 +583,7 @@ func talk(id: String) -> void:
 					banner("GUEST OF THE HEARTH", "+50 coins.  Level 2: Richiș awaits.")
 					player.hp = player.max_hp)
 			else:
-				start_dialogue("Frau Anna Roth", ["Richiș lies two days east, past the Hollow Hills. The pastor there will want to hear what you carry.", "Garlic tincture, ten coins?"], buy_potion)
+				start_dialogue("Frau Anna Roth", ["Richiș lies east through the gate, along the old salt road. The pastor there will want to hear what you carry.", "Garlic tincture, ten coins?"], buy_potion)
 		"hans":
 			if smith_level >= 3:
 				start_dialogue("Master Hans", ["I can do no more for that blade. It is as keen as Saxon steel gets."])
@@ -387,6 +618,24 @@ func buy_potion() -> void:
 		toast("Garlic tincture bought.  -10 coins")
 	else:
 		toast("You need ten coins.")
+
+
+func buy_salt() -> void:
+	if player.coins >= 10:
+		player.coins -= 10
+		player.salt += 3
+		toast("Three pinches of salt.  -10 coins")
+	else:
+		toast("You need ten coins.")
+
+
+func buy_wormwood() -> void:
+	if player.coins >= 40:
+		player.coins -= 40
+		player.wormwood = true
+		toast("Wormwood sprig.  The Iele's song no longer slows you.")
+	else:
+		toast("You need forty coins.")
 
 
 func sharpen() -> void:
@@ -497,6 +746,141 @@ func run_test() -> void:
 		advance_dialogue()
 	chk.call(quest == 3, "quest completed with Anna")
 	await snap("08_hub_end")
+	# ------------------------------------------------ Level 2
+	try_leave_hub()
+	await get_tree().create_timer(1.2).timeout
+	chk.call(current == "richis", "travelled to Richiș")
+	await snap("09_richis")
+	leave_richis_east()
+	await get_tree().create_timer(0.3).timeout
+	chk.call(current == "richis", "east gate waits for the pastor")
+	talk("pastor")
+	while state == "dialogue":
+		advance_dialogue()
+	chk.call(quest2 == 1, "pastor's quest accepted")
+	talk("vasile")
+	while state == "dialogue":
+		advance_dialogue()
+	chk.call(player.salt_unlocked and player.salt == 4, "Vasile's salt pouch")
+	player.coins = 100
+	talk("katharina")
+	while state == "dialogue":
+		advance_dialogue()
+	chk.call(player.wormwood and player.coins == 60, "wormwood bought")
+	player.wormwood = false
+	leave_richis_east()
+	await get_tree().create_timer(1.2).timeout
+	chk.call(current == "hills", "Hollow Hills loaded")
+	var ie := 0
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if e.kind == "iele":
+			ie += 1
+	chk.call(ie >= 10, "Iele dance in the rings (%d)" % ie)
+	player.global_position = Vector2(900, 700)
+	cam.reset_smoothing()
+	await get_tree().create_timer(1.2).timeout
+	chk.call(player.slow_t > 0.0, "Iele song slows the hunter")
+	await snap("10_hills_iele")
+	player.salt_cd = 0.0
+	player.throw_salt()
+	chk.call(player.salt == 3 and get_tree().get_nodes_in_group("salt_rings").size() == 1, "salt ring thrown")
+	var iel: Enemy = null
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if e.kind == "iele":
+			iel = e
+			break
+	iel.global_position = player.global_position + Vector2(40, 0)
+	var ih := iel.hp
+	await get_tree().create_timer(0.3).timeout
+	chk.call(not is_instance_valid(iel) or iel.hp < ih, "salt burns the Iele")
+	await snap("11_hills_salt")
+	await clear_enemies()
+	chk.call(get_tree().get_nodes_in_group("enemies").is_empty(), "all hills enemies killable")
+	enter_caves()
+	await get_tree().create_timer(1.2).timeout
+	chk.call(current == "caves", "Salt Caves loaded")
+	var mo := 0
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if e.kind == "moroi":
+			mo += 1
+	chk.call(mo >= 8, "moroi lie in the salt (%d)" % mo)
+	var cry: Prop = null
+	for n in get_tree().get_nodes_in_group("interactable"):
+		if n.kind == "crystal":
+			cry = n
+			break
+	var s0 := player.salt
+	prop_used(cry)
+	chk.call(player.salt == s0 + 2 and not cry.can_interact(), "salt crystal chipped")
+	player.global_position = Vector2(700, 760)
+	cam.reset_smoothing()
+	await get_tree().create_timer(1.2).timeout
+	await snap("12_caves")
+	var risen := false
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if e.kind == "moroi" and e.state != "dormant":
+			risen = true
+	chk.call(risen, "moroi rise when approached")
+	await clear_enemies()
+	chk.call(get_tree().get_nodes_in_group("enemies").is_empty(), "all cave enemies killable")
+	enter_hollow()
+	await get_tree().create_timer(0.8).timeout
+	chk.call(current == "hollow" and boss is Muma, "Muma Pădurii spawned")
+	await get_tree().create_timer(3.2).timeout
+	await snap("13_hollow")
+	var m: Muma = boss
+	m.hop_t = 99.0
+	m.root_t = 99.0
+	m.hurt(20.0, Vector2.UP)
+	chk.call(m.hp == 400.0, "Muma takes damage in phase 1")
+	m.hp = 275.0
+	m.hurt(1.0, Vector2.UP)
+	chk.call(m.phase == 2, "Muma phase 2")
+	m.hop_t = 99.0
+	var mb := m.hp
+	m.hurt(10.0, Vector2.UP)
+	chk.call(m.hp == mb, "bark turns steel in phase 2")
+	player.global_position = m.global_position + Vector2(30, 40)
+	player.salt = 5
+	player.salt_cd = 0.0
+	player.throw_salt()
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	chk.call(m.vulnerable(), "salt burns away her bark")
+	m.hurt(10.0, Vector2.UP)
+	chk.call(m.hp == mb - 10.0, "Muma vulnerable after salt")
+	await snap("14_hollow_salt")
+	m.hp = 135.0
+	m.hurt(1.0, Vector2.UP)
+	chk.call(m.phase == 3, "Muma phase 3")
+	m.root_t = 0.0
+	await get_tree().create_timer(2.2).timeout
+	var roots := 0
+	for c in level.get_children():
+		if c is RootSpike:
+			roots += 1
+	chk.call(roots > 0, "roots erupt (%d)" % roots)
+	await snap("15_hollow_roots")
+	m.hp = 5.0
+	m.vuln_t = 5.0
+	m.bstate = "walk"
+	m.hurt(20.0, Vector2.UP)
+	await get_tree().create_timer(0.3).timeout
+	chk.call(boss == null or not is_instance_valid(boss), "Muma Pădurii slain")
+	await get_tree().create_timer(8.5).timeout
+	chk.call(quest2 == 2 and current == "richis" and player.oak_heart, "returned to Richiș with Heart of Oak")
+	talk("pastor")
+	while state == "dialogue":
+		advance_dialogue()
+	chk.call(quest2 == 3, "Level 2 completed with the pastor")
+	await snap("16_richis_end")
+	chk.call(has_save(), "game saved")
+	var c_saved := player.coins
+	player.coins = 0
+	quest2 = 0
+	await continue_game()
+	await get_tree().create_timer(0.8).timeout
+	chk.call(player.coins == c_saved and quest2 == 3 and current == "richis", "Continue restores the save")
 	player.god = false
 	player.hurt(9999.0, Vector2.RIGHT)
 	chk.call(state == "dead", "death state")
@@ -505,6 +889,23 @@ func run_test() -> void:
 	chk.call(state == "play" and player.hp > 0.0, "respawn works")
 	print("TEST RESULT: ", "OK" if fails.is_empty() else "FAILED %d" % fails.size())
 	get_tree().quit(0 if fails.is_empty() else 1)
+
+
+func clear_enemies() -> void:
+	for i in 600:
+		var es := get_tree().get_nodes_in_group("enemies")
+		if es.is_empty():
+			break
+		var e: Node2D = es[0]
+		player.global_position = e.global_position + Vector2(-50, 0)
+		player.facing = Vector2.RIGHT
+		player.attack_cd = 0.0
+		if e is Enemy and e.state in ["dormant", "idle", "rise"]:
+			e.state = "chase"
+		player.swing()
+		await get_tree().physics_frame
+		await get_tree().physics_frame
+		player.hp = player.max_hp
 
 
 func snap(name: String) -> void:

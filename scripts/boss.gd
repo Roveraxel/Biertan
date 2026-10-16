@@ -25,6 +25,16 @@ func setup(k: String) -> void:
 	aggro = 9999.0
 
 
+func hud_name() -> String:
+	return "THE VARCOLAC"
+
+
+func hud_hint() -> String:
+	if phase >= 2 and not vulnerable():
+		return "Shrouded in shadow. Strike it only near a lit brazier."
+	return ""
+
+
 func vulnerable() -> bool:
 	if phase == 1:
 		return true

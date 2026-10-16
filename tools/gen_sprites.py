@@ -127,6 +127,118 @@ def boss(pose):
 for p in ("idle", "howl", "charge"):
     sprites[f"boss_{p}"] = boss(p)
 
+
+# ================================================================ Level 2
+sprites["npc_pastor"] = human(
+    "#1c1a20", "#2a2730", "#b89478",
+    '<path d="M40 30 Q40 22 48 22 Q56 22 56 30 Q53 26 48 26 Q43 26 40 30Z" fill="#9a9a9a"/>'
+    '<path d="M45 43 L45 50 L48 47 L51 50 L51 43Z" fill="#f3ead6"/>',
+    belt="#1c1a20",
+    hand="#b89478",
+    held_l='<rect x="21" y="55" width="12" height="15" rx="1" fill="#3a1c14" stroke="#0b0d14" stroke-width="1"/><path d="M27 58 L27 67 M24 61 L30 61" stroke="#c9a24a" stroke-width="1.4"/>')
+
+sprites["npc_vasile"] = human(
+    "#8a8a86", "#b4b2aa", "#a98266",
+    '<path d="M38 30 Q38 20 48 20 Q58 20 58 30 L60 31 L36 31Z" fill="#5a5048" stroke="#0b0d14" stroke-width="1.5"/>'
+    '<path d="M42 40 Q48 47 54 40 Q48 44 42 40Z" fill="#cfcac0"/>',
+    belt="#4a3a2c",
+    front='<path d="M38 50 Q48 54 58 50" stroke="#e8e6e0" stroke-width="2" fill="none" opacity="0.7"/><circle cx="42" cy="66" r="1.5" fill="#f3f3f0"/><circle cx="55" cy="70" r="1.5" fill="#f3f3f0"/>',
+    hand="#a98266",
+    held_r='<rect x="67" y="40" width="3" height="34" fill="#6b4a2e"/><path d="M58 42 Q68 34 80 42 L76 44 Q68 39 62 44Z" fill="#6f747c" stroke="#0b0d14" stroke-width="1"/>')
+
+sprites["npc_katharina"] = human(
+    "#24324e", "#34466a", "#c09c80",
+    '<path d="M38 32 L38 20 L58 20 L58 32 Q56 26 48 26 Q40 26 38 32Z" fill="#141018" stroke="#0b0d14" stroke-width="1.5"/>'
+    '<path d="M38 22 L58 22" stroke="#b3372f" stroke-width="2.5"/><path d="M42 20 L41 14 M48 20 L48 13 M54 20 L55 14" stroke="#c9a24a" stroke-width="1.5"/>',
+    belt="#b3372f",
+    front='<path d="M39 52 L57 52 L58 79 Q48 83 38 79Z" fill="#7a2a2a" opacity="0.9"/><path d="M40 60 L56 60 M40 68 L56 68" stroke="#c9a24a" stroke-width="1.2"/>',
+    hand="#c09c80",
+    held_l='<path d="M20 60 Q28 72 36 60Z" fill="#8a6a3a" stroke="#0b0d14" stroke-width="1"/><path d="M23 59 L21 49 M27 59 L28 47 M32 59 L35 50" stroke="#8aa070" stroke-width="2" stroke-linecap="round"/>')
+
+sprites["npc_rozalia"] = human(
+    "#e8e2d2", "#f4efe2", "#b89478",
+    '<path d="M37 37 Q36 20 48 20 Q60 20 59 37 Q57 27 48 26 Q39 27 37 37Z" fill="#7a1e22" stroke="#0b0d14" stroke-width="1.5"/>'
+    '<path d="M39 30 L36 46 L42 40Z M57 30 L60 46 L54 40Z" fill="#7a1e22"/>',
+    belt="#7a1e22",
+    front='<path d="M40 44 L56 44 M40 48 L56 48" stroke="#b3372f" stroke-width="1.8"/><path d="M37 60 L59 60 L61 80 Q48 84 35 80Z" fill="#1a1414"/><path d="M38 64 L58 64" stroke="#b3372f" stroke-width="1.5"/>',
+    hand="#b89478")
+
+# ---- Iele: pale dancing maidens of the meadow
+def iele(sway):
+    s = sway
+    return f'''<svg {W}><defs><radialGradient id="ig"><stop offset="0" stop-color="#ffffff" stop-opacity="0.95"/><stop offset="1" stop-color="#cfd8ff" stop-opacity="0.25"/></radialGradient>
+<radialGradient id="ih"><stop offset="0" stop-color="#e8f0ff" stop-opacity="0.5"/><stop offset="1" stop-color="#e8f0ff" stop-opacity="0"/></radialGradient></defs>
+<ellipse cx="48" cy="88" rx="14" ry="3.5" fill="#cfd8ff" opacity="0.25"/><circle cx="48" cy="50" r="40" fill="url(#ih)"/>
+<path d="M{38+s} 22 Q{30+s} 40 {26+s*2} 58 Q{34+s} 52 40 46Z M{58+s} 22 Q{66+s} 40 {70+s*2} 58 Q{62+s} 52 56 46Z" fill="#f0ead8" opacity="0.85"/>
+<path d="M38 40 Q48 34 58 40 L{66+s*2} 80 Q{58+s} 74 {54+s} 82 Q{48} 76 {42-s} 82 Q{38-s} 74 {30-s*2} 80Z" fill="url(#ig)" stroke="#ffffff" stroke-width="1" stroke-opacity="0.6"/>
+<path d="M40 44 Q{26-s} {40-s} {18-s} {30-s*2}" stroke="#f4f0ff" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.8"/>
+<path d="M56 44 Q{70+s} {40+s} {78+s} {30+s*2}" stroke="#f4f0ff" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.8"/>
+<ellipse cx="48" cy="28" rx="8" ry="9" fill="#efe6e0" stroke="#9aa6c8" stroke-width="1"/>
+<path d="M40 26 Q42 15 48 15 Q54 15 56 26 Q52 20 48 20 Q44 20 40 26Z" fill="#f0ead8"/>
+<path d="M41 22 L45 20 L48 23 L51 20 L55 22" stroke="#d8c8ff" stroke-width="1.6" fill="none"/>
+<ellipse cx="45" cy="29" rx="1.6" ry="2.2" fill="#6a7aff"/><ellipse cx="51" cy="29" rx="1.6" ry="2.2" fill="#6a7aff"/>
+<path d="M46 34 Q48 35 50 34" stroke="#9a6a7a" stroke-width="1" fill="none"/></svg>'''
+
+sprites["iele_a"] = iele(0)
+sprites["iele_b"] = iele(3)
+
+# ---- Moroi: salt-crusted dead that rise from the cave floor
+def moroi(awake):
+    if not awake:
+        return f'''<svg {W}><ellipse cx="48" cy="80" rx="30" ry="9" fill="#2a2a30"/><ellipse cx="48" cy="76" rx="28" ry="8" fill="#6a6a70" stroke="#0b0d14" stroke-width="1.5"/>
+<path d="M28 74 Q36 66 46 70 Q56 64 68 74" fill="#d8d8de" opacity="0.7"/><circle cx="34" cy="72" r="2" fill="#f4f4f8"/><circle cx="60" cy="70" r="2.4" fill="#f4f4f8"/>
+<path d="M54 72 L58 62 L60 64 L62 58 L63 66" stroke="#9a9aa4" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg>'''
+    return f'''<svg {W}><ellipse cx="48" cy="86" rx="20" ry="5" fill="#000" opacity="0.45"/>
+<path d="M36 84 L40 66 M58 84 L55 66" stroke="#7a7a82" stroke-width="6" stroke-linecap="round"/>
+<path d="M30 70 Q28 44 44 36 Q62 32 66 50 L66 72 Q48 78 30 70Z" fill="#8a8a92" stroke="#0b0d14" stroke-width="2"/>
+<path d="M32 66 L36 50 L40 64 L46 48 L50 66 L56 50 L62 68" stroke="#4a4a52" stroke-width="1.5" fill="none" opacity="0.6"/>
+<path d="M34 46 Q22 56 20 70 L16 74 M20 70 L22 76 M20 70 L25 74" stroke="#9a9aa2" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+<path d="M62 46 Q74 56 76 70 L80 74 M76 70 L74 76 M76 70 L71 74" stroke="#9a9aa2" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+<ellipse cx="54" cy="34" rx="10" ry="11" fill="#b8b8c0" stroke="#0b0d14" stroke-width="1.8"/>
+<path d="M45 30 Q54 22 63 30" stroke="#e8e8ee" stroke-width="2" fill="none"/>
+<circle cx="50" cy="34" r="5" fill="#ff3a2a" opacity="0.25"/><circle cx="58" cy="34" r="5" fill="#ff3a2a" opacity="0.25"/>
+<circle cx="50" cy="34" r="1.8" fill="#ff3a2a"/><circle cx="58" cy="34" r="1.8" fill="#ff3a2a"/>
+<path d="M49 41 L51 44 L53 41 L55 44 L57 41" stroke="#1a1410" stroke-width="1.2" fill="none"/>
+<circle cx="38" cy="54" r="1.6" fill="#ffffff"/><circle cx="58" cy="60" r="1.8" fill="#ffffff"/><circle cx="44" cy="40" r="1.4" fill="#ffffff"/></svg>'''
+
+sprites["moroi_dormant"] = moroi(False)
+sprites["moroi_awake"] = moroi(True)
+
+# ---- Muma Pădurii: the Forest Mother
+MDEFS = ('<defs><radialGradient id="ge"><stop offset="0" stop-color="#9aff6a" stop-opacity="0.9"/><stop offset="1" stop-color="#9aff6a" stop-opacity="0"/></radialGradient>'
+         '<linearGradient id="bk" x1="0" x2="1"><stop offset="0" stop-color="#2a2016"/><stop offset="0.5" stop-color="#4a3a28"/><stop offset="1" stop-color="#241a12"/></linearGradient></defs>')
+
+def muma(pose):
+    if pose == "cast":
+        arms = ('<path d="M76 58 Q60 30 50 8 M50 8 L44 2 M50 8 L48 -1 M50 8 L56 2" stroke="#3a2c1e" stroke-width="7" fill="none" stroke-linecap="round"/>'
+                '<path d="M116 58 Q132 30 142 8 M142 8 L148 2 M142 8 L144 -1 M142 8 L136 2" stroke="#3a2c1e" stroke-width="7" fill="none" stroke-linecap="round"/>'
+                '<circle cx="50" cy="6" r="10" fill="url(#ge)"/><circle cx="142" cy="6" r="10" fill="url(#ge)"/>')
+    elif pose == "sweep":
+        arms = ('<path d="M76 60 Q52 70 30 64 M30 64 L22 58 M30 64 L20 66 M30 64 L24 72" stroke="#3a2c1e" stroke-width="7" fill="none" stroke-linecap="round"/>'
+                '<path d="M116 60 Q144 56 168 44 M168 44 L176 38 M168 44 L178 46 M168 44 L172 52" stroke="#3a2c1e" stroke-width="7" fill="none" stroke-linecap="round"/>')
+    else:
+        arms = ('<path d="M76 58 Q58 76 54 100 M54 100 L48 108 M54 100 L54 110 M54 100 L60 108" stroke="#3a2c1e" stroke-width="7" fill="none" stroke-linecap="round"/>'
+                '<path d="M116 58 Q134 76 138 100 M138 100 L132 108 M138 100 L138 110 M138 100 L144 108" stroke="#3a2c1e" stroke-width="7" fill="none" stroke-linecap="round"/>')
+    return f'''<svg {BW}>{MDEFS}<g transform="translate(0 6)"><ellipse cx="96" cy="132" rx="50" ry="8" fill="#000" opacity="0.5"/>
+<path d="M70 128 Q74 116 80 112 M122 128 Q118 116 112 112 M60 134 Q70 126 84 120 M132 134 Q122 126 108 120" stroke="#2a2016" stroke-width="5" fill="none" stroke-linecap="round"/>
+<path d="M74 56 Q72 30 96 26 Q120 30 118 56 L124 124 Q96 134 68 124Z" fill="url(#bk)" stroke="#0b0d14" stroke-width="2.5"/>
+<path d="M82 60 Q86 90 80 120 M96 54 Q98 90 94 126 M110 60 Q106 90 112 120" stroke="#1a120c" stroke-width="2" fill="none" opacity="0.8"/>
+<ellipse cx="100" cy="88" rx="7" ry="11" fill="#0b0d14"/>
+<path d="M80 100 Q76 96 72 100 Q76 102 80 100Z M114 76 Q118 70 124 74 Q118 78 114 76Z" fill="#b3372f"/><circle cx="76" cy="100" r="1" fill="#f3ead6"/>
+{arms}
+<path d="M70 40 Q60 70 64 110 L70 106 Q66 76 76 50Z M122 40 Q132 70 128 110 L122 106 Q126 76 116 50Z" fill="#3e5a2a" opacity="0.95"/>
+<path d="M72 30 Q96 4 120 30 Q122 44 116 52 Q96 40 76 52 Q70 44 72 30Z" fill="#4a6a30" stroke="#0b0d14" stroke-width="1.5"/>
+<path d="M80 46 Q96 36 112 46 L110 58 Q96 64 82 58Z" fill="#6a5a44" stroke="#0b0d14" stroke-width="1.5"/>
+<path d="M95 50 L91 60 L97 58Z" fill="#4a3a28"/>
+<circle cx="88" cy="50" r="7" fill="url(#ge)"/><circle cx="104" cy="50" r="7" fill="url(#ge)"/>
+<circle cx="88" cy="50" r="2" fill="#c8ff8a"/><circle cx="104" cy="50" r="2" fill="#c8ff8a"/>
+<path d="M88 61 L90 64 L92 61 L94 65 L96 61 L98 64 L100 61" stroke="#f3ead6" stroke-width="1.2" fill="none"/>
+<path d="M78 24 Q74 10 66 8 M114 24 Q118 10 126 8 M96 20 L96 6" stroke="#2a2016" stroke-width="3" stroke-linecap="round"/>
+<circle cx="66" cy="8" r="3" fill="#8a2a1c"/><circle cx="126" cy="8" r="3" fill="#8a2a1c"/></g></svg>'''
+
+for p in ("idle", "cast", "sweep"):
+    sprites[f"muma_{p}"] = muma(p)
+
 os.makedirs(OUT, exist_ok=True)
 for name, svg in sprites.items():
     with open(os.path.join(OUT, name + ".svg"), "w") as f:

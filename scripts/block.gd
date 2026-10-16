@@ -44,6 +44,8 @@ func _draw() -> void:
 			top = Color("5d584f"); face = Color("3a3731")
 		"stone":
 			top = Color("8d877a"); face = Color("5d584f")
+		"rock":
+			top = Color("4a4540"); face = Color("2c2926")
 	draw_rect(Rect2(-w / 2.0, -h, w, h), face)
 	draw_rect(Rect2(-w / 2.0, -d - h, w, d), top)
 	draw_rect(Rect2(-w / 2.0, -d - h, w, d), Color(0, 0, 0, 0.35), false, 2.0)
@@ -59,6 +61,13 @@ func _draw() -> void:
 		draw_rect(Rect2(-w / 2.0 + 10, -d - h + 10, w - 20, d - 20), top.darkened(0.25))
 		draw_line(Vector2(0, -d - h + 14), Vector2(0, -d - h + 40), G.AMBER.darkened(0.2), 3.0)
 		draw_line(Vector2(-8, -d - h + 24), Vector2(8, -d - h + 24), G.AMBER.darkened(0.2), 3.0)
+	if style == "rock":
+		var r := RandomNumberGenerator.new()
+		r.seed = int(position.x * 7.0 + position.y * 13.0)
+		for i in 5:
+			var p := Vector2(r.randf_range(-w / 2.0 + 6, w / 2.0 - 6), r.randf_range(-d - h + 6, -h - 4))
+			draw_line(p, p + Vector2(r.randf_range(-14, 14), r.randf_range(-6, 6)), Color(0.85, 0.87, 0.9, 0.35), 2.0)
+		draw_rect(Rect2(-w / 2.0, -h, w, 4), Color(0, 0, 0, 0.3))
 	if windows and h > 20.0:
 		var n := int(w / 60.0)
 		for i in n:

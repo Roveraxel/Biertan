@@ -30,6 +30,8 @@ func buttons() -> Array:
 		{"id": "dodge", "c": Vector2(s.x - 290, s.y - 70), "r": 50.0, "label": "DODGE"},
 		{"id": "potion", "c": Vector2(s.x - 60, s.y - 290), "r": 44.0, "label": "DRINK"},
 	]
+	if main.player.salt_unlocked:
+		arr.append({"id": "salt", "c": Vector2(s.x - 170, s.y - 300), "r": 44.0, "label": "SALT"})
 	if main.hover != null:
 		arr.append({"id": "interact", "c": Vector2(s.x - 280, s.y - 220), "r": 58.0, "label": "USE"})
 	arr.append({"id": "full", "c": Vector2(s.x - 40, 40), "r": 24.0, "label": ""})
@@ -162,6 +164,8 @@ func _draw() -> void:
 		var label: String = b.label
 		if b.id == "potion":
 			label = "DRINK x%d" % main.player.potions
+		elif b.id == "salt":
+			label = "SALT x%d" % main.player.salt
 		draw_string_outline(font, c2 + Vector2(-b.r, 7), label, HORIZONTAL_ALIGNMENT_CENTER, b.r * 2.0, 17 if b.r > 50 else 14, 4, Color(0, 0, 0, 0.9))
 		draw_string(font, c2 + Vector2(-b.r, 7), label, HORIZONTAL_ALIGNMENT_CENTER, b.r * 2.0, 17 if b.r > 50 else 14, G.TEXT)
 	if main.state != "play":

@@ -221,3 +221,116 @@ for bar in range(0, 8, 2):
         place(m, note(fr, 1.6, "pluck", 0.14), at + 2 * beat)
 save("music_boss", loopify(lp(m, 4500), 1.0), 0.65)
 print("audio written:", sorted(os.listdir(OUT)))
+
+
+# ============================================================ Level 2
+# salt: crystalline sprinkle
+d = 0.6
+x = np.zeros(int(d * SR))
+for at in rng.uniform(0.0, 0.45, 40):
+    tc = t_(0.03)
+    place(x, np.sin(2 * np.pi * rng.uniform(3000, 7000) * tc) * decay(tc, 160) * rng.uniform(0.3, 1.0), at)
+x += 0.25 * hp(noise(d), 4000) * env(int(d * SR), 0.02, 0.4)
+save("salt", x, 0.5)
+
+# crystal shatter
+d = 0.9
+tt = t_(d)
+x = sum(a * np.sin(2 * np.pi * f * tt) * decay(tt, k) for f, a, k in [(1760, 1, 5), (2637, 0.6, 7), (3951, 0.4, 9), (5274, 0.25, 12)])
+x += 0.6 * hp(noise(d), 2500) * decay(tt, 18)
+save("crystal", x, 0.6)
+
+# roots bursting from the earth
+d = 0.9
+tt = t_(d)
+x = lp(noise(d), 180) * env(len(tt), 0.05, 0.5) * 2.0 + 0.5 * lp(noise(d), 1500) * decay(np.maximum(tt - 0.35, 0), 9) * (tt > 0.35)
+save("root", x, 0.85)
+
+# iele song: wordless, too-sweet chorus with slow vibrato
+d = 2.6
+tt = t_(d)
+x = np.zeros(len(tt))
+for f0 in (587.33, 698.46, 880.0, 932.33):
+    vib = 1 + 0.012 * np.sin(2 * np.pi * rng.uniform(4.5, 6.0) * tt)
+    ph = 2 * np.pi * np.cumsum(f0 * vib) / SR
+    x += np.sin(ph) + 0.3 * np.sin(2 * ph) + 0.12 * np.sin(3 * ph)
+x = bp(x, 400, 2600) * np.sin(np.pi * tt / d) ** 1.2 + 0.08 * hp(noise(d), 5000) * np.sin(np.pi * tt / d)
+save("iele_song", x, 0.45)
+
+# moroi groan
+d = 1.3
+tt = t_(d)
+x = bp(signal.sawtooth(2 * np.pi * np.cumsum(90 - 25 * tt / d + 6 * np.sin(2 * np.pi * 7 * tt)) / SR) + 0.5 * noise(d), 120, 900) * env(len(tt), 0.15, 0.5)
+save("moroi", x, 0.7)
+
+# hag cackle
+d = 1.6
+tt = t_(d)
+puls = (np.sin(2 * np.pi * 7.5 * tt) > 0.2).astype(float)
+puls = lp(puls, 60)
+f = 520 + 180 * np.sin(2 * np.pi * 0.7 * tt) - 140 * tt / d
+x = bp(signal.sawtooth(2 * np.pi * np.cumsum(f) / SR) + 0.6 * noise(d), 500, 3200) * puls * env(len(tt), 0.02, 0.3)
+save("cackle", x, 0.75)
+
+# cave ambience: drips and a distant rumble
+d = 18.0
+x = 0.35 * lp(noise(d), 120)
+for at in rng.uniform(0, d - 1, 34):
+    tc = t_(0.35)
+    fr = rng.uniform(900, 2200)
+    drip = np.sin(2 * np.pi * np.cumsum(fr * (1 + 0.6 * np.exp(-30 * tc))) / SR) * decay(tc, 22)
+    place(x, drip * rng.uniform(0.15, 0.6), at)
+save("amb_cave", loopify(x, 1.0), 0.5)
+
+# hills music: A-dorian shepherd's flute over open fifths
+d = 30.0
+tt = t_(d)
+m = np.zeros(len(tt))
+for fr, vel in ((55.0, 0.8), (82.41, 0.5), (110.0, 0.3)):
+    m += vel * np.sin(2 * np.pi * fr * tt) * (0.7 + 0.3 * np.sin(2 * np.pi * tt / 15 + fr))
+dorian = scale_notes(440.0, [0, 2, 3, 5, 7, 9, 10], (0,))
+at = 1.5
+while at < d - 4:
+    for k in range(rng.integers(3, 6)):
+        fr = float(rng.choice(dorian))
+        nd = float(rng.choice([0.4, 0.6, 0.9, 1.4]))
+        tn = t_(nd)
+        ph = 2 * np.pi * np.cumsum(fr * (1 + 0.006 * np.sin(2 * np.pi * 5.2 * tn))) / SR
+        fl = (np.sin(ph) + 0.15 * np.sin(2 * ph)) * env(len(tn), 0.06, nd * 0.5) + 0.04 * hp(noise(nd), 3000)
+        place(m, fl * 0.22, at)
+        at += nd
+    at += rng.uniform(2.5, 4.5)
+save("music_hills", loopify(lp(m, 4200), 1.5), 0.6)
+
+# cave music: sub drone and reversed bells
+d = 30.0
+tt = t_(d)
+m = 0.9 * np.sin(2 * np.pi * 36.7 * tt) * (0.6 + 0.4 * np.sin(2 * np.pi * tt / 10)) + 0.4 * np.sin(2 * np.pi * 55.0 * tt + np.sin(2 * np.pi * 0.07 * tt))
+m += 0.15 * bp(noise(d), 200, 600) * (0.5 + 0.5 * np.sin(2 * np.pi * tt / 7.5))
+cold = scale_notes(146.83, [0, 1, 5, 6, 8], (1, 2))
+for at in np.arange(2.0, d - 5, 4.1):
+    if rng.random() < 0.8:
+        place(m, note(float(rng.choice(cold)), 3.0, "bell", 0.14)[::-1], at)
+save("music_cave", loopify(lp(m, 3000), 1.5), 0.6)
+
+# Muma Padurii: a dark hora in 7/8 (2+2+3) with cimbalom stabs, 132 bpm eighths
+eighth = 60.0 / 132 / 2 * 1.0
+bar = eighth * 7
+d = bar * 16
+m = np.zeros(int(d * SR))
+tt = t_(d)
+m += 0.45 * lp(signal.sawtooth(2 * np.pi * 49.0 * tt) + 0.6 * signal.sawtooth(2 * np.pi * 73.4 * tt), 420)
+cimb = scale_notes(196.0, [0, 1, 4, 5, 7, 8, 11], (0, 1))
+for b in range(16):
+    for i, accent in ((0, 1.0), (2, 0.7), (4, 0.85)):
+        at = b * bar + i * eighth
+        tb = t_(0.28)
+        kick = np.sin(2 * np.pi * np.cumsum(120 * np.exp(-9 * tb) + 45) / SR) * decay(tb, 11)
+        place(m, kick * accent, at)
+    for i in (1, 3, 5, 6):
+        place(m, hp(noise(0.08), 1500) * decay(t_(0.08), 40) * 0.22, b * bar + i * eighth)
+    if b % 2 == 0:
+        for j in range(4):
+            place(m, note(float(rng.choice(cimb)), 0.6, "pluck", 0.16), b * bar + (j * 1.75) * eighth)
+save("music_muma", loopify(lp(m, 4800), 0.8), 0.65)
+print("level 2 audio written")

@@ -3,7 +3,7 @@ extends Control
 ## Title screen (ported from the welcome-screen design) and in-game HUD.
 
 const ITEMS := ["Begin the Hunt", "Continue", "Bestiary", "Settings", "Leave the Valley"]
-const ENABLED := [true, false, false, false, true]
+var ENABLED := [true, false, false, false, true]
 
 var main
 var toasts: Array = []
@@ -27,6 +27,9 @@ func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	font = ThemeDB.fallback_font
+	ENABLED[1] = FileAccess.file_exists("user://biertan_save.json")
+	if ENABLED[1]:
+		menu_idx = 1
 
 
 func _process(delta: float) -> void:
@@ -78,6 +81,9 @@ func activate(i: int) -> void:
 	if i == 0:
 		play_time = 0.0
 		main.start_game()
+	elif i == 1:
+		play_time = 0.0
+		main.continue_game()
 	elif i == 4:
 		if OS.has_feature("web"):
 			msg = "Close the tab to leave the valley."
@@ -221,18 +227,27 @@ func draw_hud() -> void:
 		draw_rect(Rect2(Vector2.ZERO, sz), Color(0.7, 0.05, 0.05, p.hurt_flash * 0.8))
 	bar(Rect2(24, 24, 250, 18), p.hp / p.max_hp, Color("b3372f"))
 	txt(Vector2(30, 38), "HEALTH  %d / %d" % [int(p.hp), int(p.max_hp)], 13, G.TEXT)
-	if main.current == "forest":
+	if main.current == "forest" or main.current == "hills":
 		bar(Rect2(24, 54, 250, 8), G.dusk, Color("5a6aa8").lerp(Color("e8a94a"), 1.0 - G.dusk))
 		txt(Vector2(284, 62), "DUSK" if G.dusk < 0.85 else "NIGHT FALLS", 12, G.TEXT if G.dusk < 0.85 else G.BLOOD)
-	elif main.current == "hub":
+	elif main.current == "hub" or main.current == "richis":
 		txt(Vector2(24, 62), "SAFE HAVEN", 12, G.AMBER)
-	txt(Vector2(24, 90), "Coins %d      Tinctures %d  (Q)" % [p.coins, p.potions], 14, G.AMBER)
+	var inv := "Coins %d      Tinctures %d%s" % [p.coins, p.potions, "" if G.touch_mode else "  (Q)"]
+	if p.salt_unlocked:
+		inv += "      Salt %d%s" % [p.salt, "" if G.touch_mode else "  (R)"]
+	txt(Vector2(24, 90), inv, 14, G.AMBER)
 	var q := ""
 	match main.quest:
 		0: q = "Speak with Frau Anna at the inn."
 		1: q = "Quest: Where the Sheep Went. Slay the beast of the Wolf Forest."
 		2: q = "Return to Frau Anna with the Silver Thread."
-		3: q = "Level 1 complete. Richiș awaits."
+		3: q = "Level 1 complete. Take the east gate to Richiș."
+	if main.visited_richis:
+		match main.quest2:
+			0: q = "Speak with the pastor of Richiș."
+			1: q = "Quest: The Singing Children. Cross the Hollow Hills and the Salt Caves." if not main.met_vasile else "Quest: The Singing Children. Find Muma Pădurii's Hollow beyond the Salt Caves."
+			2: q = "Return to the pastor of Richiș."
+			3: q = "Level 2 complete. Moșna awaits."
 	txt(Vector2(24, 112), q, 14, G.MUTED)
 	for i in toasts.size():
 		var a: float = minf(1.0, toasts[i][1])
@@ -247,9 +262,12 @@ func draw_hud() -> void:
 		bar(r, bs.hp / bs.max_hp, Color("b3372f"))
 		draw_line(Vector2(r.position.x + r.size.x * 0.33, r.position.y), Vector2(r.position.x + r.size.x * 0.33, r.end.y), Color.BLACK, 2.0)
 		draw_line(Vector2(r.position.x + r.size.x * 0.66, r.position.y), Vector2(r.position.x + r.size.x * 0.66, r.end.y), Color.BLACK, 2.0)
-		txt(Vector2(0, 52), "THE VARCOLAC", 18, G.TEXT, HORIZONTAL_ALIGNMENT_CENTER, sz.x)
-		if bs.phase >= 2 and not bs.vulnerable():
-			txt(Vector2(0, 98), "Shrouded in shadow. Strike it only near a lit brazier.", 14, G.AMBER, HORIZONTAL_ALIGNMENT_CENTER, sz.x)
+		txt(Vector2(0, 52), bs.hud_name(), 18, G.TEXT, HORIZONTAL_ALIGNMENT_CENTER, sz.x)
+		var hint_s: String = bs.hud_hint()
+		if G.touch_mode:
+			hint_s = hint_s.replace("(R)", "(SALT)")
+		if hint_s != "":
+			txt(Vector2(0, 98), hint_s, 14, G.AMBER, HORIZONTAL_ALIGNMENT_CENTER, sz.x)
 	if main.state == "play" and main.hover != null:
 		var pt: String = main.hover.prompt_text()
 		if G.touch_mode:
@@ -265,7 +283,7 @@ func draw_hud() -> void:
 	if main.state == "dead":
 		draw_rect(Rect2(Vector2.ZERO, sz), Color(0.1, 0, 0, 0.6))
 		txt(Vector2(0, sz.y / 2.0), "YOU HAVE FALLEN", 56, G.BLOOD, HORIZONTAL_ALIGNMENT_CENTER, sz.x)
-		txt(Vector2(0, sz.y / 2.0 + 44), "Press E to rise again in Saschiz", 20, G.MUTED, HORIZONTAL_ALIGNMENT_CENTER, sz.x)
+		txt(Vector2(0, sz.y / 2.0 + 44), ("Tap" if G.touch_mode else "Press E") + " to rise again in " + main.home_name(), 20, G.MUTED, HORIZONTAL_ALIGNMENT_CENTER, sz.x)
 	if play_time < 25.0 and main.state != "dead":
 		var hint := "Left thumb: move · Strike auto-aims · tap USE near people" if G.touch_mode else "WASD move · Mouse aim + click attack · Space dodge · E interact · Q tincture"
 		txt(Vector2(24, sz.y - 24), hint, 14, Color(G.MUTED, clampf(25.0 - play_time, 0.0, 1.0)))

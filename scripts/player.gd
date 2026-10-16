@@ -25,6 +25,12 @@ var red_thread := false
 var frozen := false
 var god := false
 var light: PointLight2D
+var salt := 0
+var salt_unlocked := false
+var wormwood := false
+var oak_heart := false
+var pull := Vector2.ZERO
+var salt_cd := 0.0
 
 
 func _ready() -> void:
@@ -49,6 +55,10 @@ func reset_stats() -> void:
 	charm_dodge = false
 	red_thread = false
 	frozen = false
+	salt = 0
+	salt_unlocked = false
+	wormwood = false
+	oak_heart = false
 
 
 func _physics_process(delta: float) -> void:
@@ -58,6 +68,7 @@ func _physics_process(delta: float) -> void:
 	attack_t = maxf(0.0, attack_t - delta)
 	hurt_flash = maxf(0.0, hurt_flash - delta)
 	slow_t = maxf(0.0, slow_t - delta)
+	salt_cd = maxf(0.0, salt_cd - delta)
 	if frozen or hp <= 0.0:
 		velocity = velocity.move_toward(Vector2.ZERO, 1800.0 * delta)
 		move_and_slide()
@@ -85,7 +96,8 @@ func _physics_process(delta: float) -> void:
 		velocity = dodge_dir * (600.0 if charm_dodge else 540.0)
 	else:
 		var sp := speed * (0.55 if slow_t > 0.0 else 1.0)
-		velocity = velocity.move_toward(dir * sp, 2800.0 * delta)
+		velocity = velocity.move_toward(dir * sp + pull, 2800.0 * delta)
+		pull = Vector2.ZERO
 		if Input.is_action_just_pressed("dodge") and dodge_cd <= 0.0:
 			dodge_dir = dir if dir != Vector2.ZERO else facing
 			dodge_t = 0.22
@@ -97,6 +109,8 @@ func _physics_process(delta: float) -> void:
 			swing()
 		if Input.is_action_just_pressed("potion"):
 			drink()
+		if Input.is_action_just_pressed("salt"):
+			throw_salt()
 	move_and_slide()
 	if dir != Vector2.ZERO:
 		walk_t += delta * 9.0
@@ -121,6 +135,21 @@ func drink() -> void:
 		G.sfx("potion", -3.0)
 		G.fx_text(get_parent(), global_position, "+45", Color("7bd36a"))
 		G.fx_ring(get_parent(), global_position, Color("7bd36a"), 40)
+
+
+func throw_salt() -> void:
+	if not salt_unlocked or salt_cd > 0.0:
+		return
+	if salt <= 0:
+		if main != null:
+			main.toast("Your salt pouch is empty.")
+		return
+	salt -= 1
+	salt_cd = 1.0
+	var r := SaltRing.new()
+	r.position = global_position
+	get_parent().add_child(r)
+	G.sfx("salt", -3.0)
 
 
 func hurt(amount: float, dir: Vector2) -> void:

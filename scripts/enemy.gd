@@ -20,6 +20,10 @@ var knock := Vector2.ZERO
 var lunge_dir := Vector2.ZERO
 var hit_done := false
 var player: Node2D
+var home := Vector2.ZERO
+var orbit := 0.0
+var salted := 0.0
+static var song_t := 0.0
 
 
 func setup(k: String) -> void:
@@ -34,6 +38,12 @@ func setup(k: String) -> void:
 			state = "dormant"
 		"shade":
 			hp = 14.0; speed = 128.0; dmg = 6.0; radius = 12.0; coin = 0; aggro = 700.0
+		"iele":
+			hp = 26.0; speed = 170.0; dmg = 9.0; radius = 12.0; coin = 5; aggro = 330.0
+			orbit = randf() * TAU
+		"moroi":
+			hp = 60.0; speed = 76.0; dmg = 14.0; radius = 15.0; coin = 8; aggro = 190.0
+			state = "dormant"
 	max_hp = hp
 
 
@@ -61,10 +71,25 @@ func _physics_process(delta: float) -> void:
 	var to: Vector2 = player.global_position - global_position
 	var d := to.length()
 	var mult := 1.0 + 0.4 * G.dusk
+	salted = maxf(0.0, salted - delta)
+	if kind == "iele" and iele_step(delta, to, d, mult):
+		knock = knock.move_toward(Vector2.ZERO, 900.0 * delta)
+		move_and_slide()
+		queue_redraw()
+		return
 	match state:
 		"dormant", "idle":
 			velocity = knock
 			if d < aggro:
+				if kind == "moroi" and state == "dormant":
+					state = "rise"
+					t = 0.0
+					G.sfx("moroi", -4.0, randf_range(0.85, 1.1))
+				else:
+					state = "chase"
+		"rise":
+			velocity = Vector2.ZERO
+			if t > 0.8:
 				state = "chase"
 		"chase":
 			var dir := to.normalized()
@@ -96,6 +121,63 @@ func _physics_process(delta: float) -> void:
 	knock = knock.move_toward(Vector2.ZERO, 900.0 * delta)
 	move_and_slide()
 	queue_redraw()
+
+
+func undead() -> bool:
+	return kind in ["iele", "moroi", "shade"]
+
+
+func salt_hit(ring: Node2D, delta: float) -> void:
+	var burn := 16.0 if kind == "moroi" else 11.0
+	hp -= burn * delta
+	flash = 0.05
+	var out: Vector2 = (global_position - ring.global_position).normalized()
+	knock = out * 260.0
+	if salted <= 0.0:
+		G.fx_text(get_parent(), global_position + Vector2(0, -30), "salt!", Color("e8eeff"))
+		if state == "dormant":
+			state = "chase"
+	salted = 0.6
+	if hp <= 0.0:
+		die()
+
+
+## Iele: dance around their fairy ring, then circle the hunter, sing to
+## slow and draw them in, and dart in for a strike.
+func iele_step(delta: float, to: Vector2, d: float, mult: float) -> bool:
+	if state in ["windup", "lunge"]:
+		return false
+	if state == "idle":
+		orbit += delta * 1.3
+		var target := home + Vector2.from_angle(orbit) * 70.0
+		velocity = (target - global_position) * 3.0 + knock
+		face = Vector2.from_angle(orbit + PI / 2.0)
+		if d < aggro:
+			state = "chase"
+			if song_t <= 0.0:
+				G.sfx("iele_song", -6.0, randf_range(0.95, 1.05))
+				song_t = 4.5
+				player.main.toast("The Iele sing. Your legs grow heavy...")
+		return true
+	song_t = maxf(0.0, song_t - delta / 3.0)
+	orbit += delta * 1.5
+	var tgt: Vector2 = player.global_position + Vector2.from_angle(orbit) * 135.0
+	face = to.normalized()
+	velocity = (tgt - global_position).limit_length(speed * mult) + knock + separation()
+	if salted > 0.0:
+		velocity = -to.normalized() * speed + knock
+	if d < 290.0 and salted <= 0.0 and not player.wormwood:
+		player.slow_t = maxf(player.slow_t, 0.15)
+		player.pull += -to.normalized() * 55.0
+	if song_t <= 0.0 and d < 300.0:
+		song_t = 4.5
+		G.sfx("iele_song", -9.0, randf_range(0.9, 1.1))
+	if d < 210.0 and atk_cd <= 0.0 and salted <= 0.0:
+		state = "windup"
+		t = 0.15
+	if d > aggro * 2.2:
+		state = "idle"
+	return true
 
 
 func separation() -> Vector2:
@@ -202,6 +284,26 @@ func _draw() -> void:
 		if htex != null:
 			var al := 0.8 + 0.15 * sin(t * 5.0)
 			draw_texture_rect(htex, Rect2(-36, -62, 72, 72), false, Color(1, 1, 1, al) if flash <= 0.0 else Color(2, 2, 2, 1))
+			draw_health_bar()
+			return
+	if kind == "iele":
+		var itex := G.tex("res://assets/sprites/iele_%s.svg" % ("a" if int(t * 4.0) % 2 == 0 else "b"))
+		if itex != null:
+			var al := 0.78 + 0.18 * sin(t * 4.0)
+			var hov := sin(t * 3.0 + orbit) * 4.0
+			draw_texture_rect(itex, Rect2(-36, -66 + hov, 72, 72), false, Color(2, 2, 2) if flash > 0.0 else Color(1, 1, 1, al))
+			if state == "windup":
+				draw_circle(Vector2(0, -26), 22, Color(0.7, 0.8, 1.0, 0.25 + 0.2 * sin(t * 30.0)))
+			draw_health_bar()
+			return
+	if kind == "moroi":
+		var mtex := G.tex("res://assets/sprites/moroi_%s.svg" % ("dormant" if state == "dormant" else "awake"))
+		if mtex != null:
+			var rise := clampf(t / 0.8, 0.0, 1.0) if state == "rise" else 1.0
+			var flip := face.x < 0.0
+			draw_set_transform(Vector2(0, 10.0 * (1.0 - rise)), 0, Vector2(-1.0 if flip else 1.0, rise if state == "rise" else 1.0))
+			draw_texture_rect(mtex, Rect2(-40, -69, 80, 80), false, Color(2, 2, 2) if flash > 0.0 else Color.WHITE)
+			draw_set_transform(Vector2.ZERO, 0, Vector2.ONE)
 			draw_health_bar()
 			return
 	if kind == "wolf" or kind == "pricolici":
