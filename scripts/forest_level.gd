@@ -152,6 +152,7 @@ func _process(delta: float) -> void:
 		p = p.clamp(Vector2(60, 60), size - Vector2(60, 60))
 		spawn_enemy("wolf", p)
 		main.toast("Night hunters stir in the dark...")
+		G.sfx("howl", -6.0)
 
 
 func draw_ground() -> void:

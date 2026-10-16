@@ -48,11 +48,15 @@ func _draw() -> void:
 	match kind:
 		"npc":
 			var bob := sin(t * 2.0 + position.x) * 1.0
-			draw_circle(Vector2(0, -14 + bob), 12, col)
-			draw_circle(Vector2(0, -16 + bob), 8, col.lightened(0.15))
-			draw_circle(Vector2(0, -30 + bob), 8, Color("d9b48f"))
-			draw_circle(Vector2(0, -34 + bob), 8, col.darkened(0.45))
-			draw_circle(Vector2(0, -30 + bob), 5.5, Color("d9b48f"))
+			var ntex := G.tex("res://assets/sprites/npc_%s.svg" % id)
+			if ntex != null:
+				draw_texture_rect(ntex, Rect2(-40, -69 + bob, 80, 80), false)
+			else:
+				draw_circle(Vector2(0, -14 + bob), 12, col)
+				draw_circle(Vector2(0, -16 + bob), 8, col.lightened(0.15))
+				draw_circle(Vector2(0, -30 + bob), 8, Color("d9b48f"))
+				draw_circle(Vector2(0, -34 + bob), 8, col.darkened(0.45))
+				draw_circle(Vector2(0, -30 + bob), 5.5, Color("d9b48f"))
 			draw_string_outline(f, Vector2(-110, -50), display, HORIZONTAL_ALIGNMENT_CENTER, 220, 13, 4, Color(0, 0, 0, 0.9))
 			draw_string(f, Vector2(-110, -50), display, HORIZONTAL_ALIGNMENT_CENTER, 220, 13, G.TEXT)
 			if main != null and main.marker_for(id):

@@ -10,6 +10,7 @@ var bt := 0.0
 var charge_dir := Vector2.RIGHT
 var howl_t := 7.0
 var swallow_t := 6.0
+var howl_anim := 0.0
 var arena
 
 
@@ -44,6 +45,7 @@ func hurt(amount: float, dir: Vector2) -> void:
 	flash = 0.1
 	knock = dir * 90.0
 	G.fx_text(get_parent(), global_position + Vector2(randf_range(-20, 20), -40), str(int(amount)), Color("ffe08a"))
+	G.sfx("hit", -2.0, 0.75)
 	if hp <= 0.0:
 		die()
 		return
@@ -59,6 +61,7 @@ func hurt(amount: float, dir: Vector2) -> void:
 
 func die() -> void:
 	died.emit(self)
+	G.sfx("boss_roar", 0.0, 0.9)
 	for i in 3:
 		G.fx_ring(get_parent(), global_position, Color(1, 0.8, 0.5, 0.9), 120 + i * 60, 0.7 + i * 0.2)
 	queue_free()
@@ -69,6 +72,7 @@ func _physics_process(delta: float) -> void:
 	flash = maxf(0.0, flash - delta)
 	atk_cd = maxf(0.0, atk_cd - delta)
 	modulate.a = 1.0 if vulnerable() else 0.55
+	howl_anim = maxf(0.0, howl_anim - delta)
 	if player == null or not is_instance_valid(player):
 		player = get_tree().get_first_node_in_group("player")
 	if player == null or player.hp <= 0.0:
@@ -136,7 +140,7 @@ func _physics_process(delta: float) -> void:
 	queue_redraw()
 
 
-func _draw() -> void:
+func _draw_fallback() -> void:
 	var tint := Color(1, 1, 1, 1)
 	if flash > 0.0:
 		tint = Color(2, 2, 2, 1)
@@ -164,4 +168,22 @@ func _draw() -> void:
 	draw_line(Vector2(-50, 0), Vector2(-78, sin(t * 6.0) * 10.0), fur.darkened(0.2), 9.0)
 	draw_circle(Vector2(62, -7), 3.4, Color("ff2a1a"))
 	draw_circle(Vector2(62, 7), 3.4, Color("ff2a1a"))
+	draw_set_transform(Vector2.ZERO, 0, Vector2.ONE)
+
+
+func _draw() -> void:
+	var pose := "idle"
+	if bstate == "charge" or bstate == "telegraph":
+		pose = "charge"
+	elif howl_anim > 0.0:
+		pose = "howl"
+	var tex := G.tex("res://assets/sprites/boss_%s.svg" % pose)
+	if tex == null:
+		_draw_fallback()
+		return
+	if bstate == "telegraph":
+		draw_line(Vector2(0, -20), Vector2(0, -20) + charge_dir * 700.0, Color(1, 0.15, 0.1, 0.3 + 0.3 * sin(t * 25.0)), 8.0)
+	var flip := face.x < 0.0
+	draw_set_transform(Vector2.ZERO, 0, Vector2(-1.0 if flip else 1.0, 1.0))
+	draw_texture_rect(tex, Rect2(-129, -161, 288, 216), false, Color(2, 2, 2) if flash > 0.0 else Color.WHITE)
 	draw_set_transform(Vector2.ZERO, 0, Vector2.ONE)

@@ -113,6 +113,7 @@ func hurt(amount: float, dir: Vector2) -> void:
 	hp -= amount
 	flash = 0.12
 	knock = dir * 280.0
+	G.sfx("hit", -5.0)
 	if state == "dormant" or state == "idle":
 		state = "chase"
 	G.fx_text(get_parent(), global_position, str(int(amount)), Color("ffe08a"))
@@ -124,6 +125,7 @@ func die() -> void:
 	died.emit(self)
 	if coin > 0 and player != null and is_instance_valid(player):
 		player.coins += coin
+		G.sfx("coin", -12.0)
 		G.fx_text(get_parent(), global_position + Vector2(0, -16), "+%d" % coin, G.AMBER)
 	G.fx_ring(get_parent(), global_position, Color(0.8, 0.8, 0.9, 0.8), 40)
 	queue_free()
@@ -189,6 +191,19 @@ func draw_health_bar() -> void:
 
 
 func _draw() -> void:
+	if kind == "scarecrow":
+		var stex := G.tex("res://assets/sprites/scarecrow_%s.svg" % ("dormant" if state == "dormant" else "awake"))
+		if stex != null:
+			draw_texture_rect(stex, Rect2(-40, -69, 80, 80), false, Color(2, 2, 2) if flash > 0.0 else Color.WHITE)
+			draw_health_bar()
+			return
+	if kind == "shade":
+		var htex := G.tex("res://assets/sprites/shade_%s.svg" % ("a" if int(t * 3.0) % 2 == 0 else "b"))
+		if htex != null:
+			var al := 0.8 + 0.15 * sin(t * 5.0)
+			draw_texture_rect(htex, Rect2(-36, -62, 72, 72), false, Color(1, 1, 1, al) if flash <= 0.0 else Color(2, 2, 2, 1))
+			draw_health_bar()
+			return
 	if kind == "wolf" or kind == "pricolici":
 		var path := "res://assets/sprites/wolf_idle.svg"
 		if state == "windup" or state == "lunge":

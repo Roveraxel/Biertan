@@ -11,6 +11,8 @@ const NIGHT := Color("0b0d14")
 static var dusk := 0.3
 static var _tex: Texture2D
 static var _cache := {}
+static var _snd := {}
+static var audio: Audio
 
 
 static func tex(path: String) -> Texture2D:
@@ -75,3 +77,25 @@ static func fx_text(parent: Node, pos: Vector2, s: String, col: Color) -> void:
 	f.life = 0.8
 	parent.add_child(f)
 	f.global_position = pos
+
+
+static func sound(sound_name: String, loop: bool) -> AudioStream:
+	var key := sound_name + ("#loop" if loop else "")
+	if _snd.has(key):
+		return _snd[key]
+	var path := "res://assets/audio/%s.wav" % sound_name
+	var s: AudioStream = null
+	if ResourceLoader.exists(path):
+		s = load(path)
+		if loop and s is AudioStreamWAV:
+			s = s.duplicate()
+			s.loop_mode = AudioStreamWAV.LOOP_FORWARD
+			s.loop_begin = 0
+			s.loop_end = s.data.size() / 2
+	_snd[key] = s
+	return s
+
+
+static func sfx(sound_name: String, vol := 0.0, pitch := 1.0) -> void:
+	if audio != null:
+		audio.play(sound_name, vol, pitch)

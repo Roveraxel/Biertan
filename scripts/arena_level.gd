@@ -75,6 +75,8 @@ func _on_boss_died(_e) -> void:
 
 func boss_howl(b: Boss) -> void:
 	main.toast("The Varcolac howls!")
+	G.sfx("boss_howl", 0.0, 1.0)
+	b.howl_anim = 1.2
 	G.fx_ring(self, b.global_position, Color(0.9, 0.9, 1.0, 0.7), 260, 0.8)
 	if get_tree().get_nodes_in_group("enemies").size() < 7:
 		for i in 2:
@@ -92,6 +94,7 @@ func swallow_light(b: Boss) -> void:
 	br.set_lit(false)
 	G.fx_ring(self, br.global_position, Color(0.2, 0.2, 0.4, 0.9), 140, 0.7)
 	main.toast("The Varcolac swallows a flame!")
+	G.sfx("flee", -2.0, 0.7)
 
 
 func draw_ground() -> void:

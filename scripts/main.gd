@@ -27,6 +27,8 @@ var shots_dir := ""
 
 func _ready() -> void:
 	setup_input()
+	G.audio = Audio.new()
+	add_child(G.audio)
 	ui = CanvasLayer.new()
 	ui.layer = 10
 	add_child(ui)
@@ -56,6 +58,7 @@ func _ready() -> void:
 			test_mode = true
 		elif a.begins_with("--shots="):
 			shots_dir = a.substr(8)
+	G.audio.set_music("music_hub", -9.0)
 	fade.color.a = 1.0
 	var tw := create_tween()
 	tw.tween_property(fade, "color:a", 0.0, 0.8)
@@ -129,6 +132,15 @@ func goto(name: String, at := Vector2(-1, -1)) -> void:
 	cam.limit_bottom = int(level.size.y)
 	cam.reset_smoothing()
 	if name == "hub":
+		G.audio.set_music("music_hub", -9.0)
+		G.audio.set_ambient("amb_fire", -16.0)
+	elif name == "forest":
+		G.audio.set_music("music_forest", -9.0)
+		G.audio.set_ambient("amb_wind", -10.0)
+	elif name == "arena":
+		G.audio.set_music("music_boss", -8.0)
+		G.audio.set_ambient("amb_wind", -14.0)
+	if name == "hub":
 		G.dusk = 0.45
 	elif name == "forest" and G.dusk < 0.15:
 		G.dusk = 0.15
@@ -171,6 +183,7 @@ func enter_arena() -> void:
 func on_player_died() -> void:
 	state = "dead"
 	player.frozen = true
+	G.sfx("boss_roar", -10.0, 1.5)
 
 
 func respawn() -> void:
@@ -266,10 +279,12 @@ func start_dialogue(who: String, lines: Array, after := Callable()) -> void:
 	dlg_idx = 0
 	dlg_after = after
 	state = "dialogue"
+	G.sfx("blip", -6.0)
 
 
 func advance_dialogue() -> void:
 	dlg_idx += 1
+	G.sfx("blip", -8.0, 0.9)
 	if dlg_idx >= dlg_lines.size():
 		state = "play"
 		var a := dlg_after
@@ -285,6 +300,7 @@ func prop_used(p: Prop) -> void:
 		"sack":
 			p.used = true
 			player.coins += 15
+			G.sfx("coin", -4.0)
 			toast("A shepherd's coin sack.  +15 coins")
 		"fleece":
 			start_dialogue("Torn fleece", ["The wool is shredded. Three nights of throats opened, and not a drop of blood on the grass.", "Wolf prints circle the hut, but they stop where the moonlight ends. Something walks beside them."])
@@ -421,6 +437,9 @@ func run_test() -> void:
 	await goto("arena")
 	await get_tree().create_timer(0.6).timeout
 	chk.call(boss != null and is_instance_valid(boss), "boss spawned")
+	player.global_position = Vector2(700, 660)
+	cam.reset_smoothing()
+	await get_tree().create_timer(0.4).timeout
 	await snap("05_arena_intro")
 	await get_tree().create_timer(3.0).timeout
 	var b: Boss = boss

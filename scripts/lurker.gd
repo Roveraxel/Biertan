@@ -21,6 +21,7 @@ func _ready() -> void:
 	light = G.make_light(80.0, Color(1.0, 0.1, 0.06), 1.7)
 	light.position = Vector2(0, -40)
 	add_child(light)
+	G.sfx("whisper", -9.0)
 
 
 func _process(delta: float) -> void:
@@ -35,6 +36,7 @@ func _process(delta: float) -> void:
 			global_position += to.normalized() * 95.0 * delta
 		if d < 150.0 or life <= 0.0:
 			fleeing = true
+			G.sfx("flee", -10.0)
 	life -= delta
 	if fleeing:
 		fade -= delta * 3.5

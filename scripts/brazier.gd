@@ -44,6 +44,7 @@ func prompt_text() -> String:
 func interact() -> void:
 	if not lit:
 		set_lit(true)
+		G.sfx("ignite", -4.0)
 		G.fx_ring(get_parent(), global_position, Color(1, 0.7, 0.3), 90)
 
 

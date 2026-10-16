@@ -79,6 +79,7 @@ func _physics_process(delta: float) -> void:
 			inv_t = 0.32
 			dodge_cd = 0.75 * (0.9 if charm_dodge else 1.0)
 			G.fx_ring(get_parent(), global_position, Color(1, 1, 1, 0.5), 32)
+			G.sfx("dodge", -6.0)
 		if Input.is_action_pressed("attack") and attack_cd <= 0.0:
 			swing()
 		if Input.is_action_just_pressed("potion"):
@@ -90,6 +91,7 @@ func _physics_process(delta: float) -> void:
 
 
 func swing() -> void:
+	G.sfx("swing", -6.0)
 	attack_t = 0.18
 	attack_cd = 0.36
 	var reach := 82.0
@@ -103,6 +105,7 @@ func drink() -> void:
 	if potions > 0 and hp < max_hp:
 		potions -= 1
 		hp = minf(max_hp, hp + 45.0)
+		G.sfx("potion", -3.0)
 		G.fx_text(get_parent(), global_position, "+45", Color("7bd36a"))
 		G.fx_ring(get_parent(), global_position, Color("7bd36a"), 40)
 
@@ -114,6 +117,7 @@ func hurt(amount: float, dir: Vector2) -> void:
 	inv_t = 0.55
 	hurt_flash = 0.25
 	velocity = dir * 320.0
+	G.sfx("hurt", -2.0)
 	G.fx_text(get_parent(), global_position, str(int(amount)), Color("ff6a5a"))
 	if hp <= 0.0:
 		hp = 0.0
