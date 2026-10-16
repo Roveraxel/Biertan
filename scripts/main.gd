@@ -52,7 +52,7 @@ func _ready() -> void:
 	cam.position_smoothing_speed = 7.0
 	player.add_child(cam)
 	for a in OS.get_cmdline_user_args():
-		if a == "--test":
+		if a == "--autotest":
 			test_mode = true
 		elif a.begins_with("--shots="):
 			shots_dir = a.substr(8)
@@ -425,7 +425,7 @@ func run_test() -> void:
 	player.global_position = Vector2(700, 800)
 	b.hurt(20.0, Vector2.UP)
 	chk.call(b.hp == 340.0, "boss takes damage in phase 1")
-	b.hp = 245.0
+	b.hp = 235.0
 	b.hurt(1.0, Vector2.UP)
 	chk.call(b.phase == 2, "phase 2 reached")
 	await get_tree().create_timer(1.5).timeout
