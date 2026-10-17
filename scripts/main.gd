@@ -109,6 +109,12 @@ func _ready() -> void:
 				hud.best_idx = Bestiary.ENTRIES.size() - 1
 				await get_tree().create_timer(0.8).timeout
 				await snap("bestiary")
+				for sid in ["saschiz", "biertan"]:
+					story_id = sid
+					story_t = 4.0
+					state = "story"
+					await get_tree().create_timer(0.5).timeout
+					await snap("story_" + sid)
 				get_tree().quit()).call()
 		elif a == "--touchtest":
 			test_mode = true
@@ -228,6 +234,7 @@ func goto(name: String, at := Vector2(-1, -1)) -> void:
 	player.madness = 0.0
 	player.blood = 0.0
 	player.vamp_t = 0.0
+	player.haste_t = 0.0
 	cam.zoom = Vector2(0.95, 0.95) if name == "gorge" else (Vector2(1.1, 1.1) if name == "church" else Vector2(1.3, 1.3))
 	cam.offset = Vector2(0, -150) if name == "gorge" else (Vector2(0, -90) if name == "church" else Vector2.ZERO)
 	cam.reset_smoothing()
@@ -290,6 +297,14 @@ func goto(name: String, at := Vector2(-1, -1)) -> void:
 	await fade_to(0.0, 0.35)
 	transitioning = false
 	banner(level.title, level.subtitle)
+	if name == "mosna" and not side.has("magda") and state == "play":
+		side["magda"] = true
+		await get_tree().create_timer(0.6).timeout
+		start_dialogue("Magda", [
+			"WHAT TOOK YOU SO LONG?! We have been standing at this gate since the cock crowed!",
+			"YOU ARE SO SLOW! The whole village had to wait for you. The ham went cold. Konrad fell asleep twice. TWICE!",
+			"Do you think the Balaur waits forever? Move your feet faster next time. HAIDAAA, HAIDA!",
+		])
 
 
 func fade_to(a: float, d: float) -> void:
@@ -515,6 +530,18 @@ func show_story(id: String) -> void:
 	await story_closed
 	await fade_to(1.0, 0.4)
 	state = "play"
+
+
+func on_bear_dead() -> void:
+	side["bear"] = true
+	banner("THE BEAR OF THE GARDEN FALLS", "Like Harap-Alb, you walk out of the garden alive.")
+	player.max_hp += 25.0
+	player.hp = player.max_hp
+	player.dmg += 3.0
+	player.coins += 80
+	toast("Received: Bearskin cloak  (+25 max health)")
+	toast("Received: Bear's claw  (+3 damage)  and 80 coins")
+	G.audio.set_music("music_hills", -9.0)
 
 
 func on_muma_dead() -> void:
@@ -820,6 +847,9 @@ func prop_used(p: Prop) -> void:
 			if p.id == "cave_sign":
 				start_dialogue("Miners' post", ["THE SALT CAVES. Imperial salt workings, closed by order.", "Below, someone has carved: 'Thirty men went down. Thirty came up. Count them again.'"])
 				return
+			if p.id == "garden_sign":
+				start_dialogue("Warning post", ["A bear's skull is nailed to the post, and beneath it, scratched deep: GRĂDINA URSULUI.", "Past the thicket to the south-east lies the Bear's Garden. In the tale, Harap-Alb only came out of it alive because Saint Sunday put the bear to sleep. You have no such help."])
+				return
 			if p.id == "prison_sign":
 				start_dialogue("The Marriage Prison", ["For three hundred years, couples who wished to part were locked in here together: one bed, one table, one plate, one spoon.", "Most came out still married. Tonight it holds the last living souls of Biertan."])
 				return
@@ -908,6 +938,13 @@ func talk(id: String) -> void:
 					save_game())
 			else:
 				start_dialogue("Meister Konrad", ["Ring the great bell of Biertan, Wanderer. Twenty-five coins for a whetting, if you want it."], sharpen)
+		"magda":
+			var nag := ["Still standing here? HAIDA, the Balaur will not slay itself!"]
+			if quest3 >= 2:
+				nag = ["Oh, NOW you killed the serpent. A month late. Biertan is waiting, and you are dawdling. HAIDA!", "...Thank you. Now HAIDA, go!"]
+			elif quest3 == 0:
+				nag = ["Konrad is by the church, by the fire. Go! HAIDA, HAIDA!"]
+			start_dialogue("Magda", nag)
 		"hannes":
 			start_dialogue("Hannes", ["Every family of Moșna keeps its ham in the tower, and on Sundays we cut a slice. That is how a village survives a siege.", "Smoked ham and plum brandy, ten coins. Heals like a tincture, tastes better."], buy_potion)
 		"veta":
@@ -1173,6 +1210,7 @@ func run_test() -> void:
 		await get_tree().physics_frame
 		player.hp = player.max_hp
 	chk.call(get_tree().get_nodes_in_group("enemies").is_empty(), "all forest enemies killable")
+	chk.call(side.has("magda_flee"), "Magda flees the last wolves screaming for Vlad")
 	chk.call(player.coins > 20, "coins dropped (%d)" % player.coins)
 	G.dusk = 0.95
 	await get_tree().create_timer(0.5).timeout
@@ -1269,6 +1307,24 @@ func run_test() -> void:
 	await get_tree().create_timer(0.3).timeout
 	chk.call(not is_instance_valid(iel) or iel.hp < ih, "salt burns the Iele")
 	await snap("11_hills_salt")
+	var hlv := level as HillsLevel
+	var bear_n: Bear = hlv.bear
+	chk.call(bear_n != null and bear_n.bstate == "sleep", "the bear sleeps in its garden")
+	player.global_position = HillsLevel.GARDEN + Vector2(-150, -60)
+	cam.reset_smoothing()
+	await get_tree().create_timer(2.2).timeout
+	chk.call(boss == bear_n and bear_n.bstate != "sleep", "entering the garden wakes the bear")
+	await snap("11b_bear")
+	bear_n.hurt(30.0, Vector2.UP)
+	chk.call(bear_n.hp == 720.0, "the bear takes damage")
+	bear_n.hp = 200.0
+	bear_n.hurt(1.0, Vector2.UP)
+	chk.call(bear_n.enraged, "the bear enrages")
+	var mhb := player.max_hp
+	bear_n.hp = 1.0
+	bear_n.hurt(10.0, Vector2.UP)
+	await get_tree().create_timer(0.3).timeout
+	chk.call(boss == null and side.has("bear") and player.max_hp == mhb + 25.0, "the bear falls; bearskin cloak")
 	await clear_enemies()
 	chk.call(get_tree().get_nodes_in_group("enemies").is_empty(), "all hills enemies killable")
 	enter_caves()
@@ -1313,6 +1369,9 @@ func run_test() -> void:
 	chk.call(m.phase == 2, "Muma phase 2")
 	var hl := level as HollowLevel
 	chk.call(hl.sisters.size() == 2, "Muma splits into three sisters")
+	await get_tree().create_timer(1.0).timeout
+	chk.call(player.haste_t > 25.0, "Magda throws a bandage: haste")
+	await snap("14a_magda_bandage")
 	var sis: Muma = hl.sisters[0]
 	sis.bstate = "walk"
 	sis.hurt(10.0, Vector2.UP)

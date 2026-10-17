@@ -226,6 +226,8 @@ func draw_hud() -> void:
 			txt(Vector2(284, 62), "BLOOD CURSE", 12, Color("d07070"))
 	elif main.current in ["hub", "richis", "mosna", "biertan"]:
 		txt(Vector2(24, 62), "SAFE HAVEN", 12, G.AMBER)
+	if p.haste_t > 0.0:
+		txt(Vector2(284, 38), "SWIFT %ds" % int(p.haste_t), 12, Color(0.7, 0.9, 0.6))
 	var inv := "Coins %d      Tinctures %d%s" % [p.coins, p.potions, "" if G.touch_mode else "  (Q)"]
 	if p.salt_unlocked:
 		inv += "      Salt %d%s" % [p.salt, "" if G.touch_mode else "  (R)"]

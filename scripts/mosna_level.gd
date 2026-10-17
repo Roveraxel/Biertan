@@ -49,6 +49,7 @@ func build() -> void:
 		add_tree(p)
 	add_prop("npc", "konrad", "Meister Konrad · Bell-founder", Vector2(950, 760), Color("3a3028"), "E   Speak with Konrad")
 	add_prop("npc", "hannes", "Hannes · Keeper of the Bacon Tower", Vector2(1260, 520), Color("6a4a2a"), "E   Speak with Hannes")
+	add_prop("npc", "magda", "Magda · Waiting at the gate", Vector2(330, 700), Color("3a2a3a"), "E   Speak with Magda")
 	add_prop("npc", "veta", "Veta · Cantor's widow", Vector2(420, 420), Color("16141a"), "E   Speak with Veta")
 	add_brazier(Vector2(860, 740)).base_energy = 0.7
 	add_brazier(Vector2(1040, 740)).base_energy = 0.7

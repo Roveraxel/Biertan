@@ -91,6 +91,7 @@ func build() -> void:
 	add_trigger(Rect2(1040, 700, 80, 260), start_voice)
 	add_trigger(Rect2(1070, 410, 170, 150), spring_trap)
 	add_trigger(Rect2(1860, 780, 80, 260), reward_voice)
+	add_trigger(Rect2(2640, 640, 70, 420), magda_flees)
 
 
 func dist_to_path(p: Vector2) -> float:
@@ -137,6 +138,21 @@ func reward_voice() -> void:
 		voice_rewarded = true
 		main.player.coins += 30
 		main.toast("You did not answer. The voice falls silent.  +30 coins")
+
+
+## Magda, of all people, bolting from the last wolf pack before the clearing.
+func magda_flees() -> void:
+	if main.side_has("magda_flee"):
+		return
+	main.side["magda_flee"] = true
+	var c := Cameo.new()
+	c.position = Vector2(2980, 760)
+	c.vel = Vector2(-430, 60)
+	c.line = "VLAAAAAD!!!"
+	c.life = 3.2
+	add_child(c)
+	G.sfx("shriek", -4.0, 1.6)
+	main.toast("A woman bolts out of the trees, screaming, and is gone.")
 
 
 func spawn_lurker() -> bool:

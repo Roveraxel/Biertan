@@ -9,6 +9,7 @@ var max_r := 900.0
 var hit := false
 var dmg := 16.0
 var fire := false
+var earth := false
 
 
 func _physics_process(delta: float) -> void:
@@ -31,6 +32,8 @@ func _draw() -> void:
 	var a := clampf(1.0 - r / max_r, 0.0, 1.0)
 	draw_set_transform(Vector2.ZERO, 0, Vector2(1, 0.75))
 	var c1 := Color(1.0, 0.4, 0.1, 0.75 * a) if fire else Color(0.45, 0.65, 0.8, 0.7 * a)
+	if earth:
+		c1 = Color(0.45, 0.33, 0.2, 0.8 * a)
 	var c2 := Color(1.0, 0.85, 0.4, 0.7 * a) if fire else Color(0.9, 0.95, 1.0, 0.6 * a)
 	draw_arc(Vector2.ZERO, r, 0, TAU, 72, c1, band)
 	draw_arc(Vector2.ZERO, r + band * 0.4, 0, TAU, 72, c2, 3.0)

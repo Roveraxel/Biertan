@@ -13,6 +13,8 @@ var rings := [
 	[Vector2(2350, 420), 4],
 ]
 var cross_used := false
+var bear: Bear
+const GARDEN := Vector2(2700, 1420)
 var lurk_t := 6.0
 
 
@@ -31,11 +33,26 @@ func build() -> void:
 	add_block(Rect2(-200, -200, 200, 2100), "hidden", 0)
 	add_block(Rect2(3200, -200, 200, 2100), "hidden", 0)
 	# tree copses on the slopes
-	for c in [Vector2(400, 300), Vector2(500, 1350), Vector2(1300, 250), Vector2(1250, 1400), Vector2(2000, 300), Vector2(2200, 1350), Vector2(2800, 300), Vector2(2750, 1300)]:
+	for c in [Vector2(400, 300), Vector2(500, 1350), Vector2(1300, 250), Vector2(1250, 1400), Vector2(2000, 300), Vector2(2200, 1350), Vector2(2800, 300)]:
 		for i in 14:
 			var p: Vector2 = c + Vector2(rng.randf_range(-220, 220), rng.randf_range(-170, 170))
 			if dist_to_path(p) > 170.0 and not in_ring(p):
 				add_tree(p, rng.randf() < 0.5)
+	# Grădina Ursului: a hidden garden behind a thicket in the south-east
+	for i in 34:
+		var ang := TAU * i / 34.0
+		if absf(wrapf(ang - PI * 1.25, -PI, PI)) < 0.22:
+			continue  # the gap in the thicket, facing north-west
+		add_tree(GARDEN + Vector2(cos(ang) * 300.0, sin(ang) * 220.0), i % 2 == 0)
+	if not main.side_has("bear"):
+		bear = Bear.new()
+		bear.setup("bear")
+		bear.arena = self
+		bear.position = GARDEN + Vector2(40, 20)
+		bear.died.connect(_on_bear_dead)
+		add_child(bear)
+		add_trigger(Rect2(GARDEN.x - 260, GARDEN.y - 190, 520, 380), _enter_garden)
+	add_prop("sign", "garden_sign", "", Vector2(2440, 1180), Color.WHITE, "E   Read the warning")
 	# standing stones
 	for s in [Vector2(700, 1000), Vector2(760, 1060), Vector2(1550, 600), Vector2(2650, 1050), Vector2(2600, 990)]:
 		add_block(Rect2(s.x, s.y, 26, 18), "stone", 46)
@@ -62,6 +79,19 @@ func build() -> void:
 	spawn_enemy("pricolici", Vector2(2450, 760))
 	add_trigger(Rect2(0, 730, 50, 240), main.leave_hills_west)
 	add_trigger(Rect2(3110, 720, 90, 180), main.enter_caves)
+
+
+func _enter_garden() -> void:
+	if bear == null or not is_instance_valid(bear) or main.boss == bear:
+		return
+	main.boss = bear
+	main.banner("GRĂDINA URSULUI", "The Bear's Garden. Nobody has taken its lettuce and lived.")
+	G.audio.set_music("music_boss", -8.0)
+
+
+func _on_bear_dead(_b) -> void:
+	main.boss = null
+	main.on_bear_dead()
 
 
 func dist_to_path(p: Vector2) -> float:
@@ -102,6 +132,15 @@ func draw_ground() -> void:
 		draw_circle(c + Vector2(-40, -40), 200, Color(1, 1, 0.8, 0.03))
 	draw_polyline(PackedVector2Array(path_pts), Color("3a3020"), 120.0, true)
 	draw_polyline(PackedVector2Array(path_pts), Color("4e4230"), 80.0, true)
+	# the garden: rows of wild lettuce
+	draw_set_transform(GARDEN, 0, Vector2(1.0, 0.73))
+	draw_circle(Vector2.ZERO, 290.0, Color("33401f"))
+	draw_set_transform(Vector2.ZERO, 0, Vector2.ONE)
+	for row in 5:
+		for col in 9:
+			var lp := GARDEN + Vector2(-200 + col * 50, -110 + row * 50)
+			draw_circle(lp, 9, Color("6aa040"))
+			draw_circle(lp + Vector2(-3, -3), 5, Color("8ac860"))
 	# mushroom rings
 	for r in rings:
 		var c: Vector2 = r[0]

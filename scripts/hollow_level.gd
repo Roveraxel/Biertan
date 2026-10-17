@@ -128,6 +128,26 @@ func call_crows(b: Muma) -> void:
 		e.state = "chase"
 
 
+## Magda turns up once, unimpressed as ever, and throws the hunter a bandage.
+func magda_bandage() -> void:
+	var pl = main.player
+	var c := Cameo.new()
+	var from: Vector2 = pl.global_position + Vector2(-420, 120)
+	c.position = from
+	c.vel = Vector2(420, -120) / 0.9
+	c.stop_at = 0.75
+	c.resume_after = 1.8
+	c.life = 4.4
+	c.line = "Your feet look swollen, take this."
+	c.action = func():
+		c.vel = Vector2(-520, 140)
+		pl.haste_t = 30.0
+		G.sfx("blip", 0.0, 1.4)
+		G.fx_ring(self, pl.global_position, Color(1, 1, 1, 0.8), 50)
+		main.toast("Magda's bandage: you move 25% faster for 30 seconds.")
+	add_child(c)
+
+
 func cast_roots(b: Muma) -> void:
 	G.sfx("cackle", -6.0, randf_range(0.95, 1.2))
 	var n := 3 + b.phase
@@ -164,6 +184,7 @@ func _on_phase(p: int) -> void:
 	if p == 2:
 		main.banner("THE THREE SISTERS", "Her bark turns steel and she splits in three. Salt finds the real one (R).")
 		split(boss)
+		magda_bandage()
 	elif p == 3:
 		main.banner("THE WOOD AWAKENS", "Roots everywhere. Keep moving.")
 

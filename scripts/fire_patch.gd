@@ -9,6 +9,7 @@ var t := 0.0
 var tick := 0.0
 var frost := false
 var brew := false
+var bees := false
 var light: PointLight2D
 
 
@@ -18,6 +19,8 @@ func _ready() -> void:
 		life = 3.4
 	if brew:
 		life = 3.0
+	if bees:
+		life = 4.0
 	var lc := Color(0.6, 0.8, 1.0) if frost else Color(1.0, 0.55, 0.2)
 	if brew:
 		lc = Color(0.5, 1.0, 0.3)
@@ -34,7 +37,11 @@ func _physics_process(delta: float) -> void:
 		return
 	var p = get_tree().get_first_node_in_group("player")
 	if p != null and p.global_position.distance_to(global_position) < R:
-		if brew:
+		if bees:
+			if tick <= 0.0:
+				tick = 0.4
+				p.hurt(5.0, Vector2.ZERO)
+		elif brew:
 			p.slow_t = maxf(p.slow_t, 0.2)
 			if tick <= 0.0:
 				tick = 0.5
@@ -53,6 +60,16 @@ func _physics_process(delta: float) -> void:
 
 func _draw() -> void:
 	var a := clampf(life, 0.0, 1.0)
+	if bees:
+		draw_set_transform(Vector2.ZERO, 0, Vector2(1, 0.6))
+		draw_circle(Vector2.ZERO, R, Color(0.6, 0.45, 0.1, 0.25 * a))
+		draw_set_transform(Vector2.ZERO, 0, Vector2.ONE)
+		draw_circle(Vector2(0, -6), 10, Color("8a6a3a"))
+		for i in 14:
+			var bp := Vector2(sin(t * 7.0 + i * 1.9) * R * 0.8, -20.0 + cos(t * 9.0 + i * 1.3) * 18.0)
+			draw_circle(bp, 2.2, Color(1.0, 0.8, 0.1, a))
+			draw_circle(bp + Vector2(1.5, 0), 1.2, Color(0.1, 0.08, 0.05, a))
+		return
 	if brew:
 		draw_set_transform(Vector2.ZERO, 0, Vector2(1, 0.6))
 		draw_circle(Vector2.ZERO, R, Color(0.25, 0.45, 0.1, 0.6 * a))

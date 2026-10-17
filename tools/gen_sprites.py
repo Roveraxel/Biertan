@@ -435,6 +435,50 @@ def varcolac(pose):
 for p in ("idle", "howl", "charge"):
     sprites[f"boss_{p}"] = varcolac(p)
 
+# ---- the Bear of the Garden (Grădina Ursului, from Harap-Alb)
+BRD = ('<defs><radialGradient id="bf"><stop offset="0" stop-color="#6a4a30"/><stop offset="1" stop-color="#3a2618"/></radialGradient>'
+       '<radialGradient id="be"><stop offset="0" stop-color="#ffb02a" stop-opacity="0.8"/><stop offset="1" stop-color="#ffb02a" stop-opacity="0"/></radialGradient></defs>')
+
+def bear(pose):
+    if pose == "stand":
+        return f'''<svg {BW}>{BRD}<g transform="translate(0 6)"><ellipse cx="96" cy="132" rx="36" ry="6" fill="#000" opacity="0.5"/>
+<path d="M78 130 L80 108 M114 130 L112 108" stroke="#2a1a10" stroke-width="14" stroke-linecap="round"/>
+<path d="M70 112 Q60 70 74 44 Q96 28 118 44 Q132 70 122 112 Q96 124 70 112Z" fill="url(#bf)" stroke="#0b0d14" stroke-width="2.5"/>
+<path d="M84 70 Q96 80 108 70 Q104 96 96 100 Q88 96 84 70Z" fill="#8a6a48" opacity="0.6"/>
+<path d="M74 52 Q50 40 40 20 M118 52 Q142 40 152 20" stroke="#3a2618" stroke-width="14" stroke-linecap="round"/>
+<path d="M36 18 L30 8 M40 16 L38 4 M44 18 L46 6 M148 18 L146 6 M152 16 L154 4 M156 18 L162 8" stroke="#e8e0cc" stroke-width="2.4" stroke-linecap="round"/>
+<circle cx="96" cy="34" r="17" fill="url(#bf)" stroke="#0b0d14" stroke-width="2"/>
+<circle cx="82" cy="20" r="6" fill="#3a2618" stroke="#0b0d14" stroke-width="1.5"/><circle cx="110" cy="20" r="6" fill="#3a2618" stroke="#0b0d14" stroke-width="1.5"/>
+<ellipse cx="96" cy="44" rx="9" ry="7" fill="#8a6a48"/><path d="M90 46 Q96 54 102 46" fill="#5a0a0a"/><path d="M91 46 L92 50 L93 46 M99 46 L100 50 L101 46" fill="#f3ead6"/>
+<circle cx="89" cy="32" r="5" fill="url(#be)"/><circle cx="103" cy="32" r="5" fill="url(#be)"/><circle cx="89" cy="32" r="1.6" fill="#1a1008"/><circle cx="103" cy="32" r="1.6" fill="#1a1008"/></g></svg>'''
+    run = pose == "charge"
+    legs = ('<path d="M52 104 L36 124 M64 106 L60 128 M128 104 L146 122 M138 102 L156 112" stroke="#2a1a10" stroke-width="12" stroke-linecap="round"/>' if run else
+            '<path d="M54 104 L52 128 M68 106 L68 128 M124 104 L124 128 M138 102 L140 126" stroke="#2a1a10" stroke-width="12" stroke-linecap="round"/>')
+    jaw = '<path d="M154 78 Q166 84 172 80 L170 88 Q160 92 152 86Z" fill="#5a0a0a"/><path d="M156 80 L158 85 L160 80 M164 80 L166 85 L168 80" fill="#f3ead6"/>' if run else ''
+    return f'''<svg {BW}>{BRD}<g transform="translate(0 6)"><ellipse cx="96" cy="130" rx="62" ry="7" fill="#000" opacity="0.5"/>
+{legs}
+<path d="M40 96 Q34 66 64 56 Q96 44 128 56 Q150 62 152 84 Q148 106 124 110 Q90 116 58 112 Q42 108 40 96Z" fill="url(#bf)" stroke="#0b0d14" stroke-width="2.5"/>
+<path d="M70 58 Q96 48 120 58" stroke="#2a1a10" stroke-width="3" fill="none" opacity="0.6"/>
+<path d="M136 62 Q150 52 166 62 L174 76 Q164 86 148 84 Q136 80 136 62Z" fill="url(#bf)" stroke="#0b0d14" stroke-width="2"/>
+<circle cx="142" cy="54" r="6" fill="#3a2618" stroke="#0b0d14" stroke-width="1.5"/>
+<ellipse cx="166" cy="76" rx="8" ry="6" fill="#8a6a48"/><circle cx="172" cy="73" r="2.4" fill="#0b0d14"/>
+<circle cx="154" cy="66" r="5" fill="url(#be)"/><circle cx="154" cy="66" r="1.6" fill="#1a1008"/>{jaw}</g></svg>'''
+
+for p in ("idle", "stand", "charge"):
+    sprites[f"bear_{p}"] = bear(p)
+
+# ---- Magda of Moșna, permanently unimpressed
+sprites["npc_magda"] = human(
+    "#3a2a3a", "#4e3a4e", "#c09c80",
+    '<path d="M37 38 Q35 19 48 19 Q61 19 59 38 Q57 27 48 26 Q39 27 37 38Z" fill="#6a1a2a" stroke="#0b0d14" stroke-width="1.5"/>'
+    '<path d="M40 28 L36 46 L43 40Z M56 28 L60 46 L53 40Z" fill="#6a1a2a"/><circle cx="46" cy="22" r="1.5" fill="#e8c070"/><circle cx="52" cy="23" r="1.5" fill="#e8c070"/>'
+    '<path d="M42 31 L47 33 M54 31 L49 33" stroke="#1a1410" stroke-width="1.6" stroke-linecap="round"/>'
+    '<path d="M44 40 Q48 37 52 40" stroke="#5a2a1a" stroke-width="1.8" fill="none" stroke-linecap="round"/>',
+    belt="#2a1a1a",
+    front='<path d="M34 52 Q48 60 62 52 Q48 56 34 52Z" fill="#2a1e2a" stroke="#0b0d14" stroke-width="1"/><path d="M36 50 Q48 46 60 50 L60 56 Q48 52 36 56Z" fill="#4e3a4e" stroke="#0b0d14" stroke-width="1"/>'
+          '<path d="M37 60 L59 60 L61 80 Q48 84 35 80Z" fill="#1a1414"/>',
+    hand="#c09c80")
+
 os.makedirs(OUT, exist_ok=True)
 for name, svg in sprites.items():
     with open(os.path.join(OUT, name + ".svg"), "w") as f:

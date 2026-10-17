@@ -37,6 +37,7 @@ var root_t := 0.0
 var madness := 0.0  # Muma Pădurii: grows with every hit, tinctures don't touch it
 var blood := 0.0  # Vlad: hits build the curse
 var vamp_t := 0.0  # time left as a vampire
+var haste_t := 0.0  # Magda's bandage
 
 
 func _ready() -> void:
@@ -83,6 +84,7 @@ func _physics_process(delta: float) -> void:
 		if vamp_t <= 0.0 and main != null:
 			main.toast("The vampire blood fades. You are yourself again.")
 	blood = maxf(0.0, blood - delta * 0.25)
+	haste_t = maxf(0.0, haste_t - delta)
 	if root_t > 0.0 and hp > 0.0 and not frozen:
 		velocity = Vector2.ZERO
 		if Input.is_action_pressed("attack") and attack_cd <= 0.0:
@@ -115,7 +117,7 @@ func _physics_process(delta: float) -> void:
 		dodge_t -= delta
 		velocity = dodge_dir * (600.0 if charm_dodge else 540.0)
 	else:
-		var sp := speed * (0.55 if slow_t > 0.0 else 1.0)
+		var sp := speed * (0.55 if slow_t > 0.0 else 1.0) * (1.25 if haste_t > 0.0 else 1.0)
 		velocity = velocity.move_toward(dir * sp + pull, 2800.0 * delta)
 		pull = Vector2.ZERO
 		if Input.is_action_just_pressed("dodge") and dodge_cd <= 0.0:
