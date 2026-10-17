@@ -95,6 +95,11 @@ func add_brazier(p: Vector2, lit := true) -> Brazier:
 func spawn_enemy(kind: String, p: Vector2) -> Enemy:
 	var e := Enemy.new()
 	e.setup(kind)
+	if main != null:
+		var k: Vector2 = main.difficulty()
+		e.hp *= k.x
+		e.max_hp = e.hp
+		e.dmg *= k.y
 	e.position = p
 	add_child(e)
 	return e

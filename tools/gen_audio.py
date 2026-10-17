@@ -482,3 +482,132 @@ if shutil.which("ffmpeg"):
             subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", src, "-c:a", "libvorbis", "-q:a", "4", src[:-4] + ".ogg"], check=True)
             os.remove(src)
     print("loops compressed to ogg")
+
+
+# ============================================================ psytrance battle themes
+# 145 bpm full-on: rolling KBBB bass, acid lead through a resonant filter,
+# scales in Phrygian dominant (the "Romanian"/eastern sound).
+PSY_BPM = 145
+PSY_BEAT = 60.0 / PSY_BPM
+PSY_16 = PSY_BEAT / 4
+
+
+def svf_lp(x, cut, res=0.85):
+    """Resonant state-variable lowpass with a per-sample cutoff array."""
+    low = band = 0.0
+    out = np.zeros_like(x)
+    q = 1.0 - res
+    for i in range(len(x)):
+        f = 2.0 * np.sin(np.pi * min(cut[i], SR * 0.2) / SR)
+        low += f * band
+        high = x[i] - low - q * band
+        band += f * high
+        out[i] = low
+    return out
+
+
+def psy_track(name, root, lead_steps, seed, extra=None, bars=16):
+    r = np.random.default_rng(seed)
+    n = int(round(bars * 4 * PSY_BEAT * SR))
+    m = np.zeros(n)
+    phry = [0, 1, 4, 5, 7, 8, 10]
+    # kick
+    tb = t_(0.32)
+    kick = np.sin(2 * np.pi * np.cumsum(55 + 180 * np.exp(-30 * tb)) / SR) * np.exp(-9 * tb)
+    kick += 0.3 * np.sin(2 * np.pi * 2200 * tb) * np.exp(-200 * tb)
+    # rolling bass note
+    tn = t_(PSY_16 * 0.9)
+    def bass(f):
+        s = signal.sawtooth(2 * np.pi * f * tn) + 0.5 * signal.square(2 * np.pi * f * 0.5 * tn)
+        return lp(s, 420, 4) * np.exp(-10 * tn) * env(len(tn), 0.003, 0.02)
+    hat = hp(noise(0.06), 7000) * np.exp(-55 * t_(0.06))
+    ohat = hp(noise(0.16), 6000) * np.exp(-18 * t_(0.16))
+    clap = bp(noise(0.18), 900, 3000) * np.exp(-20 * t_(0.18))
+    for beat in range(bars * 4):
+        at = beat * PSY_BEAT
+        bar = beat // 4
+        intro = bar < 2
+        place(m, kick * 1.0, at)
+        if not intro:
+            bf = root * 2 ** (([0, 0, 0, 1, 0, 0, 8, 7][bar % 8] if bar % 4 == 3 else 0) / 12)
+            for k in (1, 2, 3):
+                place(m, bass(bf) * 0.55, at + k * PSY_16)
+        place(m, ohat * 0.18, at + 2 * PSY_16)
+        for k in (1, 3):
+            place(m, hat * 0.1, at + k * PSY_16)
+        if beat % 4 in (1, 3) and bar >= 4:
+            place(m, clap * 0.12, at)
+    # acid lead (from bar 4), filter opens and closes over 8 bars
+    lead = np.zeros(n)
+    steps = len(lead_steps)
+    for i in range(bars * 16):
+        if i < 4 * 16:
+            continue
+        st = lead_steps[i % steps]
+        if st is None:
+            continue
+        f = root * 4 * 2 ** (phry[st % 7] / 12 + (st // 7))
+        d = PSY_16 * (0.95 if r.random() < 0.8 else 1.9)
+        tl = t_(d)
+        s = signal.sawtooth(2 * np.pi * f * tl) * env(len(tl), 0.002, 0.02)
+        place(lead, s * 0.35, i * PSY_16)
+    tt = np.arange(n) / SR
+    cut = 500 + 2600 * (0.5 - 0.5 * np.cos(2 * np.pi * tt / (8 * 4 * PSY_BEAT))) ** 1.5
+    lead = svf_lp(lead, cut, 0.9)
+    m += lead * 0.9
+    # riser noise into every 8th bar
+    for bar in range(7, bars, 8):
+        rs = int(bar * 4 * PSY_BEAT * SR)
+        ln = int(4 * PSY_BEAT * SR)
+        place(m, hp(noise(4 * PSY_BEAT), 2000) * np.linspace(0, 1, ln) ** 2 * 0.15, bar * 4 * PSY_BEAT)
+    if extra is not None:
+        m += extra(n)
+    save(name, m, 0.8)
+
+
+def vlad_extra(n):
+    x = np.zeros(n)
+    for bar in range(4, 16, 2):
+        for fr in (146.83, 155.56, 220.0):
+            place(x, organ(fr, PSY_BEAT * 2, 0.1), bar * 4 * PSY_BEAT)
+    return x
+
+
+def muma_extra(n):
+    x = np.zeros(n)
+    for bar in range(4, 16, 4):
+        tl = t_(1.2)
+        place(x, bp(signal.sawtooth(2 * np.pi * np.cumsum(500 + 200 * np.sin(2 * np.pi * 6 * tl)) / SR), 600, 2500) * np.exp(-2 * tl) * 0.08, bar * 4 * PSY_BEAT + PSY_BEAT * 2)
+    return x
+
+
+def balaur_extra(n):
+    x = np.zeros(n)
+    for bar in range(4, 16, 4):
+        tl = t_(PSY_BEAT * 4)
+        g = np.sin(2 * np.pi * 41.2 * tl + 3 * np.sin(2 * np.pi * 82.4 * tl)) * np.exp(-0.8 * tl)
+        place(x, g * 0.18, bar * 4 * PSY_BEAT)
+    return x
+
+
+def varcolac_extra(n):
+    x = np.zeros(n)
+    for bar in range(6, 16, 4):
+        place(x, howl(1.6, 330, 600, [1, 0.4, 0.2]) * 0.08, bar * 4 * PSY_BEAT)
+    return x
+
+
+A = [0, None, 7, 0, 3, None, 1, 0, 0, 5, None, 4, 1, 0, None, 8]
+B = [0, 0, 7, None, 8, 7, 4, None, 0, 1, 4, 5, None, 4, 1, None]
+C = [0, None, 0, 1, None, 0, 4, None, 0, None, 7, 8, None, 7, 5, 4]
+D = [7, 5, 4, 1, 0, None, 0, 1, 4, 5, 7, 8, 7, None, 4, 1]
+psy_track("music_boss", 82.41, A, 11, varcolac_extra)
+psy_track("music_muma", 73.42, B, 22, muma_extra)
+psy_track("music_balaur", 69.30, C, 33, balaur_extra)
+psy_track("music_vlad", 77.78, D, 44, vlad_extra)
+for nm in ("music_boss", "music_muma", "music_balaur", "music_vlad"):
+    src = os.path.join(OUT, nm + ".wav")
+    if shutil.which("ffmpeg"):
+        subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", src, "-c:a", "libvorbis", "-q:a", "4", src[:-4] + ".ogg"], check=True)
+        os.remove(src)
+print("psytrance written")

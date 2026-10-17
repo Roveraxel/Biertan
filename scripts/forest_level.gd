@@ -12,7 +12,17 @@ var glades := [
 	[Vector2(2000, 700), 120.0],
 	[Vector2(1300, 1040), 120.0],
 	[Vector2(2700, 1080), 120.0],
+	# hidden corners: lost ewes, the hermit's spring, treasure ground
+	[Vector2(560, 260), 110.0],
+	[Vector2(2950, 260), 110.0],
+	[Vector2(2200, 1560), 110.0],
+	[Vector2(420, 1520), 150.0],
+	[Vector2(1300, 180), 90.0],
+	[Vector2(2550, 1380), 90.0],
+	[Vector2(3200, 1600), 90.0],
 ]
+const EWES := {"ewe1": Vector2(560, 260), "ewe2": Vector2(2950, 260), "ewe3": Vector2(2200, 1560)}
+const TREASURES := {"tr1": Vector2(1300, 180), "tr2": Vector2(2550, 1380), "tr3": Vector2(3200, 1600)}
 var voice_started := false
 var voice_trapped := false
 var voice_rewarded := false
@@ -50,6 +60,17 @@ func build() -> void:
 	add_prop("fleece", "fleece", "", Vector2(1630, 500), Color.WHITE, "E   Examine the fleece")
 	add_prop("sack", "sack1", "", Vector2(1545, 520), Color.WHITE, "E   Take the coin sack")
 	add_prop("sign", "sign", "", Vector2(3150, 840), Color.WHITE, "E   Read the carved post")
+	# side quests
+	if main.ewe_q >= 1:
+		for id in EWES:
+			if not main.side_has(id):
+				add_prop("ewe", id, "", EWES[id], Color.WHITE, "E   Tie a cord to the lost ewe")
+	add_prop("npc", "hermit", "Pafnutie · Hermit", Vector2(400, 1490), Color("4a3a28"), "E   Speak with the hermit")
+	add_prop("spring", "spring", "", Vector2(470, 1560), Color.WHITE, "E   Drink from the spring")
+	for id in TREASURES:
+		if not main.side_has(id):
+			add_prop("treasure", id, "", TREASURES[id], Color.WHITE, "E   Dig where the blue flame burns")
+	add_torch(Vector2(430, 1530), 200, Color(0.6, 0.85, 1.0), 0.5)
 	add_brazier(Vector2(3200, 800))
 	add_brazier(Vector2(3200, 960))
 	# enemies
@@ -161,3 +182,5 @@ func draw_ground() -> void:
 	draw_polyline(PackedVector2Array(path_pts), Color("4a3a28"), 100.0, true)
 	for g in glades:
 		draw_circle(g[0], g[1], Color("2a3524"))
+	draw_circle(Vector2(470, 1570), 34, Color("2a4a5a"))
+	draw_circle(Vector2(470, 1570), 26, Color("3a6a7a"))

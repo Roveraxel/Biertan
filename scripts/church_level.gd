@@ -77,7 +77,7 @@ func call_bats(v: Vlad) -> void:
 
 func _on_phase(p: int) -> void:
 	if p == 2:
-		main.banner("HE BECOMES MIST", "Ring the great bell to drag him back into flesh.")
+		main.banner("THE NIHIL RITE", "Throw salt and stand in it! Then ring the bell to break his mist.")
 	elif p == 3:
 		main.banner("THE MASTER HUNGERS", "His presence drinks your blood. Keep away, or wear garlic.")
 

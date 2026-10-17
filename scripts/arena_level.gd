@@ -1,6 +1,6 @@
 class_name ArenaLevel
 extends Level
-## Boss clearing: the Varcolac.
+## Boss clearing: the Vârcolac.
 
 const CENTER := Vector2(700, 700)
 const RADIUS := 500.0
@@ -12,7 +12,7 @@ var darkness := 0.0
 
 func build() -> void:
 	title = "THE MOON CLEARING"
-	subtitle = "The Varcolac"
+	subtitle = "The Vârcolac, eater of the moon"
 	size = Vector2(1400, 1400)
 	spawn = Vector2(700, 1130)
 	ground = Color("101510")
@@ -50,7 +50,7 @@ func build() -> void:
 
 func ambient() -> Color:
 	var base := G.ambient(0.7)
-	return base.lerp(Color(0.05, 0.05, 0.11), darkness)
+	return base.lerp(Color(0.16, 0.05, 0.06), darkness)
 
 
 func _process(delta: float) -> void:
@@ -60,12 +60,12 @@ func _process(delta: float) -> void:
 
 func _on_phase(p: int) -> void:
 	if p == 2:
-		main.banner("THE SKY DARKENS", "Light the braziers. The beast fears only flame.")
+		main.banner("IT CLIMBS THE THREADS TO THE MOON", "The moon bleeds. Light the fires: the vârcolac fears flame and noise.")
 		for b in braziers:
 			b.decays = true
 			b.set_lit(false)
 	elif p == 3:
-		main.banner("THE BEAST HUNGERS", "It swallows the flames. Keep them burning.")
+		main.banner("IT DEVOURS THE FIRES", "Let it gorge. When it grows heavy, its threads will snap.")
 
 
 func _on_boss_died(_e) -> void:
@@ -74,7 +74,7 @@ func _on_boss_died(_e) -> void:
 
 
 func boss_howl(b: Boss) -> void:
-	main.toast("The Varcolac howls!")
+	main.toast("The vârcolac howls, and the hounds answer!")
 	G.sfx("boss_howl", 0.0, 1.0)
 	b.howl_anim = 1.2
 	G.fx_ring(self, b.global_position, Color(0.9, 0.9, 1.0, 0.7), 260, 0.8)
@@ -93,8 +93,9 @@ func swallow_light(b: Boss) -> void:
 	var br: Brazier = lit_list[randi() % lit_list.size()]
 	br.set_lit(false)
 	G.fx_ring(self, br.global_position, Color(0.2, 0.2, 0.4, 0.9), 140, 0.7)
-	main.toast("The Varcolac swallows a flame!")
+	main.toast("The vârcolac swallows a flame!")
 	G.sfx("flee", -2.0, 0.7)
+	b.gorge()
 
 
 func draw_ground() -> void:

@@ -6,6 +6,7 @@ const CENTER := Vector2(750, 680)
 const RADIUS := 520.0
 
 var boss: Muma
+var sisters: Array = []
 var spots := [Vector2(450, 440), Vector2(1050, 440), Vector2(450, 920), Vector2(1050, 920), Vector2(750, 380)]
 
 
@@ -62,6 +63,71 @@ func hop_spot(from: Vector2) -> Vector2:
 	return opts[randi() % opts.size()]
 
 
+## The Forest Mother splits into three sisters; only one is real.
+func split(real: Muma) -> void:
+	dispel_illusions()
+	var free_spots: Array = spots.duplicate()
+	free_spots.shuffle()
+	for i in 2:
+		var m := Muma.new()
+		m.setup("muma")
+		m.illusion = true
+		m.arena = self
+		m.phase = real.phase
+		m.hp = real.hp
+		m.max_hp = real.max_hp
+		m.bstate = "walk"
+		m.position = free_spots[i]
+		add_child(m)
+		sisters.append(m)
+	G.sfx("cackle", 0.0, 0.9)
+	main.toast("Three sisters stand in the Hollow. Only one is real.")
+
+
+func shuffle_sisters(real: Muma) -> void:
+	var live: Array = []
+	for s in sisters:
+		if is_instance_valid(s):
+			live.append(s)
+	sisters = live
+	if real.phase >= 2 and sisters.is_empty():
+		split(real)
+		return
+	for s in sisters:
+		s.global_position = hop_spot(real.global_position)
+		s.alpha = 0.0
+
+
+func dispel_illusions() -> void:
+	for s in sisters:
+		if is_instance_valid(s):
+			s.queue_free()
+	sisters.clear()
+
+
+func weave(b: Muma) -> void:
+	G.sfx("whisper", -6.0, 1.2)
+	var p: Vector2 = main.player.global_position
+	var n := 2 + b.phase
+	for i in n:
+		var th := WeaveThread.new()
+		var ang := randf() * PI
+		var dir := Vector2.from_angle(ang)
+		var off := dir.orthogonal() * randf_range(-120, 120) if i > 0 else Vector2.ZERO
+		th.a = p + off - dir * 600.0
+		th.b = p + off + dir * 600.0
+		add_child(th)
+
+
+func call_crows(b: Muma) -> void:
+	if get_tree().get_nodes_in_group("enemies").size() > 7:
+		return
+	main.toast("Crows pour out of her hollow!")
+	for i in 3:
+		var e := spawn_enemy("bat", b.global_position + Vector2.from_angle(i * TAU / 3.0) * 60.0)
+		e.state = "chase"
+
+
 func cast_roots(b: Muma) -> void:
 	G.sfx("cackle", -6.0, randf_range(0.95, 1.2))
 	var n := 3 + b.phase
@@ -96,7 +162,8 @@ func call_wisps(b: Muma) -> void:
 
 func _on_phase(p: int) -> void:
 	if p == 2:
-		main.banner("HER BARK HARDENS", "Steel will not bite. Throw salt at her feet (R).")
+		main.banner("THE THREE SISTERS", "Her bark turns steel and she splits in three. Salt finds the real one (R).")
+		split(boss)
 	elif p == 3:
 		main.banner("THE WOOD AWAKENS", "Roots everywhere. Keep moving.")
 

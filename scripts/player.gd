@@ -33,6 +33,10 @@ var garlic := false
 var torch := false
 var pull := Vector2.ZERO
 var salt_cd := 0.0
+var root_t := 0.0
+var madness := 0.0  # Muma Pădurii: grows with every hit, tinctures don't touch it
+var blood := 0.0  # Vlad: hits build the curse
+var vamp_t := 0.0  # time left as a vampire
 
 
 func _ready() -> void:
@@ -73,6 +77,18 @@ func _physics_process(delta: float) -> void:
 	hurt_flash = maxf(0.0, hurt_flash - delta)
 	slow_t = maxf(0.0, slow_t - delta)
 	salt_cd = maxf(0.0, salt_cd - delta)
+	root_t = maxf(0.0, root_t - delta)
+	if vamp_t > 0.0:
+		vamp_t = maxf(0.0, vamp_t - delta)
+		if vamp_t <= 0.0 and main != null:
+			main.toast("The vampire blood fades. You are yourself again.")
+	blood = maxf(0.0, blood - delta * 0.25)
+	if root_t > 0.0 and hp > 0.0 and not frozen:
+		velocity = Vector2.ZERO
+		if Input.is_action_pressed("attack") and attack_cd <= 0.0:
+			swing()
+		queue_redraw()
+		return
 	if frozen or hp <= 0.0:
 		velocity = velocity.move_toward(Vector2.ZERO, 1800.0 * delta)
 		move_and_slide()
@@ -128,11 +144,21 @@ func swing() -> void:
 	var reach := 82.0
 	for e in get_tree().get_nodes_in_group("enemies"):
 		var to: Vector2 = e.global_position - global_position
-		if to.length() < reach + e.radius and absf(facing.angle_to(to)) < deg_to_rad(72.0):
-			e.hurt(dmg, to.normalized())
+		var close: bool = to.length() < e.radius + 26.0
+		if to.length() < reach + e.radius and (close or absf(facing.angle_to(to)) < deg_to_rad(72.0)):
+			e.hurt(dmg, to.normalized() if to.length() > 1.0 else facing)
+			if vamp_t > 0.0:
+				hp = minf(max_hp, hp + 3.0)
 
 
 func drink() -> void:
+	if potions > 0 and vamp_t > 0.0:
+		potions -= 1
+		hp = maxf(1.0, hp - 30.0)
+		hurt_flash = 0.3
+		G.sfx("sear", -2.0)
+		G.fx_text(get_parent(), global_position, "-30  garlic burns!", Color("ff6a5a"))
+		return
 	if potions > 0 and hp < max_hp:
 		potions -= 1
 		hp = minf(max_hp, hp + 45.0)
@@ -161,6 +187,19 @@ func hurt(amount: float, dir: Vector2) -> void:
 		return
 	hp -= amount
 	inv_t = 0.55
+	if main != null and main.current == "hollow":
+		madness += amount
+		if madness >= max_hp * 2.0:
+			madness = max_hp * 2.0
+			main.toast("Your mind is lost in the wood.")
+			hp = 0.0
+	if main != null and main.current == "church" and vamp_t <= 0.0:
+		blood += 0.5 if garlic else 1.0
+		if blood >= 5.0:
+			blood = 0.0
+			vamp_t = 18.0
+			G.sfx("laugh", 0.0, 1.2)
+			main.banner("VAMPIRISM", "His blood is in you. Tinctures burn, but your strikes drink.")
 	hurt_flash = 0.25
 	velocity = dir * 320.0
 	G.sfx("hurt", -2.0)
@@ -194,6 +233,11 @@ func _draw_fallback() -> void:
 	draw_circle(lp, 3.5, G.AMBER)
 	if hurt_flash > 0.0:
 		draw_circle(Vector2(0, -18), 18, Color(1, 0.2, 0.2, hurt_flash * 2.0))
+	if vamp_t > 0.0:
+		draw_circle(Vector2(0, -30), 26, Color(0.7, 0.0, 0.1, 0.25 + 0.1 * sin(walk_t * 2.0)))
+	if root_t > 0.0:
+		draw_rect(Rect2(-20, -60, 40, 62), Color(0.75, 0.9, 1.0, 0.45))
+		draw_rect(Rect2(-20, -60, 40, 62), Color(0.9, 0.97, 1.0, 0.8), false, 2.0)
 
 
 func _draw() -> void:

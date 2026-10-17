@@ -1,6 +1,9 @@
 class_name Boss
 extends Enemy
-## The Varcolac: the beast that swallows sun and moon.
+## The Vârcolac, after Romanian folklore: a lean, hound-like creature "born of
+## the air". It climbs threads spun by women working at night without a candle
+## and bites the moon, which bleeds red during an eclipse. When it gorges, it
+## grows heavy, the threads snap and it falls. Fire and noise drive it off.
 
 signal phase_changed(p)
 
@@ -11,6 +14,7 @@ var charge_dir := Vector2.RIGHT
 var howl_t := 7.0
 var swallow_t := 6.0
 var howl_anim := 0.0
+var eaten := 0
 var arena
 
 
@@ -26,17 +30,31 @@ func setup(k: String) -> void:
 
 
 func hud_name() -> String:
-	return "THE VARCOLAC"
+	return "THE VÂRCOLAC, EATER OF THE MOON"
 
 
 func hud_hint() -> String:
+	if bstate == "fallen":
+		return "Its threads have snapped! Strike while it lies on the ground!"
 	if phase >= 2 and not vulnerable():
-		return "Shrouded in shadow. Strike it only near a lit brazier."
+		return "It rides its threads in the dark. Strike it only near a lit fire."
 	return ""
 
 
+func gorge() -> void:
+	eaten += 1
+	if eaten >= 3:
+		eaten = 0
+		bstate = "fallen"
+		bt = 0.0
+		G.sfx("boss_roar", 0.0, 1.3)
+		G.fx_ring(get_parent(), global_position, Color(0.9, 0.85, 0.7, 0.9), 160, 0.6)
+		if arena != null:
+			arena.main.toast("Gorged on flame, it grows heavy. Its threads snap and it falls!")
+
+
 func vulnerable() -> bool:
-	if phase == 1:
+	if phase == 1 or bstate == "fallen":
 		return true
 	for b in get_tree().get_nodes_in_group("braziers"):
 		if b.lit and b.global_position.distance_to(global_position) < 260.0:
@@ -133,6 +151,11 @@ func _physics_process(delta: float) -> void:
 			if bt > 0.9 / sm:
 				bstate = "stalk"
 				bt = 0.0
+		"fallen":
+			velocity = knock
+			if bt > 5.0:
+				bstate = "stalk"
+				bt = 0.0
 	if bstate != "intro":
 		howl_t -= delta
 		if howl_t <= 0.0 and bstate in ["stalk", "recover"]:
@@ -193,7 +216,16 @@ func _draw() -> void:
 		return
 	if bstate == "telegraph":
 		draw_line(Vector2(0, -20), Vector2(0, -20) + charge_dir * 700.0, Color(1, 0.15, 0.1, 0.3 + 0.3 * sin(t * 25.0)), 8.0)
+	# the spun threads it climbs to the moon (snapped while it lies fallen)
+	if phase >= 2:
+		for i in 3:
+			var x0 := -20.0 + i * 20.0
+			if bstate == "fallen":
+				draw_line(Vector2(x0, -60), Vector2(x0 + 10 * sin(t * 3.0 + i), -110), Color(0.9, 0.87, 0.8, 0.5), 1.5)
+			else:
+				draw_line(Vector2(x0, -60), Vector2(x0 * 3.0 + 30.0 * sin(t + i), -900), Color(0.9, 0.87, 0.8, 0.35), 1.5)
 	var flip := face.x < 0.0
-	draw_set_transform(Vector2.ZERO, 0, Vector2(-1.0 if flip else 1.0, 1.0))
-	draw_texture_rect(tex, Rect2(-129, -161, 288, 216), false, Color(2, 2, 2) if flash > 0.0 else Color.WHITE)
+	var tilt := 0.35 if bstate == "fallen" else 0.0
+	draw_set_transform(Vector2.ZERO, tilt, Vector2(-1.0 if flip else 1.0, 1.0))
+	draw_texture_rect(tex, Rect2(-144, -192, 288, 216), false, Color(2, 2, 2) if flash > 0.0 else Color.WHITE)
 	draw_set_transform(Vector2.ZERO, 0, Vector2.ONE)

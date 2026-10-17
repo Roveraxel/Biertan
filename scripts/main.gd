@@ -1,6 +1,31 @@
 extends Node2D
 ## Game controller: title, levels, dialogue, quest state.
 
+signal story_closed
+
+const STORIES := {
+	"saschiz": {
+		"title": "SASCHIZ",
+		"lore": "With the vârcolac dead, the moon kept its place in the sky. By morning the children of Saschiz were running again over the green and golden hills above the village, chasing lambs between the haystacks, and nobody called them home before dark.",
+		"fact": "Saxon settlers raised Saschiz's fortified church in the 15th century. Its tower echoes the clock tower of Sighișoara, and the village is one of Transylvania's UNESCO-listed villages with fortified churches.",
+	},
+	"richis": {
+		"title": "RICHIȘ",
+		"lore": "Ioan, Mitzi and Grete came home through the beech woods at dawn with moss in their hair. That summer they played in the wildflower meadows on the slopes, and the Green Men carved in the church seemed, the old women swore, to be smiling.",
+		"fact": "Richiș's Gothic hall church is famous for the Green Men carved in its choir: stone faces wreathed in oak leaves, left by Saxon masons centuries ago.",
+	},
+	"mosna": {
+		"title": "MOȘNA",
+		"lore": "Carts rolled down the Biertan road again. In the vineyards above Moșna the children picked the last grapes and slid down the hay meadows, and on Sunday every family cut a slice of ham from the tower.",
+		"fact": "Moșna's great late-Gothic hall church stands inside a ring of walls and towers. Like many Saxon villages, it kept each family's bacon safe in a fortified tower.",
+	},
+	"biertan": {
+		"title": "BIERTAN",
+		"lore": "The great bell rang over the valley, and the dead lay down. The children of Biertan climbed all three walls to watch the sun come up over the hills: green and gold and purple with heather, as far as Saschiz.",
+		"fact": "Biertan was the seat of the Lutheran bishops of Transylvania from 1572 to 1867. Its church, guarded by three rings of walls, keeps a sacristy door with nineteen locks and the famous 'marriage prison'.",
+	},
+}
+
 var state := "title"  # title, play, dialogue, dead
 var level: Level
 var current := ""
@@ -29,6 +54,11 @@ var quest4 := 0  # 0 none, 1 accepted, 2 Vlad destroyed
 var visited_biertan := false
 var sofia_gift := false
 var ending_t := 0.0
+var story_id := ""
+var story_t := 0.0
+var ewe_q := 0  # 0 not asked, 1 searching, 2 rewarded
+var side: Dictionary = {}
+var midnight_done := false
 const SAVE_PATH := "user://biertan_save.json"
 var dlg_speaker := ""
 var dlg_lines: Array = []
@@ -71,7 +101,16 @@ func _ready() -> void:
 	cam.position_smoothing_speed = 7.0
 	player.add_child(cam)
 	for a in OS.get_cmdline_user_args():
-		if a == "--touchtest":
+		if a == "--titleshot":
+			(func():
+				await get_tree().create_timer(1.5).timeout
+				await snap("title")
+				state = "bestiary"
+				hud.best_idx = Bestiary.ENTRIES.size() - 1
+				await get_tree().create_timer(0.8).timeout
+				await snap("bestiary")
+				get_tree().quit()).call()
+		elif a == "--touchtest":
 			test_mode = true
 			touch_test = true
 			G.touch_mode = true
@@ -127,6 +166,8 @@ func start_game() -> void:
 	quest4 = 0
 	visited_biertan = false
 	sofia_gift = false
+	ewe_q = 0
+	side = {}
 	G.dusk = 0.3
 	state = "play"
 	await goto("hub")
@@ -173,6 +214,7 @@ func goto(name: String, at := Vector2(-1, -1)) -> void:
 		"church":
 			level = ChurchLevel.new()
 	current = name
+	midnight_done = false
 	level.main = self
 	add_child(level)
 	level.build()
@@ -183,6 +225,9 @@ func goto(name: String, at := Vector2(-1, -1)) -> void:
 	cam.limit_top = 0
 	cam.limit_right = int(level.size.x)
 	cam.limit_bottom = int(level.size.y)
+	player.madness = 0.0
+	player.blood = 0.0
+	player.vamp_t = 0.0
 	cam.zoom = Vector2(0.95, 0.95) if name == "gorge" else (Vector2(1.1, 1.1) if name == "church" else Vector2(1.3, 1.3))
 	cam.offset = Vector2(0, -150) if name == "gorge" else (Vector2(0, -90) if name == "church" else Vector2.ZERO)
 	cam.reset_smoothing()
@@ -366,6 +411,54 @@ func enter_hollow() -> void:
 		goto("hollow")
 
 
+## Enemy (hp, damage) multipliers so the challenge rises with each village.
+func side_has(id: String) -> bool:
+	return side.has(id)
+
+
+func ewes_found() -> int:
+	var n := 0
+	for id in ["ewe1", "ewe2", "ewe3"]:
+		if side.has(id):
+			n += 1
+	return n
+
+
+func treasures_found() -> int:
+	var n := 0
+	for id in ["tr1", "tr2", "tr3"]:
+		if side.has(id):
+			n += 1
+	return n
+
+
+## Midnight: when the dusk runs out in the wild, the evil hour strikes.
+func strike_midnight() -> void:
+	midnight_done = true
+	var sub_t := "The evil hour. The dead are at their strongest."
+	if current == "forest":
+		sub_t = "The evil hour. Blue flames burn where treasure lies buried."
+	banner("MIDNIGHT · CEASUL RĂU", sub_t)
+	for i in 12:
+		G.sfx("bell", -10.0, 0.62)
+		await get_tree().create_timer(0.45).timeout
+		if current == "" or state == "title":
+			return
+
+
+func difficulty() -> Vector2:
+	match current:
+		"forest", "arena":
+			return Vector2(1.0, 0.85)
+		"hills", "caves", "hollow":
+			return Vector2(1.4, 1.25)
+		"vineyard", "gorge":
+			return Vector2(1.7, 1.45)
+		"walls", "church":
+			return Vector2(2.0, 1.6)
+	return Vector2.ONE
+
+
 func home() -> String:
 	if visited_biertan:
 		return "biertan"
@@ -398,14 +491,30 @@ func respawn() -> void:
 
 
 func on_boss_dead() -> void:
-	banner("THE VARCOLAC FALLS", "The sun and moon are returned to the sky.")
+	banner("THE VÂRCOLAC FALLS", "The moon slips free of its jaws.")
 	await get_tree().create_timer(3.0).timeout
 	player.charm_dodge = true
 	quest = 2
 	toast("Received: Wolf-Fang Charm  (+10% dodge)")
 	toast("Received: The Silver Thread  (quest item)")
 	await get_tree().create_timer(2.5).timeout
+	await show_story("saschiz")
 	goto("hub", Vector2(900, 880))
+
+
+## A picture card between chapters: a real photo of the village and its lore.
+func show_story(id: String) -> void:
+	await fade_to(1.0, 0.8)
+	story_id = id
+	story_t = 0.0
+	state = "story"
+	G.sfx("bell", -6.0)
+	await fade_to(0.0, 0.6)
+	if test_mode:
+		get_tree().create_timer(2.0).timeout.connect(func(): story_t = -999.0; story_closed.emit())
+	await story_closed
+	await fade_to(1.0, 0.4)
+	state = "play"
 
 
 func on_muma_dead() -> void:
@@ -418,6 +527,7 @@ func on_muma_dead() -> void:
 	toast("Received: Heart of Oak  (+15 max health)")
 	toast("Found in her hollow: the clapper of a great bell")
 	await get_tree().create_timer(2.5).timeout
+	await show_story("richis")
 	goto("richis", Vector2(900, 760))
 
 
@@ -430,6 +540,7 @@ func on_balaur_dead() -> void:
 	toast("Received: Balaur Scale  (+4 damage)")
 	toast("+40 coins from the serpent's hoard")
 	await get_tree().create_timer(2.5).timeout
+	await show_story("mosna")
 	goto("mosna", Vector2(950, 860))
 
 
@@ -442,7 +553,7 @@ func on_vlad_dead() -> void:
 		G.sfx("bell", 0.0, [1.0, 0.89, 0.75][i])
 	save_game()
 	await get_tree().create_timer(2.0).timeout
-	await fade_to(1.0, 1.2)
+	await show_story("biertan")
 	state = "ending"
 	ending_t = 0.0
 	player.frozen = true
@@ -471,7 +582,7 @@ func save_game() -> void:
 	var d := {
 		"v": 1, "quest": quest, "quest2": quest2, "smith": smith_level, "ileana": met_ileana,
 		"richis": visited_richis, "vasile": met_vasile, "rozalia": rozalia_thanked, "quest3": quest3, "mosna": visited_mosna,
-		"garlic": p.garlic, "torch": p.torch, "quest4": quest4, "biertan": visited_biertan, "sofia": sofia_gift,
+		"garlic": p.garlic, "torch": p.torch, "quest4": quest4, "biertan": visited_biertan, "sofia": sofia_gift, "ewe_q": ewe_q, "side": side,
 		"max_hp": p.max_hp, "dmg": p.dmg, "potions": p.potions, "coins": p.coins,
 		"charm_dodge": p.charm_dodge, "red_thread": p.red_thread, "salt": p.salt,
 		"salt_unlocked": p.salt_unlocked, "wormwood": p.wormwood, "oak": p.oak_heart,
@@ -509,6 +620,8 @@ func continue_game() -> void:
 	quest4 = int(d.get("quest4", 0))
 	visited_biertan = bool(d.get("biertan", false))
 	sofia_gift = bool(d.get("sofia", false))
+	ewe_q = int(d.get("ewe_q", 0))
+	side = d.get("side", {}) if typeof(d.get("side", {})) == TYPE_DICTIONARY else {}
 	var p := player
 	p.max_hp = float(d.get("max_hp", 100.0))
 	p.hp = p.max_hp
@@ -539,9 +652,13 @@ func _process(delta: float) -> void:
 	if state == "play":
 		if current == "forest" or current == "hills" or current == "vineyard":
 			G.dusk = minf(1.0, G.dusk + delta / 240.0)
+			if G.dusk >= 1.0 and not midnight_done:
+				strike_midnight()
 		elif current == "hub" or current == "richis" or current == "mosna":
 			G.dusk = move_toward(G.dusk, 0.45, delta * 0.4)
-	player.frozen = (state == "dialogue" or state == "dead" or state == "ending")
+	player.frozen = (state == "dialogue" or state == "dead" or state == "ending" or state == "story")
+	if state == "story":
+		story_t += delta
 	if state == "ending":
 		ending_t += delta
 
@@ -567,7 +684,15 @@ func _unhandled_input(event: InputEvent) -> void:
 	if state == "title":
 		hud.title_input(event)
 		return
+	if state == "bestiary":
+		hud.bestiary_input(event)
+		return
 	var tap: bool = event is InputEventScreenTouch and event.pressed
+	if state == "story":
+		if story_t > 1.5 and (tap or (event is InputEventKey and event.pressed) or (event is InputEventMouseButton and event.pressed)):
+			story_t = -999.0
+			story_closed.emit()
+		return
 	if state == "ending":
 		if ending_t > 4.0 and (tap or (event is InputEventKey and event.pressed) or (event is InputEventMouseButton and event.pressed)):
 			ending_t = -999.0
@@ -607,7 +732,8 @@ func voice(s: String) -> void:
 func marker_for(id: String) -> bool:
 	return (id == "anna" and (quest == 0 or quest == 2)) or (id == "ileana" and not met_ileana) \
 		or (id == "pastor" and (quest2 == 0 or quest2 == 2)) or (id == "vasile" and not met_vasile and quest2 >= 1) \
-		or (id == "konrad" and (quest3 == 0 or quest3 == 2)) or (id == "sexton" and quest4 == 0) or (id == "sofia" and not sofia_gift)
+		or (id == "konrad" and (quest3 == 0 or quest3 == 2)) or (id == "sexton" and quest4 == 0) or (id == "sofia" and not sofia_gift) \
+		or (id == "gheorghe" and (ewe_q == 0 or (ewe_q == 1 and ewes_found() >= 3))) or (id == "hermit" and not side.has("hermit"))
 
 
 # ---------------------------------------------------------------- dialogue
@@ -646,6 +772,29 @@ func prop_used(p: Prop) -> void:
 		"bell":
 			if level is ChurchLevel:
 				(level as ChurchLevel).ring_bell()
+		"ewe":
+			p.used = true
+			p.remove_from_group("interactable")
+			side[p.id] = true
+			G.sfx("blip", -2.0, 1.3)
+			toast("You tie a cord to the ewe. It trots off toward Saschiz.  (%d / 3)" % ewes_found())
+		"treasure":
+			p.used = true
+			side[p.id] = true
+			G.sfx("coin", 0.0, 0.8)
+			var gold := 35 + 15 * treasures_found()
+			player.coins += gold
+			toast("A haiduc's buried pot of coins!  +%d coins  (%d / 3)" % [gold, treasures_found()])
+			if treasures_found() >= 3:
+				player.dmg += 4.0
+				banner("THE HAIDUC'S SILVER", "At the bottom of the last pot: a silver knife.  +4 damage")
+		"spring":
+			side["spring"] = true
+			player.max_hp += 15.0
+			player.hp = player.max_hp
+			G.sfx("potion", 0.0, 0.7)
+			G.fx_ring(p.get_parent(), player.global_position, Color(0.6, 0.85, 1.0, 0.8), 60)
+			toast("Cold, sweet water. You feel older and stronger.  +15 max health")
 		"crystal":
 			p.regrow = 20.0
 			player.salt += 2
@@ -683,11 +832,22 @@ func prop_used(p: Prop) -> void:
 			if p.id == "lake_sign":
 				start_dialogue("Scratched into the salt", ["'She sings from the far side of the lake. The children follow the singing. Do not follow the singing.'"])
 				return
-			start_dialogue("Carved post", ["Beyond this post, the Moon Clearing. Old shepherds say the Varcolac sleeps there between eclipses.", "Light the braziers if the sky goes dark. Beasts that swallow the moon fear a hearth."])
+			start_dialogue("Carved post", ["Beyond this post, the Moon Clearing. Old shepherds say a vârcolac lives there, a thing born of the air.", "When women spin at night without a candle, it climbs their threads to bite the moon. If the moon turns red, light the fires and make a din."])
 
 
 func talk(id: String) -> void:
 	match id:
+		"hermit":
+			if not side.has("hermit"):
+				start_dialogue("Pafnutie, Hermit", [
+					"Forty years I have prayed in this glade, and you are the third soul to find it. Sit.",
+					"The haiducs who robbed the salt road buried their pots in this forest. At midnight, in the evil hour, the treasure burns with a blue flame. Only then can it be found.",
+					"Let the dusk run out. When you hear the twelve strokes, look for blue fire off the path. And drink from my spring before you go; it has kept me alive a long time.",
+				], func():
+					side["hermit"] = true
+					toast("Side quest: The Haiducs' Treasure  (three pots, found only at midnight)"))
+			else:
+				start_dialogue("Pafnutie, Hermit", ["%d of three pots found. Wait for the twelve strokes; look for blue fire." % treasures_found() if treasures_found() < 3 else "You found them all. Spend it on salt and silver, not on wine."])
 		"sexton":
 			if quest4 == 0:
 				start_dialogue("Martin, Sexton", [
@@ -855,6 +1015,25 @@ func talk(id: String) -> void:
 			else:
 				start_dialogue("Old Ileana", ["A voice that knows your name is never a friend's, child. Do not answer it.", "Light is your armour in the dark. The dusk makes them bold."])
 		"gheorghe":
+			if ewe_q == 0:
+				start_dialogue("Gheorghe", [
+					"Forty ewes, gone in one night. I heard something howling at the sky.",
+					"Three more bolted into the Wolf Forest, far from the path. One north-west, one north-east, one down in the southern hollows.",
+					"If you find them, tie a cord on them and they will find their way home. I would give you every coin I have.",
+				], func():
+					ewe_q = 1
+					toast("Side quest: The Lost Ewes  (find three ewes deep in the Wolf Forest)"))
+				return
+			if ewe_q == 1 and ewes_found() >= 3:
+				start_dialogue("Gheorghe", ["All three, home and bleating! You walked where no shepherd dares.", "Take this, and my mother's tinctures. And listen: old Pafnutie the hermit lives in the south-west of the forest. Few have found him."], func():
+					ewe_q = 2
+					player.coins += 40
+					player.potions += 2
+					toast("Side quest complete.  +40 coins, +2 tinctures"))
+				return
+			if ewe_q == 1:
+				start_dialogue("Gheorghe", ["%d of three ewes are home. The others are still out there, off the path." % ewes_found()])
+				return
 			if quest >= 2:
 				start_dialogue("Gheorghe", ["They say the beast is slain? Then my ewes can rest in peace. Thank you, stranger."])
 			else:
@@ -930,9 +1109,46 @@ func run_test() -> void:
 	while state == "dialogue":
 		advance_dialogue()
 	chk.call(player.red_thread and player.max_hp == 110.0, "Ileana red thread charm")
+	talk("gheorghe")
+	while state == "dialogue":
+		advance_dialogue()
+	chk.call(ewe_q == 1, "side quest: lost ewes")
 	await goto("forest")
 	await get_tree().create_timer(0.8).timeout
 	chk.call(current == "forest", "forest loaded")
+	var ewes: Array = []
+	var trs: Array = []
+	var spring_p: Prop = null
+	for n in get_tree().get_nodes_in_group("interactable"):
+		if n is Prop and n.kind == "ewe":
+			ewes.append(n)
+		elif n is Prop and n.kind == "treasure":
+			trs.append(n)
+		elif n is Prop and n.kind == "spring":
+			spring_p = n
+	chk.call(ewes.size() == 3 and trs.size() == 3, "ewes and treasure spots placed")
+	for e in ewes:
+		prop_used(e)
+	chk.call(ewes_found() == 3, "all ewes found")
+	talk("hermit")
+	while state == "dialogue":
+		advance_dialogue()
+	var mhp := player.max_hp
+	prop_used(spring_p)
+	chk.call(side.has("hermit") and player.max_hp == mhp + 15.0, "hermit and his spring")
+	chk.call(not trs[0].can_interact(), "treasure hidden before midnight")
+	G.dusk = 1.0
+	await get_tree().create_timer(0.4).timeout
+	chk.call(midnight_done and trs[0].can_interact(), "midnight strikes; blue flames show treasure")
+	player.global_position = trs[0].global_position + Vector2(0, 40)
+	cam.reset_smoothing()
+	await get_tree().create_timer(0.3).timeout
+	await snap("02b_midnight_treasure")
+	var dmg0 := player.dmg
+	for tr in trs:
+		prop_used(tr)
+	chk.call(treasures_found() == 3 and player.dmg == dmg0 + 4.0, "haiducs' treasure dug up")
+	G.dusk = 0.3
 	var total := get_tree().get_nodes_in_group("enemies").size()
 	chk.call(total >= 14, "forest has enemies (%d)" % total)
 	chk.call((level as ForestLevel).spawn_lurker(), "red-eyed lurker spawns in the forest")
@@ -997,7 +1213,7 @@ func run_test() -> void:
 	b.hurt(20.0, Vector2.UP)
 	await get_tree().create_timer(0.3).timeout
 	chk.call(boss == null or not is_instance_valid(boss), "boss slain")
-	await get_tree().create_timer(8.5).timeout
+	await get_tree().create_timer(13.0).timeout
 	chk.call(quest == 2 and player.charm_dodge, "charm awarded, quest 2")
 	chk.call(current == "hub", "returned to Saschiz")
 	talk("anna")
@@ -1091,10 +1307,25 @@ func run_test() -> void:
 	m.hop_t = 99.0
 	m.root_t = 99.0
 	m.hurt(20.0, Vector2.UP)
-	chk.call(m.hp == 400.0, "Muma takes damage in phase 1")
+	chk.call(m.hp == 540.0, "Muma takes damage in phase 1")
 	m.hp = 275.0
 	m.hurt(1.0, Vector2.UP)
 	chk.call(m.phase == 2, "Muma phase 2")
+	var hl := level as HollowLevel
+	chk.call(hl.sisters.size() == 2, "Muma splits into three sisters")
+	var sis: Muma = hl.sisters[0]
+	sis.bstate = "walk"
+	sis.hurt(10.0, Vector2.UP)
+	await get_tree().physics_frame
+	chk.call(not is_instance_valid(sis), "striking an illusion bursts it into crows")
+	player.god = false
+	player.inv_t = 0.0
+	var mad0 := player.madness
+	player.hurt(10.0, Vector2.UP)
+	chk.call(player.madness == mad0 + 10.0, "madness grows with every hit")
+	player.hp = player.max_hp
+	player.inv_t = 0.0
+	player.god = true
 	m.hop_t = 99.0
 	var mb := m.hp
 	m.hurt(10.0, Vector2.UP)
@@ -1126,7 +1357,7 @@ func run_test() -> void:
 	m.hurt(20.0, Vector2.UP)
 	await get_tree().create_timer(0.3).timeout
 	chk.call(boss == null or not is_instance_valid(boss), "Muma Pădurii slain")
-	await get_tree().create_timer(8.5).timeout
+	await get_tree().create_timer(13.0).timeout
 	chk.call(quest2 == 2 and current == "richis" and player.oak_heart, "returned to Richiș with Heart of Oak")
 	talk("pastor")
 	while state == "dialogue":
@@ -1210,13 +1441,15 @@ func run_test() -> void:
 	chk.call(h0.hstate == "stump" and h0.can_interact(), "head cut to a stump")
 	h0.regrow_t = 0.05
 	await get_tree().create_timer(0.2).timeout
-	chk.call(h0.hstate == "sway" and h0.hp == 78.0, "unseared head grows back")
+	chk.call(h0.hstate == "sway" and h0.hp == 102.0, "unseared head grows back")
 	h0.hurt(200.0, Vector2.UP)
 	h0.interact()
 	chk.call(h0.sealed and not h0.can_interact(), "stump seared shut")
 	var fh: BalaurHead = bl.heads[1]
-	fh.hstate = "sway"
-	fh.cd = 0.0
+	fh.hstate = "tel"
+	fh.ht = 0.0
+	fh.strike_from = fh.global_position
+	fh.strike_to = player.global_position
 	await get_tree().create_timer(1.1).timeout
 	var patches := 0
 	for c in level.get_children():
@@ -1224,13 +1457,30 @@ func run_test() -> void:
 			patches += 1
 	chk.call(patches > 0, "fire head breathes flame (%d)" % patches)
 	await snap("21_gorge_fire")
+	fh.hstate = "skulls"
+	fh.ht = 0.0
+	await get_tree().create_timer(0.8).timeout
+	var skulls := 0
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if e.kind == "skull":
+			skulls += 1
+	chk.call(skulls >= 2, "fire skulls hunt the hunter (%d)" % skulls)
+	bl.gaze_t = 0.0
+	await get_tree().create_timer(1.6).timeout
+	chk.call(bl.gaze_state == "beam", "the stag's gaze sweeps the quarry")
+	await snap("21b_gorge_gaze")
+	await get_tree().create_timer(2.0).timeout
+	bl.devour_t = 0.0
+	await get_tree().create_timer(1.3).timeout
+	chk.call(bl.devour_state in ["surge", "back"], "the Balaur lunges to devour")
+	await snap("21c_gorge_devour")
 	for i in [1, 2]:
 		var hh: BalaurHead = bl.heads[i]
 		hh.hurt(500.0, Vector2.UP)
 		hh.interact()
 	await get_tree().create_timer(0.3).timeout
 	chk.call(boss == null, "the Balaur slain")
-	await get_tree().create_timer(6.5).timeout
+	await get_tree().create_timer(11.0).timeout
 	chk.call(quest3 == 2 and current == "mosna", "returned to Moșna")
 	talk("konrad")
 	while state == "dialogue":
@@ -1289,10 +1539,17 @@ func run_test() -> void:
 	v.bolt_t = 99.0
 	v.blink_t = 99.0
 	v.hurt(20.0, Vector2.UP)
-	chk.call(v.hp == 580.0, "Vlad takes damage in phase 1")
+	chk.call(v.hp == 880.0, "Vlad takes damage in phase 1")
 	v.hp = 395.0
 	v.hurt(1.0, Vector2.UP)
-	chk.call(v.phase == 2, "Vlad phase 2")
+	chk.call(v.phase == 2 and v.bstate == "rite", "Vlad phase 2 opens with the Nihil rite")
+	player.global_position = v.global_position + Vector2(0, 200)
+	player.salt_cd = 0.0
+	player.salt = 3
+	player.throw_salt()
+	await get_tree().create_timer(4.8).timeout
+	chk.call(v.nihil == 3 and v.bstate != "rite", "three cries of Nihil")
+	await snap("26a_church_nihil")
 	v.bolt_t = 99.0
 	v.blink_t = 99.0
 	var vb := v.hp
@@ -1302,6 +1559,23 @@ func run_test() -> void:
 	chk.call(v.vulnerable(), "the great bell drags him into flesh")
 	v.hurt(10.0, Vector2.UP)
 	chk.call(v.hp == vb - 10.0, "Vlad vulnerable after the bell")
+	player.god = false
+	player.garlic = false
+	for r in get_tree().get_nodes_in_group("salt_rings"):
+		r.queue_free()
+	for i in 5:
+		player.inv_t = 0.0
+		player.hp = player.max_hp
+		player.hurt(1.0, Vector2.UP)
+	chk.call(player.vamp_t > 0.0, "his blood turns the hunter into a vampire")
+	var hpv := player.hp
+	player.potions += 1
+	player.drink()
+	chk.call(player.hp < hpv, "tinctures burn a vampire")
+	player.vamp_t = 0.0
+	player.hp = player.max_hp
+	player.garlic = true
+	player.god = true
 	v.bstate = "cast"
 	v.bt = 0.0
 	await get_tree().create_timer(0.75).timeout
@@ -1331,7 +1605,7 @@ func run_test() -> void:
 	v.hurt(20.0, Vector2.UP)
 	await get_tree().create_timer(0.3).timeout
 	chk.call(boss == null and quest4 == 2, "Strigoi Vlad destroyed")
-	await get_tree().create_timer(12.0).timeout
+	await get_tree().create_timer(15.0).timeout
 	chk.call(state == "ending", "ending plays")
 	await get_tree().create_timer(3.0).timeout
 	await snap("28_ending")

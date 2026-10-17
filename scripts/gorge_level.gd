@@ -3,11 +3,12 @@ extends Level
 ## The flooded quarry where the Balaur lies across the road to Biertan.
 
 var boss: Balaur
+var pillars: Array = []
 
 
 func build() -> void:
 	title = "THE DROWNED QUARRY"
-	subtitle = "The Balaur"
+	subtitle = "The Balaur, crowned with the enchanted stag's gems"
 	size = Vector2(1600, 1200)
 	spawn = Vector2(800, 1080)
 	ground = Color("2a2723")
@@ -28,6 +29,11 @@ func build() -> void:
 			add_block(Rect2(x, 1120, 100, 80), "rock", 60)
 	for p in [Vector2(320, 640), Vector2(1280, 640), Vector2(400, 980), Vector2(1200, 980)]:
 		add_brazier(p)
+	# standing stones: cover from the stag's gaze
+	for c in [Vector2(520, 760), Vector2(1080, 760), Vector2(800, 900), Vector2(300, 860), Vector2(1300, 860)]:
+		var r := Rect2(c.x - 30, c.y - 22, 60, 44)
+		add_block(r, "stone", 90)
+		pillars.append(r.grow_individual(0, 60, 0, 0))
 	boss = Balaur.new()
 	boss.main = main
 	boss.arena = self

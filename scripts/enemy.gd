@@ -46,6 +46,9 @@ func setup(k: String) -> void:
 			state = "dormant"
 		"strigoi":
 			hp = 52.0; speed = 118.0; dmg = 12.0; radius = 14.0; coin = 9; aggro = 380.0
+		"skull":
+			hp = 8.0; speed = 150.0; dmg = 14.0; radius = 12.0; coin = 0; aggro = 9999.0
+			state = "chase"
 		"ward":
 			hp = 90.0; speed = 0.0; dmg = 0.0; radius = 22.0; coin = 15; aggro = 520.0
 		"bat":
@@ -57,7 +60,7 @@ func setup(k: String) -> void:
 func _ready() -> void:
 	add_to_group("enemies")
 	collision_layer = 4
-	collision_mask = 1
+	collision_mask = 1 | 2
 	var cs := CollisionShape2D.new()
 	var c := CircleShape2D.new()
 	c.radius = radius * 0.8
@@ -79,6 +82,23 @@ func _physics_process(delta: float) -> void:
 	var d := to.length()
 	var mult := 1.0 + 0.4 * G.dusk
 	salted = maxf(0.0, salted - delta)
+	if kind == "skull":
+		# a burning skull that homes on the hunter and bursts on contact
+		face = face.slerp(to.normalized(), minf(1.0, delta * 2.2)).normalized()
+		velocity = face * speed + knock
+		knock = knock.move_toward(Vector2.ZERO, 900.0 * delta)
+		if d < 30.0 or t > 6.0:
+			if d < 40.0:
+				player.hurt(dmg, face)
+			var fp := FirePatch.new()
+			fp.position = global_position
+			get_parent().add_child(fp)
+			G.sfx("fire", -8.0, 1.5)
+			queue_free()
+			return
+		move_and_slide()
+		queue_redraw()
+		return
 	if kind == "ward":
 		velocity = Vector2.ZERO
 		if d < aggro:
@@ -133,6 +153,7 @@ func _physics_process(delta: float) -> void:
 				if d < radius + 26.0 and atk_cd <= 0.0:
 					player.hurt(dmg * mult, dir)
 					atk_cd = 1.0
+					knock = -dir * 220.0
 		"windup":
 			velocity = knock
 			face = to.normalized()
@@ -155,7 +176,7 @@ func _physics_process(delta: float) -> void:
 
 
 func undead() -> bool:
-	return kind in ["iele", "moroi", "shade", "strigoi"]
+	return kind in ["iele", "moroi", "shade", "strigoi", "skull"]
 
 
 ## Bats: erratic swoops, nip and veer away.
@@ -399,6 +420,15 @@ func _draw() -> void:
 				draw_circle(Vector2(0, -26), 22, Color(0.7, 0.8, 1.0, 0.25 + 0.2 * sin(t * 30.0)))
 			draw_health_bar()
 			return
+	if kind == "skull":
+		for i in 4:
+			var fl := Vector2(-face.x, -face.y) * (8.0 + i * 7.0) + Vector2(0, -24)
+			draw_circle(fl, 10.0 - i * 2.0, Color(1.0, 0.45 - i * 0.08, 0.1, 0.6 - i * 0.12))
+		draw_circle(Vector2(0, -24), 11, Color("e8e0cc") if flash <= 0.0 else Color.WHITE)
+		draw_rect(Rect2(-6, -18, 12, 7), Color("e8e0cc"))
+		draw_circle(Vector2(-4, -26), 3, Color(1.0, 0.4, 0.1))
+		draw_circle(Vector2(4, -26), 3, Color(1.0, 0.4, 0.1))
+		return
 	if kind == "ward":
 		var pulse := 0.5 + 0.5 * sin(t * 4.0)
 		draw_set_transform(Vector2(0, 2), 0, Vector2(1, 0.45))

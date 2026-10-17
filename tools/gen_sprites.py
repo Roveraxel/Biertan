@@ -387,6 +387,54 @@ def vlad(pose):
 for p in ("idle", "cast", "claw"):
     sprites[f"vlad_{p}"] = vlad(p)
 
+# ---- the forest hermit (side quest)
+sprites["npc_hermit"] = human(
+    "#4a3a28", "#5e4a34", "#a98a72",
+    '<path d="M38 34 Q36 18 48 18 Q60 18 58 34 Q56 24 48 24 Q40 24 38 34Z" fill="#3a2c1e" stroke="#0b0d14" stroke-width="1.5"/>'
+    '<path d="M41 38 Q48 66 55 38 Q48 46 41 38Z" fill="#e8e6e0"/>',
+    belt="#8a7a5a", hand="#a98a72",
+    held_r='<path d="M70 20 L70 80" stroke="#6b4a2e" stroke-width="3" stroke-linecap="round"/><path d="M66 20 L74 20 M70 16 L70 26" stroke="#c9a24a" stroke-width="2"/>')
+
+# ---- the Vârcolac, after Romanian folklore: a lean hound-like creature
+# "born of the air", climbing threads spun at night to bite the moon
+VDEF = ('<defs><linearGradient id="vb" x1="0" x2="1"><stop offset="0" stop-color="#2a2a3a" stop-opacity="0.35"/><stop offset="0.5" stop-color="#1c1c28"/><stop offset="1" stop-color="#14141e"/></linearGradient>'
+        '<radialGradient id="ve"><stop offset="0" stop-color="#ff3a2a" stop-opacity="0.9"/><stop offset="1" stop-color="#ff3a2a" stop-opacity="0"/></radialGradient>'
+        '<radialGradient id="vm"><stop offset="0.6" stop-color="#b3372f" stop-opacity="0.9"/><stop offset="1" stop-color="#7a1a14" stop-opacity="0.9"/></radialGradient></defs>')
+
+def threads(x, y):
+    return ''.join(f'<path d="M{x + dx} {y} Q{x + dx * 2 + 6} {y - 40} {x + dx * 3} -4" stroke="#e8e0cc" stroke-width="0.9" opacity="0.55" fill="none"/>' for dx in (-6, 0, 6))
+
+def varcolac(pose):
+    if pose == "howl":
+        head = ('<g transform="rotate(-50 116 58)"><path d="M108 50 Q122 40 146 48 L150 54 L128 62 Q114 64 108 60Z" fill="#1c1c28" stroke="#0b0d14" stroke-width="1.5"/>'
+                '<path d="M128 60 L152 64 L144 70 Q132 70 126 64Z" fill="#14141e" stroke="#0b0d14" stroke-width="1.2"/>'
+                '<circle cx="126" cy="51" r="6" fill="url(#ve)"/><circle cx="126" cy="51" r="1.8" fill="#ff3a2a"/>'
+                '<path d="M112 46 L110 32 L120 44Z" fill="#14141e"/>'
+                '<circle cx="160" cy="58" r="13" fill="url(#vm)"/><circle cx="153" cy="56" r="8" fill="#08080d"/></g>')
+        legs = ('<path d="M58 80 L50 104 M70 80 L72 106 M104 76 L100 104 M114 74 L120 102" stroke="#14141e" stroke-width="5" stroke-linecap="round"/>')
+    elif pose == "charge":
+        head = ('<path d="M112 60 Q128 52 150 60 L156 66 L132 72 Q118 72 112 68Z" fill="#1c1c28" stroke="#0b0d14" stroke-width="1.5"/>'
+                '<path d="M134 70 L158 72 L150 78 Q138 78 132 74Z" fill="#14141e"/><path d="M138 70 L140 74 L142 70 M146 70 L148 74 L150 70" fill="#f3ead6"/>'
+                '<circle cx="132" cy="62" r="6" fill="url(#ve)"/><circle cx="132" cy="62" r="1.8" fill="#ff3a2a"/>'
+                '<path d="M116 58 L110 44 L124 56Z" fill="#14141e"/>')
+        legs = ('<path d="M56 82 L36 98 M68 82 L60 104 M102 80 L120 100 M112 78 L134 92" stroke="#14141e" stroke-width="5" stroke-linecap="round"/>')
+    else:
+        head = ('<path d="M110 56 Q124 46 146 54 L152 60 L130 68 Q116 68 110 64Z" fill="#1c1c28" stroke="#0b0d14" stroke-width="1.5"/>'
+                '<circle cx="155" cy="62" r="11" fill="url(#vm)"/><circle cx="160" cy="58" r="6" fill="#08080d"/>'
+                '<circle cx="128" cy="57" r="6" fill="url(#ve)"/><circle cx="128" cy="57" r="1.8" fill="#ff3a2a"/>'
+                '<path d="M114 52 L110 38 L122 50Z" fill="#14141e"/>')
+        legs = ('<path d="M58 82 L54 106 M70 82 L72 106 M104 78 L102 106 M114 76 L118 104" stroke="#14141e" stroke-width="5" stroke-linecap="round"/>')
+    body = ('<ellipse cx="90" cy="110" rx="48" ry="5" fill="#000" opacity="0.4"/>'
+            '<path d="M48 76 Q24 70 14 54 Q6 40 18 30 Q10 46 24 58 Q36 66 50 68Z" fill="#14141e" opacity="0.85"/>'
+            '<path d="M14 54 Q4 50 2 40" stroke="#2a2a3a" stroke-width="3" fill="none" opacity="0.6"/>'
+            '<path d="M46 72 Q60 60 86 62 Q110 62 118 62 Q116 80 102 84 Q80 88 58 86 Q44 84 46 72Z" fill="url(#vb)" stroke="#0b0d14" stroke-width="1.5"/>'
+            '<path d="M62 70 Q66 78 62 84 M72 68 Q76 78 72 86 M82 68 Q86 78 82 86 M92 68 Q96 78 92 86" stroke="#4a4a5a" stroke-width="1.4" fill="none" opacity="0.7"/>'
+            '<g fill="#3a3a4e" opacity="0.5"><circle cx="40" cy="64" r="5"/><circle cx="30" cy="70" r="3"/><circle cx="52" cy="92" r="4"/></g>')
+    return f'<svg {BW}>{VDEF}<g transform="translate(6 18)">{threads(84, 64)}{legs}{body}{head}</g></svg>'
+
+for p in ("idle", "howl", "charge"):
+    sprites[f"boss_{p}"] = varcolac(p)
+
 os.makedirs(OUT, exist_ok=True)
 for name, svg in sprites.items():
     with open(os.path.join(OUT, name + ".svg"), "w") as f:

@@ -27,6 +27,10 @@ func _ready() -> void:
 		light = G.make_light(170.0, Color(0.75, 0.85, 1.0), 0.8)
 		light.position = Vector2(0, -16)
 		add_child(light)
+	elif kind == "treasure":
+		light = G.make_light(160.0, Color(0.4, 0.6, 1.0), 0.0)
+		light.position = Vector2(0, -20)
+		add_child(light)
 	elif kind == "cross":
 		light = G.make_light(150.0, Color(1.0, 0.8, 0.5), 0.5)
 		light.position = Vector2(0, -30)
@@ -36,6 +40,10 @@ func _ready() -> void:
 func can_interact() -> bool:
 	if kind == "crystal":
 		return regrow <= 0.0
+	if kind == "treasure":
+		return not used and G.dusk >= 0.99
+	if kind == "spring":
+		return main != null and not main.side_has("spring")
 	return not (used and kind in ["sack", "cross", "bones"])
 
 
@@ -51,6 +59,8 @@ func _process(delta: float) -> void:
 	t += delta
 	if regrow > 0.0:
 		regrow = maxf(0.0, regrow - delta)
+	if light != null and kind == "treasure":
+		light.energy = (0.9 + 0.2 * sin(t * 7.0)) if can_interact() else 0.0
 	if light != null and kind == "crystal":
 		light.energy = (0.25 if regrow > 0.0 else 0.8) + 0.08 * sin(t * 2.0 + position.x)
 	queue_redraw()
@@ -106,6 +116,26 @@ func _draw() -> void:
 				draw_line(Vector2(0, -40) + a * 6.0, Vector2(0, -40) + a * 10.0, Color("c9a24a"), 1.5)
 			if not used:
 				draw_circle(Vector2(0, -6), 3, Color(1, 0.7, 0.3, 0.6 + 0.3 * sin(t * 5.0)))
+		"ewe":
+			if not used:
+				var bob := sin(t * 3.0) * 1.0
+				draw_circle(Vector2(0, -12 + bob), 13, Color("e8e2d2"))
+				draw_circle(Vector2(-8, -14 + bob), 9, Color("f0eadc"))
+				draw_circle(Vector2(8, -14 + bob), 9, Color("f0eadc"))
+				draw_circle(Vector2(14, -20 + bob), 6, Color("2a2420"))
+				draw_rect(Rect2(-8, -2, 3, 6), Color("2a2420"))
+				draw_rect(Rect2(6, -2, 3, 6), Color("2a2420"))
+		"treasure":
+			if can_interact():
+				for i in 3:
+					var x := (i - 1) * 9.0
+					var h := 26.0 + 8.0 * sin(t * 9.0 + i * 2.0)
+					draw_colored_polygon(PackedVector2Array([Vector2(x - 6, 0), Vector2(x + 6, 0), Vector2(x, -h)]), Color(0.35, 0.55, 1.0, 0.85))
+					draw_colored_polygon(PackedVector2Array([Vector2(x - 3, 0), Vector2(x + 3, 0), Vector2(x, -h * 0.6)]), Color(0.8, 0.9, 1.0, 0.9))
+			elif used:
+				draw_circle(Vector2(0, -2), 12, Color("1a1410"))
+		"spring":
+			pass
 		"bell":
 			draw_rect(Rect2(-3, -110, 6, 100), Color("8a7a5a"))
 			draw_circle(Vector2(0, -8), 7, Color("b08a3a"))

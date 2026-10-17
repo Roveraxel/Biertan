@@ -15,13 +15,17 @@ var wisp_t := 8.0
 var vuln_t := 0.0
 var alpha := 1.0
 var hop_to := Vector2.ZERO
+var brew_t := 3.0
+var weave_t := 7.0
+var crow_t := 9.0
+var illusion := false
 var arena
 
 
 func setup(_k: String) -> void:
 	kind = "muma"
-	hp = 420.0
-	max_hp = 420.0
+	hp = 560.0
+	max_hp = 560.0
 	speed = 88.0
 	dmg = 15.0
 	radius = 40.0
@@ -48,8 +52,13 @@ func vulnerable() -> bool:
 
 
 func salt_hit(ring: Node2D, _delta: float) -> void:
+	if illusion:
+		pop(false)
+		return
 	if bstate == "intro" or bstate == "hide" or ring.has_meta("spent"):
 		return
+	if arena != null:
+		arena.dispel_illusions()
 	if vuln_t <= 0.0:
 		ring.set_meta("spent", true)
 		vuln_t = 4.5
@@ -61,8 +70,23 @@ func salt_hit(ring: Node2D, _delta: float) -> void:
 			arena.main.toast("The salt burns her bark! Strike now!")
 
 
+## An illusion struck or salted bursts into crows.
+func pop(crows := true) -> void:
+	G.sfx("cackle", -4.0, 1.4)
+	G.fx_ring(get_parent(), global_position, Color(0.3, 0.3, 0.3, 0.9), 80, 0.5)
+	if crows and arena != null:
+		for i in 2:
+			var e: Enemy = arena.spawn_enemy("bat", global_position + Vector2(randf_range(-30, 30), -40))
+			e.state = "chase"
+		arena.main.toast("Only an illusion! It bursts into crows.")
+	queue_free()
+
+
 func hurt(amount: float, dir: Vector2) -> void:
 	if bstate == "intro" or bstate == "hide":
+		return
+	if illusion:
+		pop()
 		return
 	if not vulnerable():
 		flash = 0.05
@@ -90,6 +114,8 @@ func hurt(amount: float, dir: Vector2) -> void:
 
 
 func die() -> void:
+	if arena != null:
+		arena.dispel_illusions()
 	died.emit(self)
 	G.sfx("boss_roar", 0.0, 1.3)
 	G.sfx("cackle", 0.0, 0.6)
@@ -132,7 +158,7 @@ func _physics_process(delta: float) -> void:
 				bstate = "sweep"
 				bt = 0.0
 				if d < 150.0 and absf(face.angle_to(to)) < deg_to_rad(65.0):
-					player.hurt(dmg * 1.2, face)
+					player.hurt(dmg * (0.6 if illusion else 1.2), face)
 				G.sfx("swing", 0.0, 0.5)
 		"sweep":
 			velocity = knock
@@ -145,13 +171,15 @@ func _physics_process(delta: float) -> void:
 			if bt > 0.7:
 				bstate = "walk"
 				bt = 0.0
-				if arena != null:
+				if arena != null and not illusion:
 					arena.cast_roots(self)
 		"hide":
 			velocity = Vector2.ZERO
 			alpha = maxf(0.0, alpha - delta * 2.0)
 			if bt > 0.6 and global_position != hop_to:
 				global_position = hop_to
+				if not illusion and arena != null:
+					arena.shuffle_sisters(self)
 			if bt > 1.2:
 				bstate = "walk"
 				bt = 0.0
@@ -163,7 +191,26 @@ func _physics_process(delta: float) -> void:
 				bt = 0.0
 	if bstate != "hide":
 		alpha = minf(1.0, alpha + delta * 2.0)
+	if illusion:
+		if bstate == "walk" and bt > 0.0:
+			brew_t -= delta
+			if brew_t <= 0.0:
+				brew_t = randf_range(4.0, 6.0)
+				throw_brew(1)
+		knock = knock.move_toward(Vector2.ZERO, 700.0 * delta)
+		modulate.a = alpha * (0.55 if fmod(t + position.x * 0.01, 3.2) < 0.15 else 0.92)
+		move_and_slide()
+		queue_redraw()
+		return
 	if bstate == "walk" and bt > 0.0:
+		brew_t -= delta
+		if brew_t <= 0.0:
+			brew_t = 5.0 - phase * 0.7
+			throw_brew(1 + phase)
+		weave_t -= delta
+		if weave_t <= 0.0 and arena != null:
+			weave_t = 9.0 - phase
+			arena.weave(self)
 		root_t -= delta
 		if root_t <= 0.0:
 			root_t = 6.5 - phase * 1.2
@@ -181,10 +228,23 @@ func _physics_process(delta: float) -> void:
 			if wisp_t <= 0.0 and arena != null:
 				wisp_t = 11.0
 				arena.call_wisps(self)
+			crow_t -= delta
+			if crow_t <= 0.0 and arena != null:
+				crow_t = 10.0
+				arena.call_crows(self)
 	knock = knock.move_toward(Vector2.ZERO, 700.0 * delta)
 	modulate.a = alpha * (1.0 if vulnerable() else 0.92)
 	move_and_slide()
 	queue_redraw()
+
+
+func throw_brew(n: int) -> void:
+	G.sfx("hiss", -8.0, 1.6)
+	for i in n:
+		var fp := FirePatch.new()
+		fp.brew = true
+		fp.position = player.global_position + (Vector2.ZERO if i == 0 else Vector2.from_angle(randf() * TAU) * randf_range(50, 130))
+		get_parent().add_child(fp)
 
 
 func _draw() -> void:
