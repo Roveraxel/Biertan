@@ -58,7 +58,7 @@ namespace Biertan.Core
         public string current = "";          // active level id
         public PlayerController player;
         public LevelBase level;
-        public GameObject boss;
+        public IBoss boss;
         public bool transitioning;
         public float t;
 

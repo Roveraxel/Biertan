@@ -145,6 +145,7 @@ namespace Biertan.Player
                 if (GameInput.AttackHeld() && attackCd <= 0f) Swing();
                 if (GameInput.PotionPressed()) Drink();
                 if (GameInput.SaltPressed()) ThrowSalt();
+                if (GameInput.InteractPressed()) Interactable.Nearest(transform.position)?.Interact();
             }
 
             if (dir != Vector2.zero) walkT += dt * 9f;

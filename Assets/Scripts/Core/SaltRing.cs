@@ -11,6 +11,7 @@ namespace Biertan.Core
         public static readonly List<SaltRing> All = new();
 
         public float life = 6f;
+        public bool spent;
         public SpriteRenderer disc;   // circle sprite, scaled to the ring
         public LineRenderer edge;
         float t;

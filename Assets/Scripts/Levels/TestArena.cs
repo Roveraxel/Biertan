@@ -16,7 +16,6 @@ namespace Biertan.Levels
     public class TestArena : LevelBase
     {
         public PlayerController player;
-        public Vector2 spawn = Vector2.zero;
         readonly List<string> toasts = new();
         string banner = "", bannerSub = "";
         float bannerT, toastT;
@@ -51,7 +50,7 @@ namespace Biertan.Levels
             HudEvents.Toast("Test arena — number keys spawn creatures. F1 god, F2 salt, F3 tinctures, F4 dusk.");
         }
 
-        public override void SpawnEnemy(string kind, Vector2 pos) => PrefabRegistry.SpawnEnemy(kind, pos);
+        public override EnemyBase SpawnEnemy(string kind, Vector2 pos) => PrefabRegistry.SpawnEnemy(kind, pos);
 
         public override Color Ambient()
         {
