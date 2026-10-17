@@ -106,6 +106,12 @@ func _draw() -> void:
 				draw_line(Vector2(0, -40) + a * 6.0, Vector2(0, -40) + a * 10.0, Color("c9a24a"), 1.5)
 			if not used:
 				draw_circle(Vector2(0, -6), 3, Color(1, 0.7, 0.3, 0.6 + 0.3 * sin(t * 5.0)))
+		"bell":
+			draw_rect(Rect2(-3, -110, 6, 100), Color("8a7a5a"))
+			draw_circle(Vector2(0, -8), 7, Color("b08a3a"))
+			var lvl := main.level as ChurchLevel if main != null else null
+			if lvl != null and lvl.bell_cd <= 0.0:
+				draw_circle(Vector2(0, -60), 18 + 4 * sin(t * 4.0), Color(1, 0.85, 0.5, 0.18))
 		"greenman":
 			draw_rect(Rect2(-22, -56, 44, 52), Color("8d877a"))
 			draw_circle(Vector2(0, -32), 15, Color("6a6458"))

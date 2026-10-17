@@ -409,3 +409,76 @@ for bar in range(8):
     place(m, note(fr, beat_ * 4, "pad", 0.22), bar * 4 * beat_)
 save("music_balaur", loopify(lp(m, 4200), 1.0), 0.65)
 print("level 3 audio written")
+
+# ============================================================ Level 4: Biertan
+# blood bolt
+d = 0.5
+tt = t_(d)
+save("bolt", bp(sweep(tt, 900, 300, "saw") + 0.5 * noise(d), 200, 2500) * decay(tt, 7), 0.5)
+
+# blink: reverse whoosh
+d = 0.5
+tt = t_(d)
+x = hp(lp(noise(d), 5000), 600) * (tt / d) ** 2
+save("blink", x * env(len(tt), 0.01, 0.05), 0.55)
+
+# deep laugh
+d = 2.0
+tt = t_(d)
+puls = lp((np.sin(2 * np.pi * 4.2 * tt) > 0.1).astype(float), 40)
+f = 110 - 25 * tt / d
+x = bp(signal.sawtooth(2 * np.pi * np.cumsum(f + 8 * np.sin(2 * np.pi * 4.2 * tt)) / SR) + 0.3 * noise(d), 90, 1400) * puls * env(len(tt), 0.05, 0.6)
+save("laugh", x, 0.8)
+
+# blood ward shattering
+d = 1.2
+tt = t_(d)
+x = 0.8 * hp(noise(d), 1500) * decay(tt, 8) + sum(a * np.sin(2 * np.pi * f_ * tt) * decay(tt, k) for f_, a, k in [(220, 1, 3), (233, 0.8, 3), (330, 0.5, 4)])
+save("ward", x, 0.8)
+
+# village music: sparse, mournful
+d = 30.0
+tt = t_(d)
+m = 0.5 * np.sin(2 * np.pi * 49.0 * tt) * (0.6 + 0.4 * np.sin(2 * np.pi * tt / 15)) + 0.25 * np.sin(2 * np.pi * 73.42 * tt)
+lam = scale_notes(196.0, [0, 3, 5, 7, 8, 10], (0, 1))
+for at in np.arange(2.0, d - 5, 2.6):
+    if rng.random() < 0.6:
+        place(m, note(float(rng.choice(lam)), 4.0, "bell", 0.14), at + rng.uniform(0, 0.6))
+for at in (0.0, 10.0, 20.0):
+    for fr in (98.0, 116.54, 146.83):
+        place(m, note(fr, 10.0, "pad", 0.1), at)
+save("music_biertan", loopify(lp(m, 3500), 1.5), 0.6)
+
+# Vlad: church organ in D minor with a pedal and a slow tolling bell
+def organ(freq, dur, vel=1.0):
+    tn = t_(dur)
+    s = sum(a * np.sin(2 * np.pi * freq * mlt * tn) for mlt, a in [(0.5, 0.6), (1, 1), (2, 0.55), (3, 0.3), (4, 0.25), (6, 0.12)])
+    return s * env(len(tn), 0.06, 0.25) * vel
+
+chords = [(146.83, 174.61, 220.0), (138.59, 164.81, 220.0), (116.54, 146.83, 174.61), (110.0, 138.59, 164.81),
+          (146.83, 174.61, 220.0), (130.81, 155.56, 196.0), (116.54, 146.83, 174.61), (110.0, 138.59, 164.81)]
+cd_ = 3.2
+d = cd_ * len(chords)
+m = np.zeros(int(d * SR))
+for i, ch in enumerate(chords):
+    for fr in ch:
+        place(m, organ(fr, cd_, 0.22), i * cd_)
+    place(m, organ(ch[0] / 2, cd_, 0.3), i * cd_)
+    for k in range(4):
+        place(m, organ(ch[k % 3] * 2, cd_ / 4, 0.12), i * cd_ + k * cd_ / 4)
+tt = t_(d)
+for at in np.arange(0, d - 4, cd_ * 2):
+    place(m, sum(a * np.sin(2 * np.pi * 73.42 * mm * t_(4.0)) * decay(t_(4.0), k) for mm, a, k in [(1, 1, 0.8), (2.4, 0.4, 1.4), (3.0, 0.3, 2.0)]) * 0.35, at)
+save("music_vlad", loopify(lp(m, 5000), 1.0), 0.65)
+print("level 4 audio written")
+
+# ------------------------------------------------------------ compress loops to Ogg Vorbis (smaller web build)
+import shutil
+import subprocess
+if shutil.which("ffmpeg"):
+    for f in sorted(os.listdir(OUT)):
+        if f.endswith(".wav") and (f.startswith("music_") or f.startswith("amb_")):
+            src = os.path.join(OUT, f)
+            subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", src, "-c:a", "libvorbis", "-q:a", "4", src[:-4] + ".ogg"], check=True)
+            os.remove(src)
+    print("loops compressed to ogg")

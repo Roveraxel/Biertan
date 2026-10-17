@@ -113,6 +113,8 @@ func _draw() -> void:
 		return
 	if main.state == "title":
 		draw_title()
+	elif main.state == "ending":
+		draw_ending()
 	else:
 		draw_hud()
 
@@ -230,7 +232,7 @@ func draw_hud() -> void:
 	if main.current in ["forest", "hills", "vineyard"]:
 		bar(Rect2(24, 54, 250, 8), G.dusk, Color("5a6aa8").lerp(Color("e8a94a"), 1.0 - G.dusk))
 		txt(Vector2(284, 62), "DUSK" if G.dusk < 0.85 else "NIGHT FALLS", 12, G.TEXT if G.dusk < 0.85 else G.BLOOD)
-	elif main.current in ["hub", "richis", "mosna"]:
+	elif main.current in ["hub", "richis", "mosna", "biertan"]:
 		txt(Vector2(24, 62), "SAFE HAVEN", 12, G.AMBER)
 	var inv := "Coins %d      Tinctures %d%s" % [p.coins, p.potions, "" if G.touch_mode else "  (Q)"]
 	if p.salt_unlocked:
@@ -253,7 +255,12 @@ func draw_hud() -> void:
 			0: q = "Speak with Meister Konrad, the bell-founder."
 			1: q = "Quest: The Road to Biertan. Slay the Balaur in the drowned quarry."
 			2: q = "Return to Meister Konrad in Moșna."
-			3: q = "Level 3 complete. Biertan awaits."
+			3: q = "Level 3 complete. Take Moșna's east gate to Biertan."
+	if main.visited_biertan:
+		match main.quest4:
+			0: q = "Speak with the sexton at the Marriage Prison."
+			1: q = "Quest: The Bells of Biertan. Break the blood wards and destroy Strigoi Vlad."
+			2: q = "The bells of Biertan ring again."
 	txt(Vector2(24, 112), q, 14, G.MUTED)
 	for i in toasts.size():
 		var a: float = minf(1.0, toasts[i][1])
@@ -293,3 +300,31 @@ func draw_hud() -> void:
 	if play_time < 25.0 and main.state != "dead":
 		var hint := "Left thumb: move · Strike auto-aims · tap USE near people" if G.touch_mode else "WASD move · Mouse aim + click attack · Space dodge · E interact · Q tincture"
 		txt(Vector2(24, sz.y - 24), hint, 14, Color(G.MUTED, clampf(25.0 - play_time, 0.0, 1.0)))
+
+
+func draw_ending() -> void:
+	var sz := size
+	draw_rect(Rect2(Vector2.ZERO, sz), Color(0.02, 0.02, 0.03))
+	var e: float = main.ending_t
+	var lines := [
+		["THE BELLS OF BIERTAN", 52, G.TEXT],
+		["", 18, G.MUTED],
+		["At dawn the great bell rang over the valley, and the Iele stopped their dancing.", 20, G.MUTED],
+		["In Saschiz, Frau Anna's sheep came home. In Richiș, the children sang in church, and only there.", 20, G.MUTED],
+		["In Moșna, the carters took the Biertan road. In the vineyards, the dead lay still.", 20, G.MUTED],
+		["And in the Marriage Prison, Andreas and Sofia asked the council for one more week.", 20, G.MUTED],
+		["", 18, G.MUTED],
+		["Salt for the dead. Silver for what walks.", 22, G.AMBER],
+		["", 18, G.MUTED],
+		["BIERTAN · A Hunter's Ballad of Transylvania", 16, G.MUTED.darkened(0.3)],
+		["Made with Godot · art and sound generated in code", 14, G.MUTED.darkened(0.4)],
+	]
+	var y := sz.y * 0.22
+	for i in lines.size():
+		var a := clampf(e - i * 0.6, 0.0, 1.0)
+		var l: Array = lines[i]
+		txt(Vector2(0, y), l[0], l[1], Color(l[2], a), HORIZONTAL_ALIGNMENT_CENTER, sz.x)
+		y += l[1] + 18
+	if e > 4.0:
+		var a := 0.5 + 0.5 * sin(t * 3.0)
+		txt(Vector2(0, sz.y - 40), "Tap to return" if G.touch_mode else "Press any key to return", 16, Color(G.MUTED, a), HORIZONTAL_ALIGNMENT_CENTER, sz.x)

@@ -46,6 +46,8 @@ func _draw() -> void:
 			top = Color("8d877a"); face = Color("5d584f")
 		"rock":
 			top = Color("4a4540"); face = Color("2c2926")
+		"pew":
+			top = Color("5a3a24"); face = Color("3a2416")
 		"vine":
 			_draw_vines(w, d)
 			return

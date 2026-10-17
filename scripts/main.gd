@@ -25,6 +25,10 @@ var met_vasile := false
 var rozalia_thanked := false
 var quest3 := 0  # 0 none, 1 accepted, 2 Balaur slain, 3 complete
 var visited_mosna := false
+var quest4 := 0  # 0 none, 1 accepted, 2 Vlad destroyed
+var visited_biertan := false
+var sofia_gift := false
+var ending_t := 0.0
 const SAVE_PATH := "user://biertan_save.json"
 var dlg_speaker := ""
 var dlg_lines: Array = []
@@ -120,6 +124,9 @@ func start_game() -> void:
 	rozalia_thanked = false
 	quest3 = 0
 	visited_mosna = false
+	quest4 = 0
+	visited_biertan = false
+	sofia_gift = false
 	G.dusk = 0.3
 	state = "play"
 	await goto("hub")
@@ -159,6 +166,12 @@ func goto(name: String, at := Vector2(-1, -1)) -> void:
 			level = VineyardLevel.new()
 		"gorge":
 			level = GorgeLevel.new()
+		"biertan":
+			level = BiertanLevel.new()
+		"walls":
+			level = WallsLevel.new()
+		"church":
+			level = ChurchLevel.new()
 	current = name
 	level.main = self
 	add_child(level)
@@ -170,8 +183,8 @@ func goto(name: String, at := Vector2(-1, -1)) -> void:
 	cam.limit_top = 0
 	cam.limit_right = int(level.size.x)
 	cam.limit_bottom = int(level.size.y)
-	cam.zoom = Vector2(0.95, 0.95) if name == "gorge" else Vector2(1.3, 1.3)
-	cam.offset = Vector2(0, -150) if name == "gorge" else Vector2.ZERO
+	cam.zoom = Vector2(0.95, 0.95) if name == "gorge" else (Vector2(1.1, 1.1) if name == "church" else Vector2(1.3, 1.3))
+	cam.offset = Vector2(0, -150) if name == "gorge" else (Vector2(0, -90) if name == "church" else Vector2.ZERO)
 	cam.reset_smoothing()
 	if name == "hub":
 		G.audio.set_music("music_hub", -9.0)
@@ -205,9 +218,20 @@ func goto(name: String, at := Vector2(-1, -1)) -> void:
 		G.audio.set_ambient("amb_cave", -12.0)
 	if name == "richis":
 		visited_richis = true
+	elif name == "biertan":
+		G.audio.set_music("music_biertan", -9.0)
+		G.audio.set_ambient("amb_wind", -14.0)
+	elif name == "walls":
+		G.audio.set_music("music_forest", -9.0)
+		G.audio.set_ambient("amb_wind", -10.0)
+	elif name == "church":
+		G.audio.set_music("music_vlad", -7.0)
+		G.audio.set_ambient("amb_fire", -18.0)
 	if name == "mosna":
 		visited_mosna = true
-	if name == "hub" or name == "richis" or name == "mosna":
+	if name == "biertan":
+		visited_biertan = true
+	if name in ["hub", "richis", "mosna", "biertan"]:
 		G.dusk = 0.45
 		save_game.call_deferred()
 	elif name == "hills" and G.dusk < 0.2:
@@ -275,10 +299,37 @@ func leave_mosna_east() -> void:
 		toast("Speak with Meister Konrad before you leave.")
 		player.velocity = Vector2(-300, 0)
 	elif quest3 >= 3:
-		toast("Biertan lies ahead. (The final level is in development)")
-		player.velocity = Vector2(-300, 0)
+		goto("biertan", Vector2(260, 900))
 	else:
 		goto("vineyard")
+
+
+func leave_biertan_west() -> void:
+	if state == "play" and not transitioning:
+		goto("mosna", Vector2(1640, 620))
+
+
+func enter_walls() -> void:
+	if state != "play" or transitioning:
+		return
+	if quest4 == 0:
+		toast("Speak with the sexton before you climb the hill.")
+		player.velocity = Vector2(0, 300)
+	elif quest4 >= 2:
+		toast("The hill is quiet. The bells ring for the living now.")
+		player.velocity = Vector2(0, 300)
+	else:
+		goto("walls")
+
+
+func leave_walls_south() -> void:
+	if state == "play" and not transitioning:
+		goto("biertan", Vector2(900, 260))
+
+
+func enter_church() -> void:
+	if state == "play" and not transitioning:
+		goto("church")
 
 
 func leave_vineyard_west() -> void:
@@ -316,13 +367,15 @@ func enter_hollow() -> void:
 
 
 func home() -> String:
+	if visited_biertan:
+		return "biertan"
 	if visited_mosna:
 		return "mosna"
 	return "richis" if visited_richis else "hub"
 
 
 func home_name() -> String:
-	return {"mosna": "Moșna", "richis": "Richiș", "hub": "Saschiz"}[home()]
+	return {"biertan": "Biertan", "mosna": "Moșna", "richis": "Richiș", "hub": "Saschiz"}[home()]
 
 
 func enter_arena() -> void:
@@ -380,6 +433,37 @@ func on_balaur_dead() -> void:
 	goto("mosna", Vector2(950, 860))
 
 
+func on_vlad_dead() -> void:
+	quest4 = 2
+	banner("STRIGOI VLAD IS DESTROYED", "Dust and ash on the altar steps.")
+	G.audio.set_music("music_hub", -12.0)
+	for i in 3:
+		await get_tree().create_timer(2.2).timeout
+		G.sfx("bell", 0.0, [1.0, 0.89, 0.75][i])
+	save_game()
+	await get_tree().create_timer(2.0).timeout
+	await fade_to(1.0, 1.2)
+	state = "ending"
+	ending_t = 0.0
+	player.frozen = true
+	await fade_to(0.0, 1.0)
+
+
+func to_title() -> void:
+	await fade_to(1.0, 0.6)
+	if level != null:
+		if player.get_parent() != null:
+			player.get_parent().remove_child(player)
+		level.queue_free()
+		level = null
+	boss = null
+	current = ""
+	state = "title"
+	hud.ENABLED[1] = has_save()
+	G.audio.set_music("music_hub", -9.0)
+	await fade_to(0.0, 0.6)
+
+
 # ---------------------------------------------------------------- save
 
 func save_game() -> void:
@@ -387,7 +471,7 @@ func save_game() -> void:
 	var d := {
 		"v": 1, "quest": quest, "quest2": quest2, "smith": smith_level, "ileana": met_ileana,
 		"richis": visited_richis, "vasile": met_vasile, "rozalia": rozalia_thanked, "quest3": quest3, "mosna": visited_mosna,
-		"garlic": p.garlic, "torch": p.torch,
+		"garlic": p.garlic, "torch": p.torch, "quest4": quest4, "biertan": visited_biertan, "sofia": sofia_gift,
 		"max_hp": p.max_hp, "dmg": p.dmg, "potions": p.potions, "coins": p.coins,
 		"charm_dodge": p.charm_dodge, "red_thread": p.red_thread, "salt": p.salt,
 		"salt_unlocked": p.salt_unlocked, "wormwood": p.wormwood, "oak": p.oak_heart,
@@ -422,6 +506,9 @@ func continue_game() -> void:
 	rozalia_thanked = bool(d.get("rozalia", false))
 	quest3 = int(d.get("quest3", 0))
 	visited_mosna = bool(d.get("mosna", false))
+	quest4 = int(d.get("quest4", 0))
+	visited_biertan = bool(d.get("biertan", false))
+	sofia_gift = bool(d.get("sofia", false))
 	var p := player
 	p.max_hp = float(d.get("max_hp", 100.0))
 	p.hp = p.max_hp
@@ -454,7 +541,9 @@ func _process(delta: float) -> void:
 			G.dusk = minf(1.0, G.dusk + delta / 240.0)
 		elif current == "hub" or current == "richis" or current == "mosna":
 			G.dusk = move_toward(G.dusk, 0.45, delta * 0.4)
-	player.frozen = (state == "dialogue" or state == "dead")
+	player.frozen = (state == "dialogue" or state == "dead" or state == "ending")
+	if state == "ending":
+		ending_t += delta
 
 
 func _physics_process(_delta: float) -> void:
@@ -479,6 +568,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		hud.title_input(event)
 		return
 	var tap: bool = event is InputEventScreenTouch and event.pressed
+	if state == "ending":
+		if ending_t > 4.0 and (tap or (event is InputEventKey and event.pressed) or (event is InputEventMouseButton and event.pressed)):
+			ending_t = -999.0
+			to_title()
+		return
 	var pressed: bool = tap or event.is_action_pressed("interact") or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT)
 	if not pressed:
 		return
@@ -487,6 +581,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif state == "dead":
 		if tap or event.is_action_pressed("interact"):
 			respawn()
+
 	elif state == "play" and event.is_action_pressed("interact") and hover != null:
 		hover.interact()
 
@@ -512,7 +607,7 @@ func voice(s: String) -> void:
 func marker_for(id: String) -> bool:
 	return (id == "anna" and (quest == 0 or quest == 2)) or (id == "ileana" and not met_ileana) \
 		or (id == "pastor" and (quest2 == 0 or quest2 == 2)) or (id == "vasile" and not met_vasile and quest2 >= 1) \
-		or (id == "konrad" and (quest3 == 0 or quest3 == 2))
+		or (id == "konrad" and (quest3 == 0 or quest3 == 2)) or (id == "sexton" and quest4 == 0) or (id == "sofia" and not sofia_gift)
 
 
 # ---------------------------------------------------------------- dialogue
@@ -548,6 +643,9 @@ func prop_used(p: Prop) -> void:
 			toast("A shepherd's coin sack.  +15 coins")
 		"fleece":
 			start_dialogue("Torn fleece", ["The wool is shredded. Three nights of throats opened, and not a drop of blood on the grass.", "Wolf prints circle the hut, but they stop where the moonlight ends. Something walks beside them."])
+		"bell":
+			if level is ChurchLevel:
+				(level as ChurchLevel).ring_bell()
 		"crystal":
 			p.regrow = 20.0
 			player.salt += 2
@@ -573,6 +671,9 @@ func prop_used(p: Prop) -> void:
 			if p.id == "cave_sign":
 				start_dialogue("Miners' post", ["THE SALT CAVES. Imperial salt workings, closed by order.", "Below, someone has carved: 'Thirty men went down. Thirty came up. Count them again.'"])
 				return
+			if p.id == "prison_sign":
+				start_dialogue("The Marriage Prison", ["For three hundred years, couples who wished to part were locked in here together: one bed, one table, one plate, one spoon.", "Most came out still married. Tonight it holds the last living souls of Biertan."])
+				return
 			if p.id == "yard_sign":
 				start_dialogue("Churchyard gate", ["'HIER RUHEN DIE TOTEN VON MESCHEN.' Here rest the dead of Moșna.", "Someone has scratched beneath it in Romanian: 'Not all of them.' The earth of every second grave is turned."])
 				return
@@ -587,6 +688,37 @@ func prop_used(p: Prop) -> void:
 
 func talk(id: String) -> void:
 	match id:
+		"sexton":
+			if quest4 == 0:
+				start_dialogue("Martin, Sexton", [
+					"A living face, and a clapper of the great bell in your pack. Then Konrad sent you. God bless that stubborn Saxon.",
+					"He came at the turn of the year. A boyar's son from over the mountains, they said, dead three winters. Vlad. He had the bells stilled first, so the dead would not hear the hour of judgement.",
+					"His thralls hold the three walls. Each gate is sealed by a ward of blood. Break the wards and the gates will rise.",
+					"Here is my key to the church; it opens one of the nineteen locks of the sacristy door, and the side door besides. Hang the clapper, ring the great bell, and he will have to stand in his flesh.",
+				], func():
+					quest4 = 1
+					player.potions += 2
+					player.salt += 3
+					banner("QUEST: THE BELLS OF BIERTAN", "Climb the three walls. Destroy Strigoi Vlad.")
+					toast("Received: the sexton's key, two tinctures and salt"))
+			elif quest4 == 1:
+				start_dialogue("Martin, Sexton", ["Tinctures and salt, ten coins each. Take what you need. Nothing up there will sell you anything."], buy_potion)
+			else:
+				start_dialogue("Martin, Sexton", ["Listen to them. Three hundred years those bells have rung over this valley, and they ring again because of you.", "Stay as long as you like, Wanderer. Biertan owes you its every hour."])
+		"andreas":
+			if quest4 < 2:
+				start_dialogue("Andreas", ["The council locked us in here to make up, Sofia and me. Two weeks, one spoon. On the third night the dead came down the hill.", "We have not argued since. Funny, that."])
+			else:
+				start_dialogue("Andreas", ["When the council lets us out, I think we will stay married. Do not tell the council."])
+		"sofia":
+			if not sofia_gift:
+				start_dialogue("Sofia", ["Take this. My wedding ribbon. My grandmother said a red ribbon keeps the strigoi from the throat.", "Bring it back to me when the bells ring."], func():
+					sofia_gift = true
+					player.max_hp += 20.0
+					player.hp = player.max_hp
+					toast("Wedding ribbon.  (+20 max health)"))
+			else:
+				start_dialogue("Sofia", ["Keep it. You have earned more than a ribbon."] if quest4 >= 2 else ["Come back to us. Both of you: you and the ribbon."])
 		"konrad":
 			if quest3 == 0:
 				start_dialogue("Meister Konrad", [
@@ -1109,6 +1241,107 @@ func run_test() -> void:
 	await continue_game()
 	await get_tree().create_timer(0.8).timeout
 	chk.call(quest3 == 3 and current == "mosna" and player.torch and player.garlic, "Continue restores Level 3")
+	# ------------------------------------------------ Level 4: Biertan
+	player.god = true
+	leave_mosna_east()
+	await get_tree().create_timer(1.2).timeout
+	chk.call(current == "biertan", "travelled to Biertan")
+	await snap("23_biertan")
+	enter_walls()
+	await get_tree().create_timer(0.3).timeout
+	chk.call(current == "biertan", "the hill waits for the sexton")
+	talk("sexton")
+	while state == "dialogue":
+		advance_dialogue()
+	chk.call(quest4 == 1, "sexton's quest accepted")
+	var mh := player.max_hp
+	talk("sofia")
+	while state == "dialogue":
+		advance_dialogue()
+	chk.call(player.max_hp == mh + 20.0, "Sofia's wedding ribbon")
+	enter_walls()
+	await get_tree().create_timer(1.2).timeout
+	chk.call(current == "walls", "the Three Walls loaded")
+	var wl := level as WallsLevel
+	var wards: Array = []
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if e.kind == "ward":
+			wards.append(e)
+	chk.call(wards.size() == 3 and not wl.gates[0].opened, "three blood wards seal the gates")
+	player.global_position = Vector2(1000, 2200)
+	cam.reset_smoothing()
+	await get_tree().create_timer(0.8).timeout
+	await snap("24_walls_ward")
+	wards[0].hurt(999.0, Vector2.UP)
+	await get_tree().create_timer(0.2).timeout
+	chk.call(wl.gates[0].opened and wl.wards_left == 2, "breaking a ward raises its gate")
+	await clear_enemies()
+	chk.call(wl.wards_left == 0 and wl.gates[2].opened, "all gates open")
+	enter_church()
+	await get_tree().create_timer(0.8).timeout
+	chk.call(current == "church" and boss is Vlad, "Strigoi Vlad waits in the church")
+	player.global_position = Vector2(700, 700)
+	cam.reset_smoothing()
+	await get_tree().create_timer(3.2).timeout
+	await snap("25_church")
+	var v: Vlad = boss
+	var cl := level as ChurchLevel
+	v.bolt_t = 99.0
+	v.blink_t = 99.0
+	v.hurt(20.0, Vector2.UP)
+	chk.call(v.hp == 580.0, "Vlad takes damage in phase 1")
+	v.hp = 395.0
+	v.hurt(1.0, Vector2.UP)
+	chk.call(v.phase == 2, "Vlad phase 2")
+	v.bolt_t = 99.0
+	v.blink_t = 99.0
+	var vb := v.hp
+	v.hurt(10.0, Vector2.UP)
+	chk.call(v.hp == vb, "mist form ignores steel")
+	cl.ring_bell()
+	chk.call(v.vulnerable(), "the great bell drags him into flesh")
+	v.hurt(10.0, Vector2.UP)
+	chk.call(v.hp == vb - 10.0, "Vlad vulnerable after the bell")
+	v.bstate = "cast"
+	v.bt = 0.0
+	await get_tree().create_timer(0.75).timeout
+	var bolts := 0
+	for c in level.get_children():
+		if c is BloodBolt:
+			bolts += 1
+	chk.call(bolts >= 5, "blood bolts fly (%d)" % bolts)
+	await snap("26_church_bolts")
+	v.vuln_t = 5.0
+	v.hp = 195.0
+	v.hurt(1.0, Vector2.UP)
+	chk.call(v.phase == 3, "Vlad phase 3")
+	v.bolt_t = 99.0
+	v.blink_t = 99.0
+	v.bat_t = 99.0
+	player.garlic = false
+	player.global_position = v.global_position + Vector2(0, 100)
+	player.hp = player.max_hp
+	await get_tree().create_timer(0.6).timeout
+	chk.call(player.hp < player.max_hp, "his presence drinks blood")
+	player.garlic = true
+	await snap("27_church_drain")
+	v.vuln_t = 5.0
+	v.bstate = "stalk"
+	v.hp = 5.0
+	v.hurt(20.0, Vector2.UP)
+	await get_tree().create_timer(0.3).timeout
+	chk.call(boss == null and quest4 == 2, "Strigoi Vlad destroyed")
+	await get_tree().create_timer(12.0).timeout
+	chk.call(state == "ending", "ending plays")
+	await get_tree().create_timer(3.0).timeout
+	await snap("28_ending")
+	ending_t = -999.0
+	await to_title()
+	chk.call(state == "title" and hud.ENABLED[1], "back to the title with Continue")
+	await snap("29_title_after")
+	await continue_game()
+	await get_tree().create_timer(0.8).timeout
+	chk.call(current == "biertan" and quest4 == 2, "Continue after the ending lands in Biertan")
 	player.god = false
 	player.hurt(9999.0, Vector2.RIGHT)
 	chk.call(state == "dead", "death state")

@@ -46,6 +46,8 @@ func setup(k: String) -> void:
 			state = "dormant"
 		"strigoi":
 			hp = 52.0; speed = 118.0; dmg = 12.0; radius = 14.0; coin = 9; aggro = 380.0
+		"ward":
+			hp = 90.0; speed = 0.0; dmg = 0.0; radius = 22.0; coin = 15; aggro = 520.0
 		"bat":
 			hp = 6.0; speed = 235.0; dmg = 4.0; radius = 8.0; coin = 1; aggro = 380.0
 			orbit = randf() * TAU
@@ -77,6 +79,18 @@ func _physics_process(delta: float) -> void:
 	var d := to.length()
 	var mult := 1.0 + 0.4 * G.dusk
 	salted = maxf(0.0, salted - delta)
+	if kind == "ward":
+		velocity = Vector2.ZERO
+		if d < aggro:
+			if atk_cd <= 0.0:
+				atk_cd = 6.0
+				var e := Enemy.new()
+				e.setup("bat")
+				e.state = "chase"
+				e.position = global_position + Vector2(randf_range(-30, 30), -40)
+				get_parent().add_child(e)
+		queue_redraw()
+		return
 	if kind == "bat" and bat_step(delta, to, d, mult):
 		move_and_slide()
 		queue_redraw()
@@ -385,6 +399,17 @@ func _draw() -> void:
 				draw_circle(Vector2(0, -26), 22, Color(0.7, 0.8, 1.0, 0.25 + 0.2 * sin(t * 30.0)))
 			draw_health_bar()
 			return
+	if kind == "ward":
+		var pulse := 0.5 + 0.5 * sin(t * 4.0)
+		draw_set_transform(Vector2(0, 2), 0, Vector2(1, 0.45))
+		draw_circle(Vector2.ZERO, 40, Color(0.6, 0.0, 0.05, 0.25 + 0.2 * pulse))
+		draw_set_transform(Vector2.ZERO, 0, Vector2.ONE)
+		var c := Color(0.55, 0.05, 0.08) if flash <= 0.0 else Color(1.5, 1.5, 1.5)
+		draw_colored_polygon(PackedVector2Array([Vector2(-16, 0), Vector2(16, 0), Vector2(10, -70), Vector2(0, -86), Vector2(-10, -70)]), Color("1a1418"))
+		draw_colored_polygon(PackedVector2Array([Vector2(-8, -10), Vector2(8, -10), Vector2(5, -64), Vector2(0, -74), Vector2(-5, -64)]), c.lightened(0.3 * pulse))
+		draw_circle(Vector2(0, -44), 10 + 3 * pulse, Color(1, 0.2, 0.15, 0.35))
+		draw_health_bar()
+		return
 	if kind == "bat":
 		var btex := G.tex("res://assets/sprites/bat_%s.svg" % ("a" if int(t * 12.0) % 2 == 0 else "b"))
 		if btex != null:

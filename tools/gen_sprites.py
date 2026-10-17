@@ -328,6 +328,65 @@ def bhead(open_jaw, col):
 
 sprites["balaur_head"] = bhead(False, "#2e4a30")
 sprites["balaur_head_open"] = bhead(True, "#2e4a30")
+
+# ================================================================ Level 4: Biertan
+sprites["npc_sexton"] = human(
+    "#2a2a30", "#3a3a42", "#a98a72",
+    '<path d="M40 28 Q40 20 48 20 Q56 20 56 28 Q52 24 48 24 Q44 24 40 28Z" fill="#d8d8d8"/>'
+    '<path d="M42 40 Q48 50 54 40 Q48 45 42 40Z" fill="#d8d8d8"/>',
+    belt="#1a1a1e",
+    hand="#a98a72",
+    held_r='<path d="M70 52 L70 76" stroke="#6b4a2e" stroke-width="2"/><circle cx="70" cy="50" r="5" fill="#c9a24a" opacity="0.4"/><rect x="66" y="46" width="8" height="9" rx="1" fill="#3a2a1c" stroke="#c9a24a" stroke-width="1"/><circle cx="70" cy="50" r="2" fill="#ffcc6a"/>',
+    held_l='<path d="M24 60 L32 60 M28 60 L28 68 M26 66 L30 66" stroke="#c9a24a" stroke-width="2"/><circle cx="28" cy="58" r="3" fill="none" stroke="#c9a24a" stroke-width="1.5"/>')
+
+sprites["npc_andreas"] = human(
+    "#3a4a5a", "#4a5e72", "#b89478",
+    '<path d="M38 30 Q38 20 48 20 Q58 20 58 30Z" fill="#3a2a1c" stroke="#0b0d14" stroke-width="1.5"/>'
+    '<path d="M42 40 Q48 43 54 40" stroke="#5a3a22" stroke-width="2.5" fill="none"/>',
+    belt="#2a1c12", hand="#b89478")
+
+sprites["npc_sofia"] = human(
+    "#7a2a36", "#9a3e4c", "#c09c80",
+    '<path d="M38 34 Q36 19 48 19 Q60 19 58 34 Q56 26 48 25 Q40 26 38 34Z" fill="#4a2a18" stroke="#0b0d14" stroke-width="1.5"/>'
+    '<path d="M40 30 Q34 44 40 54 M56 30 Q62 44 56 54" stroke="#4a2a18" stroke-width="4" fill="none" stroke-linecap="round"/>',
+    belt="#c9a24a",
+    front='<path d="M39 52 L57 52 L58 79 Q48 83 38 79Z" fill="#e8e2d2" opacity="0.9"/><path d="M40 58 L56 58 M40 64 L56 64" stroke="#b3372f" stroke-width="1.4"/>',
+    hand="#c09c80")
+
+# ---- Strigoi Vlad
+VDEFS = ('<defs><radialGradient id="vr"><stop offset="0" stop-color="#ff2a1a" stop-opacity="0.9"/><stop offset="1" stop-color="#ff2a1a" stop-opacity="0"/></radialGradient>'
+         '<linearGradient id="cl" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#1a1418"/><stop offset="1" stop-color="#08060a"/></linearGradient></defs>')
+
+def vlad(pose):
+    if pose == "cast":
+        cloak = ('<path d="M96 40 L30 30 Q20 80 40 130 L96 120 L152 130 Q172 80 162 30Z" fill="url(#cl)" stroke="#0b0d14" stroke-width="2"/>'
+                 '<path d="M96 46 L42 38 Q34 80 48 122 L96 114 L144 122 Q158 80 150 38Z" fill="#6a0e14"/>'
+                 '<path d="M50 36 L28 22 L36 40 M142 36 L164 22 L156 40" stroke="#d8d0d8" stroke-width="4" stroke-linecap="round"/>'
+                 '<circle cx="96" cy="16" r="16" fill="url(#vr)"/><circle cx="96" cy="16" r="6" fill="#ff4a3a"/>')
+        arms = ''
+    elif pose == "claw":
+        cloak = '<path d="M80 44 Q60 80 58 134 L120 130 Q126 86 112 44Z" fill="url(#cl)" stroke="#0b0d14" stroke-width="2"/>'
+        arms = ('<path d="M108 54 Q130 60 150 52 L160 46 M150 52 L162 56 M150 52 L158 62" stroke="#1a1418" stroke-width="7" stroke-linecap="round" fill="none"/>'
+                '<path d="M156 46 L168 40 M158 54 L172 54 M156 62 L168 68" stroke="#d8d0d8" stroke-width="2.4" stroke-linecap="round"/>')
+    else:
+        cloak = ('<path d="M74 44 Q58 90 62 134 L130 134 Q134 90 118 44Z" fill="url(#cl)" stroke="#0b0d14" stroke-width="2"/>'
+                 '<path d="M92 50 L96 130 L100 50Z" fill="#6a0e14" opacity="0.8"/>')
+        arms = '<path d="M78 60 Q74 84 80 100 M114 60 Q118 84 112 100" stroke="#08060a" stroke-width="7" fill="none" stroke-linecap="round"/>'
+    return f'''<svg {BW}>{VDEFS}<g transform="translate(0 4)"><ellipse cx="96" cy="136" rx="34" ry="6" fill="#000" opacity="0.5"/>
+{cloak}
+<path d="M76 46 L70 26 L88 42Z M116 46 L122 26 L104 42Z" fill="#6a0e14" stroke="#0b0d14" stroke-width="1.5"/>
+{arms}
+<ellipse cx="96" cy="38" rx="11" ry="13" fill="#d8d0d8" stroke="#0b0d14" stroke-width="1.8"/>
+<path d="M84 36 Q84 20 96 20 Q108 20 108 36 Q104 26 96 27 Q88 26 84 36Z M84 34 Q80 48 84 58 M108 34 Q112 48 108 58" fill="#0e0a0e" stroke="#0e0a0e" stroke-width="3"/>
+<path d="M88 44 Q96 49 104 44" stroke="#2a1a1a" stroke-width="2.4" fill="none"/>
+<circle cx="91" cy="37" r="5" fill="url(#vr)"/><circle cx="101" cy="37" r="5" fill="url(#vr)"/>
+<circle cx="91" cy="37" r="1.8" fill="#ff3a2a"/><circle cx="101" cy="37" r="1.8" fill="#ff3a2a"/>
+<path d="M93 47 L94 51 L95 47 M97 47 L98 51 L99 47" fill="#f3ead6" stroke="#f3ead6" stroke-width="0.6"/>
+<circle cx="96" cy="58" r="3" fill="#c9a24a"/></g></svg>'''
+
+for p in ("idle", "cast", "claw"):
+    sprites[f"vlad_{p}"] = vlad(p)
+
 os.makedirs(OUT, exist_ok=True)
 for name, svg in sprites.items():
     with open(os.path.join(OUT, name + ".svg"), "w") as f:

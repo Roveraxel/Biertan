@@ -84,11 +84,16 @@ static func sound(sound_name: String, loop: bool) -> AudioStream:
 	var key := sound_name + ("#loop" if loop else "")
 	if _snd.has(key):
 		return _snd[key]
-	var path := "res://assets/audio/%s.wav" % sound_name
+	var path := "res://assets/audio/%s.ogg" % sound_name
+	if not ResourceLoader.exists(path):
+		path = "res://assets/audio/%s.wav" % sound_name
 	var s: AudioStream = null
 	if ResourceLoader.exists(path):
 		s = load(path)
-		if loop and s is AudioStreamWAV:
+		if loop and s is AudioStreamOggVorbis:
+			s = s.duplicate()
+			s.loop = true
+		elif loop and s is AudioStreamWAV:
 			s = s.duplicate()
 			s.loop_mode = AudioStreamWAV.LOOP_FORWARD
 			s.loop_begin = 0
