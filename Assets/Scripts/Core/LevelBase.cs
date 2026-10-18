@@ -75,21 +75,9 @@ namespace Biertan.Core
             if (!string.IsNullOrEmpty(tile)) AddTiled(tile, new Rect(0, 0, size.x, size.y), tileTint, -999);
         }
 
-        /// <summary>The painted texture that replaces an original ground tile, with the base tint that sits it
-        /// in the game's dusk palette. Falls back to the original tile when the texture is missing.</summary>
-        static (string sprite, Color tint) Painted(string tile) => tile switch
-        {
-            "tile_grass" => ("tex_grass", new Color(0.5f, 0.56f, 0.42f)),
-            "tile_grass_village" => ("tex_grass", new Color(0.58f, 0.64f, 0.48f)),
-            "tile_cobble" => ("tex_flag", new Color(1f, 0.97f, 0.9f)),
-            _ => (tile, Color.white),
-        };
-
         /// <summary>A repeating texture over a Godot-space rect.</summary>
         protected SpriteRenderer AddTiled(string sprite, Rect godotRect, Color tint, int order)
         {
-            var (painted, baseTint) = Painted(sprite);
-            if (LoadSprite(painted) != null) { sprite = painted; tint = baseTint; } // the painted texture carries its own palette
             var sr = AddSprite("Tiled " + sprite, sprite, P(godotRect.center), Vector2.one, tint, order);
             sr.drawMode = SpriteDrawMode.Tiled;
             sr.tileMode = SpriteTileMode.Continuous;

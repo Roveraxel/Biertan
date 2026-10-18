@@ -595,7 +595,6 @@ namespace Biertan.UI
             ("", 18, 1), ("Salt for the dead. Silver for what walks.", 22, 2), ("", 18, 1),
             ("BIERTAN · A Hunter's Ballad of Transylvania", 16, 3),
             ("Made with Unity · art and sound generated in code", 14, 4),
-            ("Textures: Hand Painted Tiling Textures by beefpuppy (CC BY 4.0) · Free Stylized Textures by Kalponic Studio", 12, 4),
         };
 
         void DrawEnding(float e)
