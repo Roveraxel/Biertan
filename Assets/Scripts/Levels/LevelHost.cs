@@ -30,10 +30,13 @@ namespace Biertan.Levels
             "hills" => go.AddComponent<HollowHills>(),
             "caves" => go.AddComponent<SaltCaves>(),
             "hollow" => go.AddComponent<HollowArena>(),
+            "mosna" => go.AddComponent<Mosna>(),
+            "vineyard" => go.AddComponent<BurntVineyards>(),
+            "gorge" => go.AddComponent<DrownedQuarry>(),
             _ => null,
         };
 
-        public static bool IsPorted(string id) => id is "hub" or "forest" or "arena" or "richis" or "hills" or "caves" or "hollow";
+        public static bool IsPorted(string id) => id is "hub" or "forest" or "arena" or "richis" or "hills" or "caves" or "hollow" or "mosna" or "vineyard" or "gorge";
 
         void Start()
         {
@@ -153,6 +156,14 @@ namespace Biertan.Levels
                     if (id == "caves") { gm.metVasile = true; p.saltUnlocked = true; p.salt = 4; }
                     p.maxHp = p.hp = 110f; p.dmg = 16f; p.potions = 3; p.coins = 70;
                     p.charmDodge = true;
+                    break;
+                case "mosna": // chapter 2 done: the children home, the pastor's reward
+                case "vineyard":
+                case "gorge":
+                    gm.quest = 3; gm.quest2 = 3; gm.visitedRichis = true; gm.metVasile = true;
+                    if (id != "mosna") { gm.quest3 = 1; p.torch = true; gm.side.Add("magda"); gm.visitedMosna = true; }
+                    p.maxHp = p.hp = 120f; p.dmg = 18f; p.potions = id == "gorge" ? 4 : 3; p.coins = 90;
+                    p.charmDodge = true; p.saltUnlocked = true; p.salt = 6;
                     break;
                 case "hollow": // after the Vârcolac and the salt caves
                     gm.quest = 3;

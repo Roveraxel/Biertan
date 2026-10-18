@@ -6,6 +6,15 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Scenes/Level_Mosna.unity
+    guid: f84d4aeca742446af9d91175a2516d8d
+  - enabled: 1
+    path: Assets/Scenes/Level_Vineyard.unity
+    guid: 0d58f16e5ffc748a6ab5f642ae29c25e
+  - enabled: 1
+    path: Assets/Scenes/Boss_Balaur.unity
+    guid: b6c9952eb589b44cea9e1185d814c8c2
+  - enabled: 1
     path: Assets/Scenes/Level_Hills.unity
     guid: 4f8f8484901ab437c97f278af8f5b54d
   - enabled: 1

@@ -23,6 +23,7 @@ namespace Biertan.Core
                 "vasile" => !gm.metVasile && gm.quest2 >= 1,
                 "gheorghe" => gm.eweQuest == 0 || (gm.eweQuest == 1 && gm.EwesFound() >= 3),
                 "hermit" => !gm.SideHas("hermit"),
+                "konrad" => gm.quest3 == 0 || gm.quest3 == 2,
                 _ => false,
             };
         }
@@ -113,6 +114,12 @@ namespace Biertan.Core
                         "A bear's skull is nailed to the post, and beneath it, scratched deep: GRĂDINA URSULUI.",
                         "Past the thicket to the south-east lies the Bear's Garden. In the tale, Harap-Alb only came out of it alive because Saint Sunday put the bear to sleep. You have no such help.",
                     });
+                    break;
+                case "sign" when p.id == "yard_sign":
+                    gm.StartDialogue("Churchyard gate", new[] { "'HIER RUHEN DIE TOTEN VON MESCHEN.' Here rest the dead of Moșna.", "Someone has scratched beneath it in Romanian: 'Not all of them.' The earth of every second grave is turned." });
+                    break;
+                case "sign" when p.id == "quarry_sign":
+                    gm.StartDialogue("Waymark", new[] { "BIRTHÄLM, 2 hours. The Biertan road runs past the old quarry.", "Fresh claw marks run down the stone, wider than a cart." });
                     break;
                 case "sign" when p.id == "lake_sign":
                     gm.StartDialogue("Scratched into the salt", new[] { "'She sings from the far side of the lake. The children follow the singing. Do not follow the singing.'" });
@@ -250,6 +257,63 @@ namespace Biertan.Core
                         gm.StartDialogue("Katharina", new[] { "Wormwood and garlic, my dear. The Iele cannot bear the smell of pelin.", "Wear a sprig and their song will not hold your legs. Forty coins." }, BuyWormwood);
                     else
                         gm.StartDialogue("Katharina", new[] { "Garlic tincture, ten coins. The road east is long." }, BuyPotion);
+                    break;
+
+                case "konrad":
+                    if (gm.quest3 == 0)
+                        gm.StartDialogue("Meister Konrad", new[]
+                        {
+                            "Let me see that. A bell clapper... my father's mark is on it. He cast it for the great bell of Biertan.",
+                            "No cart has come from Biertan in a month. The road runs past the old quarry, and something has coiled itself in the flooded pit. Three heads, the carters say. A balaur.",
+                            "Old Saxon law: you do not cut a balaur's head, you cut and burn it. Cut only, and it grows back by evening.",
+                            "Take this torch from my furnace. It does not go out. Sear every neck you cut.",
+                        }, () =>
+                        {
+                            gm.quest3 = 1;
+                            player.torch = true;
+                            player.potions += 1;
+                            HudEvents.Banner("QUEST: THE ROAD TO BIERTAN", "Slay the Balaur in the drowned quarry.");
+                            HudEvents.Toast("Received: Founder's Torch  (sears stumps)");
+                        });
+                    else if (gm.quest3 == 1)
+                        gm.StartDialogue("Meister Konrad", new[] { "Cut, then burn. Do not forget it.", "If your blade is dull, I can whet it. Twenty-five coins." }, Sharpen);
+                    else if (gm.quest3 == 2)
+                        gm.StartDialogue("Meister Konrad", new[]
+                        {
+                            "You hear that? The carters are already hitching their horses.",
+                            "Biertan lies two hours down the road. Whatever silenced its bells is waiting for you there.",
+                            "I will fit the clapper to a hanger. When you reach the great bell, ring it. The dead of Biertan should hear it.",
+                        }, () =>
+                        {
+                            gm.quest3 = 3;
+                            player.coins += 50;
+                            player.hp = player.maxHp;
+                            AudioManager.I?.Sfx("bell", -2f);
+                            HudEvents.Banner("LEVEL 3 COMPLETE", "+50 coins.  The road to Biertan is open.");
+                            gm.SaveGame();
+                        });
+                    else
+                        gm.StartDialogue("Meister Konrad", new[] { "Ring the great bell of Biertan, Wanderer. Twenty-five coins for a whetting, if you want it." }, Sharpen);
+                    break;
+
+                case "magda":
+                    if (gm.quest3 >= 2)
+                        gm.StartDialogue("Magda", new[] { "Oh, NOW you killed the serpent. A month late. Biertan is waiting, and you are dawdling. HAIDA!", "...Thank you. Now HAIDA, go!" });
+                    else if (gm.quest3 == 0)
+                        gm.StartDialogue("Magda", new[] { "Konrad is by the church, by the fire. Go! HAIDA, HAIDA!" });
+                    else
+                        gm.StartDialogue("Magda", new[] { "Still standing here? HAIDA, the Balaur will not slay itself!" });
+                    break;
+
+                case "hannes":
+                    gm.StartDialogue("Hannes", new[] { "Every family of Moșna keeps its ham in the tower, and on Sundays we cut a slice. That is how a village survives a siege.", "Smoked ham and plum brandy, ten coins. Heals like a tincture, tastes better." }, BuyPotion);
+                    break;
+
+                case "veta":
+                    if (!player.garlic)
+                        gm.StartDialogue("Veta", new[] { "My husband sang in the church for forty years. They buried him in the yard below the vineyards, and last week he came to the window.", "A strigoi drinks what it bites. Wear garlic and its teeth slide off. Forty coins for the wreath." }, BuyGarlic);
+                    else
+                        gm.StartDialogue("Veta", new[] { "If you see a cantor with a grey beard among them... lay him down gently." });
                     break;
 
                 case "rozalia":

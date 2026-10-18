@@ -26,6 +26,7 @@ namespace Biertan.Levels
             gameObject.isStatic = true;
             if (style == "hidden") return;
             gameObject.AddComponent<SortingGroup>();
+            if (style == "vine") { BuildVines(); return; }
 
             float w = footprint.x, d = footprint.y;
             Color top = Hex("8d877a"), face = Hex("5d584f");
@@ -78,6 +79,29 @@ namespace Biertan.Levels
                     float wx = -w / 2f + (i + 0.5f) * w / n;
                     var win = Rect("Window", wx, h - 8f - h * 0.225f, 8f, h * 0.45f, Amber, 4);
                     win.sharedMaterial = Resources.Load<Material>("LineMat"); // lit from inside: glows at night
+                }
+            }
+        }
+
+        /// <summary>A terrace of dead vines: a dark strip of earth, posts, a wire, and twisted stems with
+        /// the odd shrivelled grape (block.gd _draw_vines).</summary>
+        void BuildVines()
+        {
+            float w = footprint.x, d = footprint.y;
+            Rect("Earth", 0, d / 2f, w, d, new Color(0.12f, 0.09f, 0.06f, 0.6f), 0);
+            for (float x = -w / 2f + 6f; x < w / 2f; x += 40f)
+                Rect("Post", x, d / 2f + 15f, 3f, 30f, Hex("3a2a1c"), 1);
+            Rect("Wire", 0, d / 2f + 24f, w, 1f, new Color(0.5f, 0.5f, 0.5f, 0.5f), 2);
+            int i = 0;
+            for (float x = -w / 2f + 16f; x < w / 2f - 6f; x += 20f, i++)
+            {
+                var c = i % 3 != 0 ? Hex("2a1e14") : Hex("4a2a1a");
+                var a = Rect("Stem", x - 3f, d / 2f + 6f, 2.5f, 13f, c, 3); a.transform.localRotation = Quaternion.Euler(0, 0, 25);
+                var b = Rect("Stem", x - 1f, d / 2f + 16f, 2.5f, 12f, c, 3); b.transform.localRotation = Quaternion.Euler(0, 0, -40);
+                if (i % 4 == 1)
+                {
+                    var g = Rect("Grape", x + 3f, d / 2f + 18f, 6f, 6f, Hex("3a1a2a"), 4);
+                    g.sprite = Resources.Load<Sprite>("Sprites/circle");
                 }
             }
         }
