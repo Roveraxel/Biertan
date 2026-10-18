@@ -35,6 +35,9 @@ namespace Biertan.EditorTools
         [MenuItem("Biertan/Build Boss Test: Muma Padurii")]
         public static void BuildMuma() => BuildScene("Assets/Scenes/Boss_Muma.unity", "hollow");
 
+        [MenuItem("Biertan/Build Game: New Game in Saschiz")]
+        public static void BuildSaschiz() => BuildScene("Assets/Scenes/Game_Saschiz.unity", "hub");
+
         [MenuItem("Biertan/Build Level Test: Wolf Forest")]
         public static void BuildForest() => BuildScene("Assets/Scenes/Level_Forest.unity", "forest");
 
@@ -150,6 +153,7 @@ namespace Biertan.EditorTools
                 var host = new GameObject("LevelHost").AddComponent<LevelHost>();
                 host.player = pc;
                 host.levelId = levelId;
+                host.chapterGear = levelId != "hub";
                 host.gameObject.AddComponent<DebugHud>();
             }
 

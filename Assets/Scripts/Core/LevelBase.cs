@@ -20,6 +20,12 @@ namespace Biertan.Core
         public Vector2 size = new(2000, 1400);   // Godot pixels
         public Vector2 spawn;                    // Unity world position
         public Color ground = new Color32(0x1c, 0x24, 0x18, 0xff);
+        /// <summary>Ground texture tiled over the level ("" for none), and its tint (level.gd tile_path / tile_tint).</summary>
+        public string tile = "tile_grass";
+        public Color tileTint = Color.white;
+        /// <summary>Camera zoom for this level (main.gd: 1.3 everywhere, closer or wider for a few bosses).</summary>
+        public float cameraZoom = 1.3f;
+        public Vector2 cameraOffset = Vector2.zero;
         protected System.Random rng = new(1);
 
         /// <summary>Create the level's contents. Called once by the loader before the player arrives.</summary>
@@ -66,6 +72,29 @@ namespace Biertan.Core
         protected void DrawGround()
         {
             AddSprite("Ground", "white", P(size.x / 2f, size.y / 2f), size, ground, -1000);
+            if (!string.IsNullOrEmpty(tile)) AddTiled(tile, new Rect(0, 0, size.x, size.y), tileTint, -999);
+        }
+
+        /// <summary>A repeating texture over a Godot-space rect.</summary>
+        protected SpriteRenderer AddTiled(string sprite, Rect godotRect, Color tint, int order)
+        {
+            var sr = AddSprite("Tiled " + sprite, sprite, P(godotRect.center), Vector2.one, tint, order);
+            sr.drawMode = SpriteDrawMode.Tiled;
+            sr.tileMode = SpriteTileMode.Continuous;
+            sr.size = godotRect.size;
+            return sr;
+        }
+
+        /// <summary>level.gd add_block(): a solid structure. Rect in Godot coordinates.</summary>
+        public Block AddBlock(Rect godotRect, string style = "wall", float h = 18f)
+        {
+            var go = new GameObject("Block " + style);
+            go.transform.SetParent(transform, false);
+            go.transform.position = P(godotRect.center.x, godotRect.yMax);
+            var b = go.AddComponent<Block>();
+            b.style = style; b.footprint = godotRect.size; b.h = h;
+            b.Build();
+            return b;
         }
 
         /// <summary>Scatter flattened blots of colour over a Godot-space rect (grass, moss, dirt).</summary>
@@ -112,24 +141,57 @@ namespace Biertan.Core
             }
         }
 
-        /// <summary>A pine/oak: trunk collider plus a dark crown. Port of tree2d.gd (simplified).</summary>
-        protected void AddTree(Vector2 pos, bool big = false)
+        /// <summary>tree2d.gd: a leafy tree in one of three palettes (one autumn), or a dark pine.</summary>
+        protected void AddTree(Vector2 pos, bool pine = false)
         {
-            float s = big ? 1.35f : 1f;
-            var root = new GameObject("Tree");
+            var root = new GameObject(pine ? "Pine" : "Tree");
             root.transform.SetParent(transform, false);
             root.transform.position = pos;
             root.AddComponent<UnityEngine.Rendering.SortingGroup>();
-            AddSprite("Shadow", "circle", pos + new Vector2(0, -2), new Vector2(70, 26) * s, new Color(0, 0, 0, 0.35f), -1, root.transform);
-            AddSprite("Trunk", "white", pos + new Vector2(0, 18 * s), new Vector2(12, 36) * s, new Color32(0x3a, 0x2a, 0x1c, 0xff), 0, root.transform);
-            var shade = Rand(0f, 0.06f);
-            AddSprite("Crown", "circle", pos + new Vector2(0, 70 * s), new Vector2(84, 96) * s, new Color(0.09f + shade, 0.15f + shade, 0.09f), 1, root.transform);
-            AddSprite("CrownTop", "circle", pos + new Vector2(-6, 92 * s), new Vector2(52, 58) * s, new Color(0.13f + shade, 0.21f + shade, 0.12f), 2, root.transform);
+            int kind = rng.Next(3);
+            float sc = Rand(0.85f, 1.25f);
+            root.transform.localScale = new Vector3(sc, sc, 1f);
+            var t = root.transform;
+            Local("Shadow", "circle", t, new Vector2(0, -2), new Vector2(52, 21), new Color(0, 0, 0, 0.3f), -1);
+            Local("Trunk", "white", t, new Vector2(0, 11), new Vector2(10, 26), new Color32(0x2e, 0x22, 0x17, 0xff), 0);
+            if (pine)
+            {
+                Color c1 = new Color32(0x0f, 0x1d, 0x1a, 0xff), c2 = new Color32(0x18, 0x30, 0x29, 0xff);
+                Local("Tier3", "tri", t, new Vector2(0, 33), new Vector2(92, 54), c1, 1);
+                Local("Tier2", "tri", t, new Vector2(0, 56), new Vector2(76, 57), c2, 2);
+                Local("Tier1", "tri", t, new Vector2(0, 80), new Vector2(60, 60), c1, 3);
+            }
+            else
+            {
+                Color[][] pal =
+                {
+                    new Color[] { new Color32(0x1f, 0x3a, 0x22, 0xff), new Color32(0x2d, 0x4d, 0x2c, 0xff) },
+                    new Color[] { new Color32(0x27, 0x40, 0x2a, 0xff), new Color32(0x3a, 0x5a, 0x30, 0xff) },
+                    new Color[] { new Color32(0x4a, 0x3a, 0x1c, 0xff), new Color32(0x7a, 0x5a, 0x24, 0xff) },
+                };
+                var p = pal[kind];
+                Local("Crown", "circle", t, new Vector2(0, 46), new Vector2(68, 68), p[0], 1);
+                Local("CrownL", "circle", t, new Vector2(-16, 34), new Vector2(48, 48), p[0], 1);
+                Local("CrownR", "circle", t, new Vector2(16, 34), new Vector2(48, 48), p[0], 1);
+                Local("Light", "circle", t, new Vector2(-4, 58), new Vector2(40, 40), p[1], 2);
+                Local("Light2", "circle", t, new Vector2(12, 50), new Vector2(22, 22), p[1], 2);
+            }
             root.layer = LayerMask.NameToLayer("World");
             var col = root.AddComponent<CircleCollider2D>();
-            col.radius = 10f * s;
-            col.offset = new Vector2(0, 4);
+            col.radius = 11f;
             root.isStatic = true;
+        }
+
+        SpriteRenderer Local(string name, string sprite, Transform parent, Vector2 local, Vector2 scale, Color c, int order)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = local;
+            go.transform.localScale = new Vector3(scale.x, scale.y, 1f);
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = LoadSprite(sprite);
+            sr.color = c; sr.sortingOrder = order;
+            return sr;
         }
 
         // ------------------------------------------------------------ props, triggers, light

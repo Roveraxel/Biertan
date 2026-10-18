@@ -96,6 +96,9 @@ namespace Biertan.Core
 
         public event Action StoryClosed;
         public bool testMode;
+        /// <summary>Automated tests: skip fades and pauses so whole sequences run at once.</summary>
+        public static bool Instant;
+        public string lastStory = "";
 
         string SavePath => Path.Combine(Application.persistentDataPath, "biertan_save.json");
 
@@ -225,7 +228,7 @@ namespace Biertan.Core
             for (int i = 0; i < 12; i++)
             {
                 AudioManager.I?.Sfx("bell", -10f, 0.62f);
-                yield return new WaitForSeconds(0.45f);
+                if (!Instant) yield return new WaitForSeconds(0.45f);
                 if (current == "" || state == State.Title) yield break;
             }
         }
@@ -252,13 +255,13 @@ namespace Biertan.Core
         public IEnumerator OnBossDead() // Varcolac
         {
             HudEvents.Banner("THE VÂRCOLAC FALLS", "The moon slips free of its jaws.");
-            yield return new WaitForSeconds(3f);
+            if (!Instant) yield return new WaitForSeconds(3f);
             player.charmDodge = true;
             quest = 2;
             HudEvents.Toast("Received: Wolf-Fang Charm  (+10% dodge)");
             HudEvents.Toast("Received: The Silver Thread  (quest item)");
-            yield return new WaitForSeconds(2.5f);
-            yield return ShowStory("saschiz");
+            if (!Instant) yield return new WaitForSeconds(2.5f);
+            if (Instant) lastStory = "saschiz"; else yield return ShowStory("saschiz");
             LevelLoader.Goto("hub", new Vector2(900, 880));
         }
 
@@ -279,29 +282,29 @@ namespace Biertan.Core
         public IEnumerator OnMumaDead()
         {
             HudEvents.Banner("MUMA PĂDURII IS FELLED", "The wood grows quiet. Far off, children wake.");
-            yield return new WaitForSeconds(3f);
+            if (!Instant) yield return new WaitForSeconds(3f);
             player.oakHeart = true;
             player.maxHp += 15f;
             player.hp = player.maxHp;
             quest2 = 2;
             HudEvents.Toast("Received: Heart of Oak  (+15 max health)");
             HudEvents.Toast("Found in her hollow: the clapper of a great bell");
-            yield return new WaitForSeconds(2.5f);
-            yield return ShowStory("richis");
+            if (!Instant) yield return new WaitForSeconds(2.5f);
+            if (Instant) lastStory = "richis"; else yield return ShowStory("richis");
             LevelLoader.Goto("richis", new Vector2(900, 760));
         }
 
         public IEnumerator OnBalaurDead()
         {
             HudEvents.Banner("THE BALAUR IS SLAIN", "Three necks seared. The road to Biertan lies open.");
-            yield return new WaitForSeconds(3f);
+            if (!Instant) yield return new WaitForSeconds(3f);
             quest3 = 2;
             player.dmg += 4f;
             player.coins += 40;
             HudEvents.Toast("Received: Balaur Scale  (+4 damage)");
             HudEvents.Toast("+40 coins from the serpent's hoard");
-            yield return new WaitForSeconds(2.5f);
-            yield return ShowStory("mosna");
+            if (!Instant) yield return new WaitForSeconds(2.5f);
+            if (Instant) lastStory = "mosna"; else yield return ShowStory("mosna");
             LevelLoader.Goto("mosna", new Vector2(950, 860));
         }
 
@@ -313,32 +316,34 @@ namespace Biertan.Core
             float[] pitches = { 1.0f, 0.89f, 0.75f };
             for (int i = 0; i < 3; i++)
             {
-                yield return new WaitForSeconds(2.2f);
+                if (!Instant) yield return new WaitForSeconds(2.2f);
                 AudioManager.I?.Sfx("bell", 0f, pitches[i]);
             }
             SaveGame();
-            yield return new WaitForSeconds(2f);
-            yield return ShowStory("biertan");
+            if (!Instant) yield return new WaitForSeconds(2f);
+            if (Instant) lastStory = "biertan"; else yield return ShowStory("biertan");
             state = State.Ending;
             endingT = 0f;
             player.frozen = true;
-            yield return ScreenFade.I.FadeTo(0f, 1f);
+            if (!Instant) yield return ScreenFade.I.FadeTo(0f, 1f);
         }
 
         // ---------------------------------------------------------------- story cards
 
         public IEnumerator ShowStory(string id)
         {
-            yield return ScreenFade.I.FadeTo(1f, 0.8f);
+            lastStory = id;
+            if (Instant) { storyId = id; yield break; }
+            if (!Instant) yield return ScreenFade.I.FadeTo(1f, 0.8f);
             storyId = id;
             storyT = 0f;
             state = State.Story;
             AudioManager.I?.Sfx("bell", -6f, 1f);
-            yield return ScreenFade.I.FadeTo(0f, 0.6f);
+            if (!Instant) yield return ScreenFade.I.FadeTo(0f, 0.6f);
 
             if (testMode)
             {
-                yield return new WaitForSeconds(2f);
+                if (!Instant) yield return new WaitForSeconds(2f);
                 storyT = -999f;
                 StoryClosed?.Invoke();
             }
@@ -349,7 +354,7 @@ namespace Biertan.Core
             yield return new WaitUntil(() => closed);
             StoryClosed -= OnClosed;
 
-            yield return ScreenFade.I.FadeTo(1f, 0.4f);
+            if (!Instant) yield return ScreenFade.I.FadeTo(1f, 0.4f);
             state = State.Play;
         }
 
@@ -357,7 +362,7 @@ namespace Biertan.Core
 
         public IEnumerator ToTitle()
         {
-            yield return ScreenFade.I.FadeTo(1f, 0.6f);
+            if (!Instant) yield return ScreenFade.I.FadeTo(1f, 0.6f);
             if (level != null)
             {
                 if (player.transform.parent != null) player.transform.SetParent(null);
@@ -369,7 +374,7 @@ namespace Biertan.Core
             state = State.Title;
             HudEvents.SetContinueEnabled(HasSave());
             AudioManager.I?.SetMusic("music_hub", -9f);
-            yield return ScreenFade.I.FadeTo(0f, 0.6f);
+            if (!Instant) yield return ScreenFade.I.FadeTo(0f, 0.6f);
         }
 
         // ---------------------------------------------------------------- save / load

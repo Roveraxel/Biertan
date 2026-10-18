@@ -144,6 +144,7 @@ namespace Biertan.Levels
 
         void Update()
         {
+            if (visual == null) return; // not started yet
             t += Time.deltaTime;
             if (regrow > 0f) regrow = Mathf.Max(0f, regrow - Time.deltaTime);
 

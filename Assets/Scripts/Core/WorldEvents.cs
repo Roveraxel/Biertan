@@ -17,6 +17,8 @@ namespace Biertan.Core
             if (gm == null) return false;
             return id switch
             {
+                "anna" => gm.quest == 0 || gm.quest == 2,
+                "ileana" => !gm.metIleana,
                 "gheorghe" => gm.eweQuest == 0 || (gm.eweQuest == 1 && gm.EwesFound() >= 3),
                 "hermit" => !gm.SideHas("hermit"),
                 _ => false,
@@ -91,6 +93,65 @@ namespace Biertan.Core
             var player = gm.player;
             switch (id)
             {
+                case "anna":
+                    if (gm.quest == 0)
+                        gm.StartDialogue("Frau Anna Roth", new[]
+                        {
+                            "Three nights now the sheep come back with their throats open and not a drop of blood spilled.",
+                            "The elders say a varcolac walks the Wolf Forest. Bring me proof, and the inn is yours for a month.",
+                            "Hans can sharpen your blade. Old Ileana at the gate knows charms. Then take the east gate, and keep to the path.",
+                        }, () =>
+                        {
+                            gm.quest = 1;
+                            player.potions += 1;
+                            HudEvents.Banner("QUEST: WHERE THE SHEEP WENT", "Slay the beast of the Wolf Forest.");
+                            HudEvents.Toast("Anna gives you a garlic tincture.  (Q to drink)");
+                        });
+                    else if (gm.quest == 1)
+                        gm.StartDialogue("Frau Anna Roth", new[] { "Garlic tincture, ten coins. Drink it when you bleed.", "The east gate leads to the forest. Come back with the beast's proof." }, BuyPotion);
+                    else if (gm.quest == 2)
+                        gm.StartDialogue("Frau Anna Roth", new[]
+                        {
+                            "The Silver Thread... and the fang of a varcolac. By the saints, you did it.",
+                            "From this night you are Guest of the Hearth. The inn is yours, Wanderer.",
+                        }, () =>
+                        {
+                            gm.quest = 3;
+                            player.coins += 50;
+                            HudEvents.Banner("GUEST OF THE HEARTH", "+50 coins.  Level 2: Richiș awaits.");
+                            player.hp = player.maxHp;
+                        });
+                    else
+                        gm.StartDialogue("Frau Anna Roth", new[] { "Richiș lies east through the gate, along the old salt road. The pastor there will want to hear what you carry.", "Garlic tincture, ten coins?" }, BuyPotion);
+                    break;
+
+                case "hans":
+                    if (gm.smithLevel >= 3)
+                        gm.StartDialogue("Master Hans", new[] { "I can do no more for that blade. It is as keen as Saxon steel gets." });
+                    else
+                        gm.StartDialogue("Master Hans", new[] { "A sharper edge keeps you breathing. Twenty-five coins for a whetting.", "Iron is what the dead fear. Fire is what the beasts fear." }, Sharpen);
+                    break;
+
+                case "ileana":
+                    if (gm.quest >= 2)
+                        gm.StartDialogue("Old Ileana", new[] { "A varcolac does not wander this far west by chance, child.", "Something drives the old beasts toward us. The bells of Biertan have stopped. When bells stop, the dead listen." });
+                    else if (!gm.metIleana)
+                        gm.StartDialogue("Old Ileana", new[]
+                        {
+                            "Salt on the threshold, iron in the hand, a red thread at the wrist. The dead keep rules; learn them.",
+                            "Hold out your arm. There. May it keep your blood where it belongs.",
+                        }, () =>
+                        {
+                            gm.metIleana = true;
+                            player.redThread = true;
+                            player.maxHp += 10f;
+                            player.hp = player.maxHp;
+                            HudEvents.Toast("Red thread charm.  (+10 max health)");
+                        });
+                    else
+                        gm.StartDialogue("Old Ileana", new[] { "A voice that knows your name is never a friend's, child. Do not answer it.", "Light is your armour in the dark. The dusk makes them bold." });
+                    break;
+
                 case "hermit":
                     if (!gm.SideHas("hermit"))
                         gm.StartDialogue("Pafnutie, Hermit", new[]
@@ -152,6 +213,52 @@ namespace Biertan.Core
                         : new[] { "Forty ewes, gone in one night. I heard something howling at the sky.", "The moon was swallowed whole. I swear it on my mother's grave." });
                     break;
             }
+        }
+
+        // ---------------------------------------------------------------- shops (main.gd buy_*)
+
+        static bool Pay(int cost, string need)
+        {
+            var p = GM.player;
+            if (p.coins >= cost) { p.coins -= cost; return true; }
+            HudEvents.Toast(need);
+            return false;
+        }
+
+        public static void BuyPotion()
+        {
+            if (!Pay(10, "You need ten coins.")) return;
+            GM.player.potions += 1;
+            HudEvents.Toast("Garlic tincture bought.  -10 coins");
+        }
+
+        public static void BuySalt()
+        {
+            if (!Pay(10, "You need ten coins.")) return;
+            GM.player.salt += 3;
+            HudEvents.Toast("Three pinches of salt.  -10 coins");
+        }
+
+        public static void BuyGarlic()
+        {
+            if (!Pay(40, "You need forty coins.")) return;
+            GM.player.garlic = true;
+            HudEvents.Toast("Garlic wreath.  Strigoi bite half as hard and cannot drink.");
+        }
+
+        public static void BuyWormwood()
+        {
+            if (!Pay(40, "You need forty coins.")) return;
+            GM.player.wormwood = true;
+            HudEvents.Toast("Wormwood sprig.  The Iele's song no longer slows you.");
+        }
+
+        public static void Sharpen()
+        {
+            if (!Pay(25, "You need twenty-five coins.")) return;
+            GM.smithLevel += 1;
+            GM.player.dmg += 4f;
+            HudEvents.Toast("Blade whetted.  (+4 damage)");
         }
     }
 }

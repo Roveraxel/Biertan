@@ -40,6 +40,9 @@ namespace Biertan.Testing
                     if (go != null && started.Add(go)) go.SendMessage("Start", SendMessageOptions.DontRequireReceiver);
                 foreach (var go in Live()) if (go != null) go.SendMessage("FixedUpdate", SendMessageOptions.DontRequireReceiver);
                 Physics2D.Simulate(dt);
+                // anything created during physics (a level loaded by a trigger) starts before its first Update
+                foreach (var go in Live())
+                    if (go != null && started.Add(go)) go.SendMessage("Start", SendMessageOptions.DontRequireReceiver);
                 foreach (var go in Live()) if (go != null) go.SendMessage("Update", SendMessageOptions.DontRequireReceiver);
                 foreach (var go in Live()) if (go != null) go.SendMessage("LateUpdate", SendMessageOptions.DontRequireReceiver);
             }

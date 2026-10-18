@@ -25,6 +25,7 @@ namespace Biertan.Levels
             size = new Vector2(1400, 1400);
             spawn = P(700, 1130);
             ground = new Color32(0x10, 0x15, 0x10, 0xff);
+            tile = "";
             rng = new System.Random(5);
 
             DrawGround();

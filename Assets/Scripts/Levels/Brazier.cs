@@ -14,7 +14,7 @@ namespace Biertan.Levels
         public bool lit = true;
         public bool decays;
         float litT, t;
-        const float BaseEnergy = 1.25f;
+        public float baseEnergy = 1.25f;
 
         Light2D glow;
         SpriteRenderer flame, core, ember, timer;
@@ -35,7 +35,7 @@ namespace Biertan.Levels
             core = Part("Core", "circle", new Vector2(0, 27), new Vector2(10, 16), new Color32(0xff, 0xd2, 0x7a, 0xff), 3);
             ember = Part("Ember", "circle", new Vector2(0, 22), new Vector2(10, 10), new Color32(0x1a, 0x17, 0x14, 0xff), 2);
             timer = Part("Timer", "circle", new Vector2(0, 22), new Vector2(40, 40), new Color(1f, 0.8f, 0.4f, 0f), -1);
-            glow = Lights.Point(transform, 270f, new Color(1f, 0.66f, 0.32f), BaseEnergy, new Vector2(0, 16));
+            glow = Lights.Point(transform, 270f, new Color(1f, 0.66f, 0.32f), baseEnergy, new Vector2(0, 16));
             SetLit(lit);
         }
 
@@ -79,7 +79,7 @@ namespace Biertan.Levels
                 if (litT <= 0f) SetLit(false);
             }
             if (!lit) { timer.color = Color.clear; return; }
-            glow.intensity = BaseEnergy + 0.12f * Mathf.Sin(t * 13f) + 0.06f * Mathf.Sin(t * 29f);
+            glow.intensity = baseEnergy + 0.12f * Mathf.Sin(t * 13f) + 0.06f * Mathf.Sin(t * 29f);
             float k = Mathf.Sin(t * 14f) * 2f;
             flame.transform.localScale = new Vector3(18, 26 + k, 1);
             core.transform.localScale = new Vector3(10, 16 + k * 0.6f, 1);

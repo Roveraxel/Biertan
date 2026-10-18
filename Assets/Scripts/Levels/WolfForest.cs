@@ -103,7 +103,7 @@ namespace Biertan.Levels
             Pack("scarecrow", new Vector2(2700, 1080), 1);
 
             // events and exits
-            AddTrigger(new Rect(0, 780, 60, 240), () => Leave("hub", new Vector2(1500, 900)));
+            AddTrigger(new Rect(0, 780, 60, 240), () => Leave("hub", new Vector2(1540, 600)));
             AddTrigger(new Rect(3310, 760, 90, 240), () => Leave("arena", null));
             AddTrigger(new Rect(1040, 700, 80, 260), StartVoice);
             AddTrigger(new Rect(1070, 410, 170, 150), SpringTrap);
@@ -116,7 +116,7 @@ namespace Biertan.Levels
         {
             var gm = GameManager.I;
             if (gm.state != GameManager.State.Play || gm.transitioning) return;
-            LevelLoader.Goto(to, at.HasValue ? P(at.Value) : (Vector2?)null);
+            LevelLoader.Goto(to, at); // Godot coordinates
         }
 
         float DistToPath(Vector2 p)

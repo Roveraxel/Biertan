@@ -56,9 +56,21 @@ namespace Biertan.EditorTools
             // photos: 1 px per unit; utility sprites (white, circle): exactly 1 unit across, scaled in code
             s.spritePixelsPerUnit = photo ? 1f : Mathf.Max(1, texW);
 
+            string fname = Path.GetFileNameWithoutExtension(p);
+            if (sprite && fname.StartsWith("tile_"))
+            {
+                // ground textures tile across a whole level: full-rect mesh, repeat wrap.
+                // Godot drew grass at its native size and the cobbles at 0.55x.
+                s.spriteMeshType = SpriteMeshType.FullRect;
+                s.wrapMode = TextureWrapMode.Repeat;
+                s.spritePixelsPerUnit = fname.StartsWith("tile_cobble") ? texW / 35.2f : 1f;
+                ti.SetTextureSettings(s);
+                return;
+            }
+
             if (sprite)
             {
-                string name = Path.GetFileNameWithoutExtension(p);
+                string name = fname;
                 foreach (var r in Rules)
                 {
                     if (!name.StartsWith(r.prefix)) continue;

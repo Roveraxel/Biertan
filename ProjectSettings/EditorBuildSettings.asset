@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Scenes/Game_Saschiz.unity
+    guid: f1765ee4ae996407aadec5baa4062971
+  - enabled: 1
     path: Assets/Scenes/Level_Forest.unity
     guid: 24bcb2c65dbe84c93abe8bbe6899673a
   - enabled: 1
