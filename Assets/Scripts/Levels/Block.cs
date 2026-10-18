@@ -41,9 +41,10 @@ namespace Biertan.Levels
                 case "rock": top = Hex("4a4540"); face = Hex("2c2926"); break;
                 case "pew": top = Hex("5a3a24"); face = Hex("3a2416"); break;
             }
-            // front face (0..h) and top (h..h+d)
-            Rect("Face", 0, h / 2f, w, h, face, 0);
-            Rect("Top", 0, h + d / 2f, w, d, top, 1);
+            // front face (0..h) and top (h..h+d), painted where a texture exists for the style
+            var (faceTex, faceTint, topTex, topTint) = Painted(style);
+            Surface("Face", 0, h / 2f, w, h, faceTex, faceTint, face, 0);
+            Surface("Top", 0, h + d / 2f, w, d, topTex, topTint, top, 1);
             Rect("Outline", 0, h + d / 2f, w, d, new Color(0, 0, 0, 0.35f), 2, outline: true);
             Rect("Eave", 0, h, w, 2f, new Color(0, 0, 0, 0.35f), 3);
 
@@ -54,7 +55,7 @@ namespace Biertan.Levels
                 Rect("Ridge", 0, d / 2f + h, w, 3f, top * 0.7f, 2);
             if (style == "tower")
             {
-                Rect("Roof", 0, h + d / 2f, w - 20f, d - 20f, top * 0.75f, 2);
+                Surface("Roof", 0, h + d / 2f, w - 20f, d - 20f, "tex_k_roof", Grey(0.6f), top * 0.75f, 2);
                 var cross = Amber * 0.8f; cross.a = 1f;
                 Rect("CrossV", 0, d + h - 27f, 3f, 26f, cross, 3);
                 Rect("CrossH", 0, d + h - 24f, 16f, 3f, cross, 3);
@@ -62,7 +63,8 @@ namespace Biertan.Levels
             if (style == "rock")
             {
                 var r = new System.Random((int)(transform.position.x * 7f - transform.position.y * 13f));
-                for (int i = 0; i < 5; i++)
+                bool painted = Resources.Load<Sprite>("Sprites/tex_flag") != null; // the texture has its own cracks
+                for (int i = 0; i < (painted ? 0 : 5); i++)
                 {
                     float px = (float)(r.NextDouble() * (w - 12) - (w / 2 - 6));
                     float py = h + 4f + (float)(r.NextDouble() * (d - 10));
@@ -104,6 +106,40 @@ namespace Biertan.Levels
                     g.sprite = Resources.Load<Sprite>("Sprites/circle");
                 }
             }
+        }
+
+        /// <summary>Painted textures per style: (face texture, face tint, top texture, top tint).</summary>
+        static (string, Color, string, Color) Painted(string style) => style switch
+        {
+            "wall" => ("tex_k_stone", Grey(0.78f), "tex_k_stone", Grey(0.95f)),
+            "house" => ("tex_k_timber", Grey(0.92f), "tex_k_roof", Grey(0.85f)),
+            "church" => ("tex_k_plaster", Grey(0.9f), "tex_k_roofdark", Grey(0.8f)),
+            "tower" => ("tex_k_plaster", Grey(0.85f), "tex_k_roof", Grey(0.8f)),
+            "ruin" => ("tex_k_ruin", Grey(0.55f), "tex_k_ruin", Grey(0.75f)),
+            "stone" => ("tex_k_stone", Grey(0.7f), "tex_k_stone", Grey(0.9f)),
+            "rock" => ("tex_flag", new Color(0.38f, 0.35f, 0.32f), "tex_flag", new Color(0.55f, 0.51f, 0.47f)),
+            "pew" => ("tex_planks", Grey(0.6f), "tex_planks", Grey(0.8f)),
+            _ => (null, Color.white, null, Color.white),
+        };
+
+        static Color Grey(float v) => new(v, v, v, 1f);
+
+        /// <summary>A tiled texture over a face, or the flat colour when the texture isn't in the project
+        /// (the Kalponic textures are kept out of the public repository).</summary>
+        SpriteRenderer Surface(string n, float x, float y, float w, float hh, string tex, Color tint, Color flat, int order)
+        {
+            var sp = tex != null ? Resources.Load<Sprite>("Sprites/" + tex) : null;
+            if (sp == null) return Rect(n, x, y, w, hh, flat, order);
+            var go = new GameObject(n);
+            go.transform.SetParent(transform, false);
+            go.transform.localPosition = new Vector3(x, y, 0);
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = sp;
+            sr.drawMode = SpriteDrawMode.Tiled;
+            sr.tileMode = SpriteTileMode.Continuous;
+            sr.size = new Vector2(w, hh);
+            sr.color = tint; sr.sortingOrder = order;
+            return sr;
         }
 
         SpriteRenderer Rect(string n, float x, float y, float w, float hh, Color c, int order, bool outline = false)

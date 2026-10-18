@@ -57,6 +57,17 @@ namespace Biertan.EditorTools
             s.spritePixelsPerUnit = photo ? 1f : Mathf.Max(1, texW);
 
             string fname = Path.GetFileNameWithoutExtension(p);
+            if (sprite && fname.StartsWith("tex_"))
+            {
+                // painted surface textures, tiled across block faces and the ground; PPU sets how many
+                // world units one repeat of the texture spans
+                s.spriteMeshType = SpriteMeshType.FullRect;
+                s.wrapMode = TextureWrapMode.Repeat;
+                s.spritePixelsPerUnit = Mathf.Max(1, texW) / TexWorldSize(fname);
+                ti.SetTextureSettings(s);
+                return;
+            }
+
             if (sprite && fname.StartsWith("tile_"))
             {
                 // ground textures tile across a whole level: full-rect mesh, repeat wrap.
@@ -81,6 +92,16 @@ namespace Biertan.EditorTools
             }
             ti.SetTextureSettings(s);
         }
+
+        static float TexWorldSize(string name) => name switch
+        {
+            "tex_grass" => 256f,
+            "tex_dirt" => 256f,
+            "tex_flag" => 120f,
+            "tex_planks" => 96f,
+            "tex_k_plaster" => 128f,
+            _ => 112f,
+        };
 
         static int PngWidth(string assetPath)
         {

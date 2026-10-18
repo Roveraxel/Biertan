@@ -112,3 +112,7 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# Third-party textures that may not be redistributed (Kalponic Studio licence)
+Assets/Resources/Sprites/tex_k_*
+_packs/
