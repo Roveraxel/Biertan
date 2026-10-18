@@ -75,8 +75,6 @@ namespace Biertan.EditorTools
             BuildScene(path, "hub");
             var host = Object.FindAnyObjectByType<LevelHost>();
             host.chapterGear = true; // straight into Saschiz, no title screen
-            var w = host.gameObject.AddComponent<Biertan.Visual3D.World3D>();
-            w.pipeline = AssetDatabase.LoadAssetAtPath<UnityEngine.Rendering.RenderPipelineAsset>("Assets/Settings/PC_RPAsset.asset");
             EditorSceneManager.MarkSceneDirty(host.gameObject.scene);
             EditorSceneManager.SaveScene(host.gameObject.scene, path);
         }
@@ -195,6 +193,9 @@ namespace Biertan.EditorTools
                 host.levelId = levelId;
                 host.chapterGear = levelId != "hub";
                 host.gameObject.AddComponent<Biertan.UI.GameHud>();
+                // the Diablo-style 3D view over the 2D game
+                var w3 = host.gameObject.AddComponent<Biertan.Visual3D.World3D>();
+                w3.pipeline = AssetDatabase.LoadAssetAtPath<RenderPipelineAsset>("Assets/Settings/PC_RPAsset.asset");
             }
 
             EditorSceneManager.SaveScene(scene, scenePath);

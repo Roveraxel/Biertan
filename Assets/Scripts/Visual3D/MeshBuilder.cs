@@ -139,6 +139,27 @@ namespace Biertan.Visual3D
             }
         }
 
+        /// <summary>A flat rectangle on the ground, rotated by rotDeg around the vertical.</summary>
+        public void FlatRect(Vector3 c, float w, float d, float rotDeg)
+        {
+            var q = Quaternion.Euler(0, rotDeg, 0);
+            Vector3 P(float x, float z) => c + q * new Vector3(x, 0, z);
+            Quad(P(-w / 2, -d / 2), P(-w / 2, d / 2), P(w / 2, d / 2), P(w / 2, -d / 2));
+        }
+
+        /// <summary>A flat ellipse on the ground.</summary>
+        public void Disc(Vector3 c, float rx, float rz, float rotDeg, int seg)
+        {
+            var q = Quaternion.Euler(0, rotDeg, 0);
+            for (int i = 0; i < seg; i++)
+            {
+                float a0 = i * Mathf.PI * 2f / seg, a1 = (i + 1) * Mathf.PI * 2f / seg;
+                var p0 = c + q * new Vector3(Mathf.Cos(a0) * rx, 0, Mathf.Sin(a0) * rz);
+                var p1 = c + q * new Vector3(Mathf.Cos(a1) * rx, 0, Mathf.Sin(a1) * rz);
+                Tri(c, p1, p0);
+            }
+        }
+
         public Mesh Build()
         {
             var m = new Mesh { indexFormat = v.Count > 65000 ? UnityEngine.Rendering.IndexFormat.UInt32 : UnityEngine.Rendering.IndexFormat.UInt16 };

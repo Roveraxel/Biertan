@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using Biertan.Bosses;
 using Biertan.Core;
 using Biertan.Enemies;
 using Biertan.Levels;
@@ -31,11 +32,14 @@ namespace Biertan.Visual3D
         Transform root, actors;
         LevelBase built;
         Vector3 camTarget;
+        Light moon;
+        readonly Dictionary<LineRenderer, LineRenderer> lines = new();
+        readonly Dictionary<TextMesh, TextMesh> texts = new();
         readonly Dictionary<UnityEngine.Rendering.Universal.Light2D, Light> lights = new();
         readonly Dictionary<Transform, Actor> mirrored = new();
         readonly Dictionary<string, Material> mats = new();
 
-        class Actor { public Transform board, shadow; public List<(SpriteRenderer src, SpriteRenderer dst)> parts = new(); }
+        class Actor { public Transform board, shadow; public List<(SpriteRenderer src, SpriteRenderer dst)> parts = new(); public (TextMesh src, TextMesh dst) text; }
 
         public static Vector3 To3D(Vector2 p, float h = 0f) => new(p.x * S, h, p.y * S);
 
@@ -69,7 +73,7 @@ namespace Biertan.Visual3D
             cdata.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;
 
             // moonlight, ambient, fog
-            var moon = new GameObject("Moon").AddComponent<Light>();
+            moon = new GameObject("Moon").AddComponent<Light>();
             moon.type = LightType.Directional;
             moon.transform.rotation = Quaternion.Euler(48f, -35f, 0f);
             moon.color = new Color(0.55f, 0.62f, 0.9f); moon.intensity = 1.1f;
@@ -87,7 +91,7 @@ namespace Biertan.Visual3D
             var prof = ScriptableObject.CreateInstance<VolumeProfile>();
             var bloom = prof.Add<Bloom>(true); bloom.threshold.Override(0.95f); bloom.intensity.Override(0.7f); bloom.scatter.Override(0.65f);
             var vig = prof.Add<Vignette>(true); vig.intensity.Override(0.42f); vig.smoothness.Override(0.5f);
-            var ca = prof.Add<ColorAdjustments>(true); ca.contrast.Override(22f); ca.saturation.Override(-18f); ca.postExposure.Override(0.55f);
+            var ca = prof.Add<ColorAdjustments>(true); ca.contrast.Override(22f); ca.saturation.Override(-18f); ca.postExposure.Override(0.85f);
             var tm = prof.Add<Tonemapping>(true); tm.mode.Override(TonemappingMode.ACES);
             var grain = prof.Add<FilmGrain>(true); grain.intensity.Override(0.18f);
             vol.profile = prof;
@@ -103,6 +107,7 @@ namespace Biertan.Visual3D
             if (built == null) return;
             SyncLights();
             SyncActors(gm.player);
+            SyncLines();
             FollowCamera(gm.player);
         }
 
@@ -162,6 +167,31 @@ namespace Biertan.Visual3D
         Material Stone => Mat("castle_wall_slates", 2.4f, new Color(0.8f, 0.78f, 0.74f));
         Material Wood => Mat("brown_planks_05", 1.6f, new Color(0.75f, 0.68f, 0.6f));
 
+        Material GroundFor(string id, LevelBase level) => id switch
+        {
+            "hub" or "richis" or "mosna" or "biertan" => Ground,
+            "forest" or "hills" or "vineyard" or "walls" => Mat("forest_leaves_02", 3f, new Color(0.6f, 0.58f, 0.52f)),
+            "arena" or "hollow" => Mat("forest_leaves_02", 3f, new Color(0.42f, 0.44f, 0.38f)),
+            "caves" or "gorge" => Mat("castle_wall_slates", 3f, new Color(0.36f, 0.34f, 0.32f)),
+            "church" => Mat("cobblestone_floor_08", 1.6f, new Color(0.55f, 0.53f, 0.5f), 0.3f),
+            _ => string.IsNullOrEmpty(level.tile) ? Plain(level.ground * 0.9f) : Ground,
+        };
+
+        /// <summary>Scale the moon and the ambient light by the 2D level's own ambient brightness (caves are dark,
+        /// villages bright).</summary>
+        void ApplyDarkness(LevelBase level)
+        {
+            var a = level.Ambient();
+            float k = Mathf.Clamp((a.r * 0.3f + a.g * 0.59f + a.b * 0.11f) / 0.4f, 0.8f, 1.35f);
+            moon.intensity = 1.1f * k;
+            RenderSettings.ambientSkyColor = new Color(0.3f, 0.32f, 0.45f) * k;
+            RenderSettings.ambientEquatorColor = new Color(0.2f, 0.2f, 0.26f) * k;
+            RenderSettings.ambientGroundColor = new Color(0.1f, 0.09f, 0.08f) * k;
+            ambientK = k;
+        }
+
+        float ambientK = 1f;
+
         // ------------------------------------------------------------ building the world
 
         void Rebuild(LevelBase level)
@@ -169,6 +199,8 @@ namespace Biertan.Visual3D
             if (root != null) Destroy(root.gameObject);
             foreach (var l in lights.Values) if (l != null) Destroy(l.gameObject);
             lights.Clear();
+            foreach (var l in lines.Values) if (l != null) Destroy(l.gameObject);
+            lines.Clear();
             foreach (var a in mirrored.Values) if (a.board != null) { Destroy(a.board.gameObject); Destroy(a.shadow.gameObject); }
             mirrored.Clear();
             built = level;
@@ -179,8 +211,9 @@ namespace Biertan.Visual3D
 
             // ground
             var size = level.size * S;
-            var groundMat = string.IsNullOrEmpty(level.tile) ? Plain(level.ground * 0.9f) : Ground;
-            Quad("Ground", new Vector3(size.x / 2f, 0f, -size.y / 2f), size, groundMat);
+            // the ground runs well past the map's edges so the camera never looks into a void
+            Quad("Ground", new Vector3(size.x / 2f, 0f, -size.y / 2f), size + new Vector2(70f, 70f), GroundFor(GameManager.I.current, level));
+            ApplyDarkness(level);
 
             foreach (var sr in level.GetComponentsInChildren<SpriteRenderer>())
             {
@@ -196,10 +229,73 @@ namespace Biertan.Visual3D
                 }
             }
 
+            BuildDecals(level);
             foreach (var b in level.GetComponentsInChildren<Block>()) BuildBlock(b);
             foreach (Transform t in level.transform)
                 if (t.name is "Tree" or "Pine") BuildTree(t, t.name == "Pine");
             foreach (var br in level.GetComponentsInChildren<Brazier>()) BuildBrazier(br);
+        }
+
+        /// <summary>Flat ground features drawn by the 2D level (lakes, chambers, yards, carpets, graves, clearings)
+        /// become coloured shapes on the 3D ground, merged into one mesh per colour.</summary>
+        void BuildDecals(LevelBase level)
+        {
+            var groups = new Dictionary<Color, MeshBuilder>();
+            foreach (var sr in level.GetComponentsInChildren<SpriteRenderer>())
+            {
+                if (sr.sortingOrder > -100 || !sr.enabled || sr.sprite == null) continue;
+                if (sr.name is "Ground" || sr.name.StartsWith("Tiled") || sr.name.StartsWith("GateRoad")) continue;
+                if (sr.transform.parent != null && sr.transform.parent.name == "Path") continue;
+                if (sr.GetComponentInParent<Block>() != null) continue;
+                Vector2 sz = sr.transform.lossyScale;
+                if (Mathf.Abs(sz.x) < 14f && Mathf.Abs(sz.y) < 14f) continue; // ground specks: the texture covers them
+                bool disc = sr.sprite.name == "circle";
+                if (!disc && sr.sprite.name != "white") continue;
+                var c = sr.color;
+                if (c.a < 0.5f) continue; // faint 2D shading: the 3D lighting does this job
+                c = new Color(Mathf.Round(c.r * 40f) / 40f, Mathf.Round(c.g * 40f) / 40f, Mathf.Round(c.b * 40f) / 40f, Mathf.Round(c.a * 20f) / 20f);
+                if (!groups.TryGetValue(c, out var mb)) groups[c] = mb = new MeshBuilder();
+                float y = 0.004f + (sr.sortingOrder + 1000) * 0.0004f;
+                var centre = To3D(sr.transform.position, y);
+                float rot = -sr.transform.eulerAngles.z;
+                if (disc) mb.Disc(centre, sz.x * S / 2f, sz.y * S / 2f, rot, 24);
+                else mb.FlatRect(centre, sz.x * S, sz.y * S, rot);
+            }
+            foreach (var kv in groups)
+            {
+                var go = new GameObject("Decal");
+                go.transform.SetParent(root, false);
+                bool water = kv.Key.b > kv.Key.r * 1.25f && kv.Key.b > 0.15f;
+                var col = kv.Key; col.a = 1f;
+                Finish(go, kv.Value, Plain(col, water ? 0.85f : 0.1f), shadows: false);
+            }
+            // visible straight walls (AddWall with a colour)
+            foreach (var sr in level.GetComponentsInChildren<SpriteRenderer>())
+                if (sr.name == "Wall" && sr.enabled && sr.GetComponent<BoxCollider2D>() != null)
+                {
+                    Vector2 sz = sr.transform.lossyScale, p = sr.transform.position;
+                    var go = new GameObject("Wall3D");
+                    go.transform.SetParent(root, false);
+                    var mb = new MeshBuilder();
+                    mb.Box(new Vector3((p.x - sz.x / 2f) * S, 0, (p.y - sz.y / 2f) * S), new Vector3((p.x + sz.x / 2f) * S, 1.2f, (p.y + sz.y / 2f) * S), true);
+                    Finish(go, mb, Stone);
+                }
+        }
+
+        Material Fade(Color c)
+        {
+            string key = "fade" + c;
+            if (mats.TryGetValue(key, out var m)) return m;
+            m = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+            m.SetFloat("_Surface", 1f); m.SetFloat("_Blend", 0f);
+            m.SetOverrideTag("RenderType", "Transparent");
+            m.SetInt("_SrcBlend", (int)BlendMode.SrcAlpha); m.SetInt("_DstBlend", (int)BlendMode.OneMinusSrcAlpha);
+            m.SetInt("_ZWrite", 0);
+            m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            m.renderQueue = (int)RenderQueue.Transparent;
+            m.SetColor("_BaseColor", c); m.SetFloat("_Smoothness", 0.1f);
+            mats[key] = m;
+            return m;
         }
 
         GameObject Quad(string n, Vector3 centre, Vector2 size, Material m)
@@ -228,6 +324,9 @@ namespace Biertan.Visual3D
             if (b.style is "hidden" or "vine") return;
             Vector2 p = b.transform.position;
             float w = b.footprint.x * S, d = b.footprint.y * S, h = Mathf.Max(0.25f, b.h * S * HK);
+            // keep rock and walls low enough to see over from the camera, as Diablo does
+            if (b.style == "rock") h = Mathf.Min(h, 1.3f);
+            else if (b.style is "wall" or "stone" or "ruin") h = Mathf.Min(h, 2.2f);
             var go = new GameObject("Block " + b.style);
             go.transform.SetParent(root, false);
             var min = new Vector3(p.x * S - w / 2f, 0f, p.y * S);
@@ -445,7 +544,7 @@ namespace Biertan.Visual3D
         /// <summary>How brightly the fires light a point (sprites aren't lit by 3D lights, so they are tinted).</summary>
         Color LightAt(Vector3 p)
         {
-            var c = new Color(0.5f, 0.52f, 0.62f);
+            var c = new Color(0.5f, 0.52f, 0.62f) * ambientK;
             foreach (var l in lights.Values)
             {
                 if (l == null || !l.enabled) continue;
@@ -464,9 +563,12 @@ namespace Biertan.Visual3D
             var live = new List<Transform>();
             if (player != null) live.Add(player.transform);
             foreach (var e in EnemyBase.All) if (e != null) live.Add(e.transform);
-            foreach (var pr in built.GetComponentsInChildren<Prop>()) if (pr.kind is "npc" or "cross" or "sign" or "bones" or "sack" or "ewe" or "greenman" or "bell") live.Add(pr.transform);
+            foreach (var pr in built.GetComponentsInChildren<Prop>()) if (pr.kind != "spring") live.Add(pr.transform);
+            foreach (var mb in FindObjectsByType<MonoBehaviour>())
+                if (mb != null && mb.isActiveAndEnabled && IsActorType(mb)) live.Add(mb.transform);
 
             var camRot = Quaternion.Euler(pitch * 0.55f, 0f, 0f); // stand up, leaning back toward the camera
+            var flatRot = Quaternion.Euler(90f, 0f, 0f);
             var keep = new HashSet<Transform>(live);
             var gone = new List<Transform>();
             foreach (var kv in mirrored) if (!keep.Contains(kv.Key) || kv.Key == null) gone.Add(kv.Key);
@@ -482,9 +584,18 @@ namespace Biertan.Visual3D
             {
                 if (!mirrored.TryGetValue(t, out var a)) mirrored[t] = a = MakeActor(t);
                 var pos = To3D(t.position);
-                a.board.SetPositionAndRotation(pos, camRot);
+                bool flat = IsFlat(t);
+                a.board.SetPositionAndRotation(pos + (flat ? new Vector3(0, 0.03f, 0) : Vector3.zero), flat ? flatRot : camRot);
+                a.shadow.gameObject.SetActive(!flat && t.GetComponent<FloatingText>() == null && t.GetComponent<BloodBolt>() == null);
                 a.shadow.position = pos + new Vector3(0, 0.015f, 0);
                 var tint = LightAt(pos);
+                if (a.text.src != null)
+                {
+                    a.text.dst.text = a.text.src.text; a.text.dst.color = a.text.src.color;
+                    a.text.dst.characterSize = a.text.src.characterSize * S;
+                    a.text.dst.transform.localPosition = new Vector3(0, 1.8f, 0);
+                    a.text.dst.transform.localScale = t.lossyScale;
+                }
                 bool brazier = t.GetComponent<Brazier>() != null;
                 for (int i = a.parts.Count - 1; i >= 0; i--)
                 {
@@ -505,6 +616,54 @@ namespace Biertan.Visual3D
             }
         }
 
+        static readonly HashSet<string> ActorTypes = new()
+        {
+            "FloatingText", "SaltRing", "FirePatch", "SaltCrystal", "RootSpike", "Lurker", "Cameo",
+            "BloodBolt", "BloodGeyser", "Gate", "Balaur",
+        };
+
+        static bool IsActorType(MonoBehaviour mb) => ActorTypes.Contains(mb.GetType().Name);
+        static bool IsFlat(Transform t) => t.GetComponent<SaltRing>() != null || t.GetComponent<FirePatch>() != null || t.GetComponent<BloodGeyser>() != null;
+
+        /// <summary>Every line in the 2D scene (telegraphs, threads, rings, necks, beams) drawn flat just above the
+        /// 3D ground.</summary>
+        void SyncLines()
+        {
+            var seen = new HashSet<LineRenderer>();
+            foreach (var src in FindObjectsByType<LineRenderer>())
+            {
+                if (src == null || (root != null && src.transform.IsChildOf(root))) continue;
+                if (!lines.TryGetValue(src, out var dst) || dst == null)
+                {
+                    dst = new GameObject("Line3D").AddComponent<LineRenderer>();
+                    dst.transform.SetParent(root, false);
+                    dst.useWorldSpace = true;
+                    dst.alignment = LineAlignment.TransformZ;
+                    dst.transform.rotation = Quaternion.Euler(90f, 0f, 0f); // lie flat, facing up
+                    dst.shadowCastingMode = ShadowCastingMode.Off;
+                    lines[src] = dst;
+                }
+                seen.Add(src);
+                dst.enabled = src.enabled && src.gameObject.activeInHierarchy && src.positionCount > 1;
+                if (!dst.enabled) continue;
+                dst.sharedMaterial = src.sharedMaterial;
+                dst.startColor = src.startColor; dst.endColor = src.endColor;
+                dst.widthMultiplier = src.widthMultiplier * S; dst.widthCurve = src.widthCurve;
+                dst.loop = src.loop;
+                int n = src.positionCount;
+                if (dst.positionCount != n) dst.positionCount = n;
+                for (int i = 0; i < n; i++)
+                {
+                    var p = src.GetPosition(i);
+                    if (!src.useWorldSpace) p = src.transform.TransformPoint(p);
+                    dst.SetPosition(i, To3D(p, 0.05f));
+                }
+            }
+            var dead = new List<LineRenderer>();
+            foreach (var kv in lines) if (kv.Key == null || !seen.Contains(kv.Key)) dead.Add(kv.Key);
+            foreach (var k in dead) { if (lines[k] != null) Destroy(lines[k].gameObject); lines.Remove(k); }
+        }
+
         Actor MakeActor(Transform t)
         {
             var a = new Actor();
@@ -519,6 +678,16 @@ namespace Biertan.Visual3D
                 dst.sortingOrder = sr.sortingOrder;
                 dst.shadowCastingMode = ShadowCastingMode.Off;
                 a.parts.Add((sr, dst));
+            }
+            var tm = t.GetComponent<TextMesh>();
+            if (tm != null)
+            {
+                var go = new GameObject("Text");
+                go.transform.SetParent(a.board, false);
+                var dtm = go.AddComponent<TextMesh>();
+                dtm.font = tm.font; go.GetComponent<MeshRenderer>().sharedMaterial = tm.GetComponent<MeshRenderer>().sharedMaterial;
+                dtm.anchor = tm.anchor; dtm.alignment = tm.alignment; dtm.fontSize = tm.fontSize;
+                a.text = (tm, dtm);
             }
             // a soft blob shadow on the ground
             var sh = new GameObject("BlobShadow");
