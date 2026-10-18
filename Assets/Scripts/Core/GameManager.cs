@@ -128,7 +128,7 @@ namespace Biertan.Core
             }
 
             if (player != null)
-                player.frozen = state == State.Dialogue || state == State.Dead || state == State.Ending || state == State.Story;
+                player.frozen = state != State.Play;
 
             inputBlock = Mathf.Max(0f, inputBlock - dt);
             if (state == State.Story) storyT += dt;
@@ -360,14 +360,11 @@ namespace Biertan.Core
 
         public void CloseStory() => StoryClosed?.Invoke();
 
-        /// <summary>Leaving the ending: back to Biertan with the bells ringing (the title screen is not ported yet,
-        /// so this goes straight where Continue would).</summary>
+        /// <summary>Leaving the ending: back to the title screen (main.gd to_title()); Continue resumes in Biertan.</summary>
         public void LeaveEnding()
         {
             endingT = -999f;
-            state = State.Play;
-            if (player != null) player.frozen = false;
-            LevelLoader.Goto("biertan", new Vector2(900, 860));
+            StartCoroutine(ToTitle());
         }
 
         public IEnumerator ToTitle()

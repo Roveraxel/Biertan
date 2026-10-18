@@ -56,8 +56,9 @@ namespace Biertan.Levels
                 if (IsPorted(id)) StartCoroutine(Switch(id, at));
                 else SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
             };
+            // a real new game opens on the title screen; level tests drop straight into their level
+            if (levelId == "hub" && !chapterGear) { gm.state = GameManager.State.Title; return; }
             Enter(levelId, null);
-            if (levelId == "hub" && !chapterGear) HudEvents.Banner("BIERTAN", "The bells have fallen silent. Reach Biertan.");
         }
 
         void Enter(string id, Vector2? godotAt)

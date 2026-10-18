@@ -181,7 +181,7 @@ namespace Biertan.EditorTools
                 host.player = pc;
                 host.levelId = levelId;
                 host.chapterGear = levelId != "hub";
-                host.gameObject.AddComponent<DebugHud>();
+                host.gameObject.AddComponent<Biertan.UI.GameHud>();
             }
 
             EditorSceneManager.SaveScene(scene, scenePath);
