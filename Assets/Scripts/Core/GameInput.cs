@@ -38,6 +38,7 @@ namespace Biertan.Core
         public static Vector2 MouseWorldPosition(Camera cam)
         {
             if (cam == null || Mouse.current == null) return Vector2.zero;
+            if (Biertan.Visual3D.World3D.Active) return Biertan.Visual3D.World3D.I.MouseWorld2D(Mouse.current.position.ReadValue());
             Vector3 screen = Mouse.current.position.ReadValue();
             screen.z = -cam.transform.position.z;
             return cam.ScreenToWorldPoint(screen);

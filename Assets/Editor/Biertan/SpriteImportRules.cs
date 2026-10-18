@@ -35,6 +35,18 @@ namespace Biertan.EditorTools
         void OnPreprocessTexture()
         {
             string p = assetPath.Replace('\\', '/');
+            if (p.Contains("/Resources/Textures3D/"))
+            {
+                // Poly Haven PBR maps for the 3D view: colour in sRGB, normal maps as normal maps, all tiling
+                var t3 = (TextureImporter)assetImporter;
+                t3.textureType = p.Contains("_nor_gl") ? TextureImporterType.NormalMap : TextureImporterType.Default;
+                t3.sRGBTexture = !p.Contains("_nor_gl");
+                t3.wrapMode = TextureWrapMode.Repeat;
+                t3.mipmapEnabled = true;
+                t3.anisoLevel = 8;
+                t3.maxTextureSize = 1024;
+                return;
+            }
             bool sprite = p.Contains("/Resources/Sprites/");
             bool photo = p.Contains("/Resources/Photos/");
             if (!sprite && !photo) return;

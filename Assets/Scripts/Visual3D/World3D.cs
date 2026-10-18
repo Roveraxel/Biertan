@@ -1,0 +1,549 @@
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
+using Biertan.Core;
+using Biertan.Enemies;
+using Biertan.Levels;
+using Biertan.Player;
+
+namespace Biertan.Visual3D
+{
+    /// <summary>
+    /// A Diablo-style 3D presentation of the 2D game. The simulation (physics, combat, quests) keeps running in
+    /// 2D; this builds a lit 3D world from each level's data (ground, roads, blocks, trees, lights) and mirrors
+    /// the actors as upright sprites lit by nearby fires. 2D (x, y) maps to 3D (x·S, 0, y·S).
+    /// </summary>
+    public class World3D : MonoBehaviour
+    {
+        public static World3D I { get; private set; }
+        public static bool Active => I != null && I.isActiveAndEnabled && I.cam != null;
+
+        public const float S = 0.02f;      // metres per 2D unit (50 px = 1 m)
+        public const float HK = 2.6f;      // block face heights are drawn taller in 3D
+        public RenderPipelineAsset pipeline;
+        [Range(20, 80)] public float pitch = 52f;
+        public float distance = 26f, fov = 34f;
+
+        RenderPipelineAsset prevPipeline;
+        Camera cam, cam2d;
+        int cam2dMask;
+        Transform root, actors;
+        LevelBase built;
+        Vector3 camTarget;
+        readonly Dictionary<UnityEngine.Rendering.Universal.Light2D, Light> lights = new();
+        readonly Dictionary<Transform, Actor> mirrored = new();
+        readonly Dictionary<string, Material> mats = new();
+
+        class Actor { public Transform board, shadow; public List<(SpriteRenderer src, SpriteRenderer dst)> parts = new(); }
+
+        public static Vector3 To3D(Vector2 p, float h = 0f) => new(p.x * S, h, p.y * S);
+
+        // ------------------------------------------------------------ lifecycle
+
+        void OnEnable()
+        {
+            I = this;
+            prevPipeline = QualitySettings.renderPipeline;
+            if (pipeline != null) QualitySettings.renderPipeline = pipeline;
+        }
+
+        void OnDisable()
+        {
+            if (I == this) I = null;
+            QualitySettings.renderPipeline = prevPipeline;
+            if (cam2d != null) cam2d.cullingMask = cam2dMask;
+        }
+
+        void Start()
+        {
+            cam2d = Camera.main;
+            if (cam2d != null) { cam2dMask = cam2d.cullingMask; cam2d.cullingMask = 0; cam2d.depth = -10; cam2d.clearFlags = CameraClearFlags.Nothing; }
+
+            var cgo = new GameObject("Camera3D");
+            cam = cgo.AddComponent<Camera>();
+            cam.fieldOfView = fov; cam.nearClipPlane = 0.3f; cam.farClipPlane = 200f; cam.depth = 0;
+            cam.clearFlags = CameraClearFlags.SolidColor; cam.backgroundColor = new Color(0.015f, 0.018f, 0.03f);
+            var cdata = cgo.AddComponent<UniversalAdditionalCameraData>();
+            cdata.renderPostProcessing = true;
+            cdata.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;
+
+            // moonlight, ambient, fog
+            var moon = new GameObject("Moon").AddComponent<Light>();
+            moon.type = LightType.Directional;
+            moon.transform.rotation = Quaternion.Euler(48f, -35f, 0f);
+            moon.color = new Color(0.55f, 0.62f, 0.9f); moon.intensity = 1.1f;
+            moon.shadows = LightShadows.Soft; moon.shadowStrength = 0.75f;
+            RenderSettings.ambientMode = AmbientMode.Trilight;
+            RenderSettings.ambientSkyColor = new Color(0.3f, 0.32f, 0.45f);
+            RenderSettings.ambientEquatorColor = new Color(0.2f, 0.2f, 0.26f);
+            RenderSettings.ambientGroundColor = new Color(0.1f, 0.09f, 0.08f);
+            RenderSettings.fog = true; RenderSettings.fogMode = FogMode.ExponentialSquared;
+            RenderSettings.fogDensity = 0.012f; RenderSettings.fogColor = new Color(0.05f, 0.06f, 0.09f);
+
+            // grading: bloom on fire, vignette, crushed and slightly desaturated like Diablo's night
+            var vol = new GameObject("PostFX").AddComponent<Volume>();
+            vol.isGlobal = true;
+            var prof = ScriptableObject.CreateInstance<VolumeProfile>();
+            var bloom = prof.Add<Bloom>(true); bloom.threshold.Override(0.95f); bloom.intensity.Override(0.7f); bloom.scatter.Override(0.65f);
+            var vig = prof.Add<Vignette>(true); vig.intensity.Override(0.42f); vig.smoothness.Override(0.5f);
+            var ca = prof.Add<ColorAdjustments>(true); ca.contrast.Override(22f); ca.saturation.Override(-18f); ca.postExposure.Override(0.55f);
+            var tm = prof.Add<Tonemapping>(true); tm.mode.Override(TonemappingMode.ACES);
+            var grain = prof.Add<FilmGrain>(true); grain.intensity.Override(0.18f);
+            vol.profile = prof;
+        }
+
+        // ------------------------------------------------------------ per frame
+
+        void LateUpdate()
+        {
+            var gm = GameManager.I;
+            if (gm == null || cam == null) return;
+            if (gm.level != built) Rebuild(gm.level);
+            if (built == null) return;
+            SyncLights();
+            SyncActors(gm.player);
+            FollowCamera(gm.player);
+        }
+
+        void FollowCamera(PlayerController p)
+        {
+            if (p == null) return;
+            var target = To3D(p.transform.position);
+            camTarget = Vector3.Distance(camTarget, target) > 20f ? target : Vector3.Lerp(camTarget, target, 1f - Mathf.Exp(-Time.deltaTime * 6f));
+            var rot = Quaternion.Euler(pitch, 0f, 0f);
+            cam.transform.SetPositionAndRotation(camTarget + rot * new Vector3(0f, 0f, -distance), rot);
+        }
+
+        /// <summary>The 2D world point under the mouse (for aiming), through the ground plane.</summary>
+        public Vector2 MouseWorld2D(Vector2 screen)
+        {
+            var ray = cam.ScreenPointToRay(screen);
+            if (Mathf.Abs(ray.direction.y) < 1e-4f) return Vector2.zero;
+            float t = -ray.origin.y / ray.direction.y;
+            var hit = ray.origin + ray.direction * t;
+            return new Vector2(hit.x / S, hit.z / S);
+        }
+
+        // ------------------------------------------------------------ materials
+
+        Material Mat(string set, float tileMetres, Color tint, float smooth = 0.12f)
+        {
+            string key = set + tileMetres + tint;
+            if (mats.TryGetValue(key, out var m)) return m;
+            m = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+            var diff = Resources.Load<Texture2D>("Textures3D/" + set + "_diff_1k");
+            var nor = Resources.Load<Texture2D>("Textures3D/" + set + "_nor_gl_1k");
+            if (diff != null) m.SetTexture("_BaseMap", diff);
+            if (nor != null) { m.SetTexture("_BumpMap", nor); m.EnableKeyword("_NORMALMAP"); m.SetFloat("_BumpScale", 1.2f); }
+            m.SetColor("_BaseColor", tint);
+            m.SetFloat("_Smoothness", smooth);
+            m.SetTextureScale("_BaseMap", Vector2.one / tileMetres);
+            mats[key] = m;
+            return m;
+        }
+
+        Material Plain(Color c, float smooth = 0.1f, Color? emission = null)
+        {
+            string key = "plain" + c + emission;
+            if (mats.TryGetValue(key, out var m)) return m;
+            m = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+            m.SetColor("_BaseColor", c); m.SetFloat("_Smoothness", smooth);
+            if (emission.HasValue) { m.EnableKeyword("_EMISSION"); m.SetColor("_EmissionColor", emission.Value); }
+            mats[key] = m;
+            return m;
+        }
+
+        Material Ground => Mat("grass_path_2", 5f, new Color(0.62f, 0.66f, 0.55f));
+        Material Cobble => Mat("cobblestone_floor_08", 2.4f, new Color(0.78f, 0.76f, 0.72f), 0.2f);
+        Material Road => Mat("forest_leaves_02", 3f, new Color(0.7f, 0.62f, 0.52f));
+        Material Roof => Mat("clay_roof_tiles_02", 1.6f, new Color(0.85f, 0.8f, 0.78f), 0.18f);
+        Material Plaster => Mat("clay_plaster", 2.5f, new Color(0.92f, 0.88f, 0.8f));
+        Material Stone => Mat("castle_wall_slates", 2.4f, new Color(0.8f, 0.78f, 0.74f));
+        Material Wood => Mat("brown_planks_05", 1.6f, new Color(0.75f, 0.68f, 0.6f));
+
+        // ------------------------------------------------------------ building the world
+
+        void Rebuild(LevelBase level)
+        {
+            if (root != null) Destroy(root.gameObject);
+            foreach (var l in lights.Values) if (l != null) Destroy(l.gameObject);
+            lights.Clear();
+            foreach (var a in mirrored.Values) if (a.board != null) { Destroy(a.board.gameObject); Destroy(a.shadow.gameObject); }
+            mirrored.Clear();
+            built = level;
+            if (level == null) return;
+            root = new GameObject("World3D: " + level.name).transform;
+            actors = new GameObject("Actors").transform;
+            actors.SetParent(root, false);
+
+            // ground
+            var size = level.size * S;
+            var groundMat = string.IsNullOrEmpty(level.tile) ? Plain(level.ground * 0.9f) : Ground;
+            Quad("Ground", new Vector3(size.x / 2f, 0f, -size.y / 2f), size, groundMat);
+
+            foreach (var sr in level.GetComponentsInChildren<SpriteRenderer>())
+            {
+                // cobbled squares and roads, from the 2D level's own drawing
+                if (sr.name.StartsWith("Tiled tile_cobble") && sr.drawMode != SpriteDrawMode.Simple)
+                    Quad("Cobbles", To3D(sr.transform.position, 0.01f), sr.size * S, Cobble);
+                else if (sr.name.StartsWith("GateRoad"))
+                    Quad("GateRoad", To3D(sr.transform.position, 0.008f), (Vector2)sr.transform.lossyScale * S, Cobble);
+                else if (sr.transform.parent != null && sr.transform.parent.name == "Path" && sr.name == "Seg")
+                {
+                    var q = Quad("Road", To3D(sr.transform.position, 0.006f), (Vector2)sr.transform.lossyScale * S, Road);
+                    q.transform.rotation = Quaternion.Euler(0f, -sr.transform.eulerAngles.z, 0f);
+                }
+            }
+
+            foreach (var b in level.GetComponentsInChildren<Block>()) BuildBlock(b);
+            foreach (Transform t in level.transform)
+                if (t.name is "Tree" or "Pine") BuildTree(t, t.name == "Pine");
+            foreach (var br in level.GetComponentsInChildren<Brazier>()) BuildBrazier(br);
+        }
+
+        GameObject Quad(string n, Vector3 centre, Vector2 size, Material m)
+        {
+            var go = new GameObject(n);
+            go.transform.SetParent(root, false);
+            go.transform.position = centre;
+            var mb = new MeshBuilder();
+            Vector3 a = new(-size.x / 2f, 0, -size.y / 2f), b = new(size.x / 2f, 0, -size.y / 2f), c = new(size.x / 2f, 0, size.y / 2f), d = new(-size.x / 2f, 0, size.y / 2f);
+            mb.Quad(a, d, c, b, centre); // world-anchored UVs keep textures continuous between pieces
+            Finish(go, mb, m, shadows: false);
+            return go;
+        }
+
+        void Finish(GameObject go, MeshBuilder mb, Material m, bool shadows = true)
+        {
+            go.AddComponent<MeshFilter>().sharedMesh = mb.Build();
+            var r = go.AddComponent<MeshRenderer>();
+            r.sharedMaterial = m;
+            r.shadowCastingMode = shadows ? ShadowCastingMode.On : ShadowCastingMode.Off;
+            r.receiveShadows = true;
+        }
+
+        void BuildBlock(Block b)
+        {
+            if (b.style is "hidden" or "vine") return;
+            Vector2 p = b.transform.position;
+            float w = b.footprint.x * S, d = b.footprint.y * S, h = Mathf.Max(0.25f, b.h * S * HK);
+            var go = new GameObject("Block " + b.style);
+            go.transform.SetParent(root, false);
+            var min = new Vector3(p.x * S - w / 2f, 0f, p.y * S);
+            var max = min + new Vector3(w, h, d);
+            var walls = new MeshBuilder();
+            var roof = new MeshBuilder();
+            Material wallMat = Stone, roofMat = Roof;
+            switch (b.style)
+            {
+                case "house":
+                    wallMat = Plaster;
+                    walls.Box(min, max, top: false);
+                    roof.Gable(min, max, Mathf.Min(w, d) * 0.55f, 0.18f);
+                    BuildBeams(go.transform, min, max);
+                    break;
+                case "church":
+                    wallMat = Plaster;
+                    walls.Box(min, max, top: false);
+                    roof.Gable(min, max, Mathf.Min(w, d) * 0.85f, 0.2f);
+                    break;
+                case "tower":
+                    wallMat = Plaster;
+                    walls.Box(min, max, top: false);
+                    roof.Pyramid(min, max, Mathf.Max(w, d) * 1.25f, 0.12f);
+                    break;
+                case "wall":
+                    walls.Box(min, max, top: true);
+                    walls.Merlons(min, max);
+                    roof = null;
+                    break;
+                case "pew":
+                    wallMat = Wood;
+                    walls.Box(min, new Vector3(max.x, Mathf.Min(max.y, 0.5f), max.z), top: true);
+                    roof = null;
+                    break;
+                case "ruin":
+                    walls.RuinBox(min, max, (int)(p.x * 7 + p.y * 3));
+                    roof = null;
+                    break;
+                default: // stone, rock
+                    walls.Box(min, max, top: true);
+                    roof = null;
+                    if (b.style == "rock") wallMat = Mat("castle_wall_slates", 2.4f, new Color(0.42f, 0.4f, 0.38f));
+                    break;
+            }
+            Finish(go, walls, wallMat);
+            if (roof != null)
+            {
+                var rgo = new GameObject("Roof");
+                rgo.transform.SetParent(go.transform, false);
+                Finish(rgo, roof, roofMat);
+            }
+            if (b.style is "house" or "church") BuildWindows(go.transform, min, max, b.style == "church");
+            if (b.style == "house") BuildDoor(go.transform, min, max);
+        }
+
+        void BuildWindows(Transform parent, Vector3 min, Vector3 max, bool church)
+        {
+            float w = max.x - min.x, h = max.y - min.y;
+            int n = Mathf.Max(1, (int)(w / 1.3f));
+            var glow = Plain(new Color(0.2f, 0.12f, 0.05f), 0.6f, new Color(1.4f, 0.75f, 0.25f));
+            for (int i = 0; i < n; i++)
+            {
+                float x = min.x + (i + 0.5f) * w / n;
+                if (!church && n > 1 && i == n / 2) continue; // the door goes here
+                var win = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                Destroy(win.GetComponent<Collider>());
+                win.transform.SetParent(parent, false);
+                win.transform.position = new Vector3(x, min.y + h * (church ? 0.55f : 0.6f), min.z - 0.01f);
+                win.transform.localScale = new Vector3(church ? 0.22f : 0.3f, church ? Mathf.Min(1.1f, h * 0.35f) : 0.38f, 0.04f);
+                win.GetComponent<Renderer>().sharedMaterial = glow;
+            }
+        }
+
+        /// <summary>Saxon half-timbering: dark beams over the plaster of the street front.</summary>
+        void BuildBeams(Transform parent, Vector3 min, Vector3 max)
+        {
+            var beam = Plain(new Color(0.12f, 0.08f, 0.05f), 0.15f);
+            float w = max.x - min.x, h = max.y - min.y;
+            void Beam(Vector3 c, Vector3 size, float rotZ = 0f)
+            {
+                var b = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                Destroy(b.GetComponent<Collider>());
+                b.transform.SetParent(parent, false);
+                b.transform.position = c; b.transform.localScale = size;
+                b.transform.rotation = Quaternion.Euler(0, 0, rotZ);
+                b.GetComponent<Renderer>().sharedMaterial = beam;
+            }
+            float z = min.z - 0.03f;
+            Beam(new Vector3((min.x + max.x) / 2f, max.y - 0.06f, z), new Vector3(w, 0.12f, 0.06f));
+            Beam(new Vector3((min.x + max.x) / 2f, min.y + 0.1f, z), new Vector3(w, 0.14f, 0.06f));
+            int posts = Mathf.Max(2, (int)(w / 1.1f) + 1);
+            for (int i = 0; i < posts; i++)
+            {
+                float x = min.x + 0.05f + i * (w - 0.1f) / (posts - 1);
+                Beam(new Vector3(x, (min.y + max.y) / 2f, z), new Vector3(0.1f, h, 0.06f));
+                if (i < posts - 1 && i % 2 == 0) // a diagonal brace in every other bay
+                {
+                    float bw = (w - 0.1f) / (posts - 1);
+                    float len = Mathf.Sqrt(bw * bw + h * h * 0.36f);
+                    Beam(new Vector3(x + bw / 2f, min.y + h * 0.45f, z), new Vector3(len, 0.08f, 0.05f), Mathf.Atan2(h * 0.6f, bw) * Mathf.Rad2Deg);
+                }
+            }
+        }
+
+        void BuildDoor(Transform parent, Vector3 min, Vector3 max)
+        {
+            var door = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            Destroy(door.GetComponent<Collider>());
+            door.transform.SetParent(parent, false);
+            door.transform.position = new Vector3((min.x + max.x) / 2f, min.y + 0.55f, min.z - 0.02f);
+            door.transform.localScale = new Vector3(0.6f, 1.1f, 0.05f);
+            door.GetComponent<Renderer>().sharedMaterial = Wood;
+        }
+
+        void BuildTree(Transform t, bool pine)
+        {
+            Vector2 p = t.position;
+            float sc = t.localScale.x;
+            var go = new GameObject(pine ? "Pine3D" : "Tree3D");
+            go.transform.SetParent(root, false);
+            go.transform.position = To3D(p);
+            var bark = Plain(new Color(0.3f, 0.21f, 0.13f));
+            var trunk = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            Destroy(trunk.GetComponent<Collider>());
+            trunk.transform.SetParent(go.transform, false);
+            trunk.transform.localScale = new Vector3(0.22f, 0.9f, 0.22f) * sc;
+            trunk.transform.localPosition = new Vector3(0, 0.9f * sc, 0);
+            trunk.GetComponent<Renderer>().sharedMaterial = bark;
+            int seed = (int)(p.x * 13 + p.y * 7);
+            var rnd = new System.Random(seed);
+            if (pine)
+            {
+                var needles = Plain(new Color(0.12f, 0.24f, 0.17f), 0.05f);
+                for (int i = 0; i < 4; i++)
+                {
+                    var cone = new GameObject("Tier");
+                    cone.transform.SetParent(go.transform, false);
+                    float r = (1.5f - i * 0.3f) * sc, y = (1.1f + i * 0.85f) * sc;
+                    var mb = new MeshBuilder();
+                    mb.Cone(new Vector3(0, y, 0), r, 1.5f * sc, 10);
+                    Finish(cone, mb, needles);
+                }
+            }
+            else
+            {
+                Color[] pal = { new(0.2f, 0.34f, 0.17f), new(0.26f, 0.4f, 0.18f), new(0.5f, 0.34f, 0.12f) };
+                var leaf = Plain(pal[rnd.Next(3)], 0.05f);
+                for (int i = 0; i < 5; i++)
+                {
+                    var blob = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                    Destroy(blob.GetComponent<Collider>());
+                    blob.transform.SetParent(go.transform, false);
+                    float a = i * 1.26f + (float)rnd.NextDouble();
+                    var off = i == 0 ? Vector3.zero : new Vector3(Mathf.Cos(a), (float)rnd.NextDouble() * 0.5f - 0.2f, Mathf.Sin(a)) * 0.7f;
+                    blob.transform.localPosition = (new Vector3(0, 2.3f, 0) + off) * sc;
+                    blob.transform.localScale = Vector3.one * (i == 0 ? 1.9f : 1.3f) * sc;
+                    blob.GetComponent<Renderer>().sharedMaterial = leaf;
+                }
+            }
+        }
+
+        void BuildBrazier(Brazier br)
+        {
+            var go = new GameObject("Brazier3D");
+            go.transform.SetParent(root, false);
+            go.transform.position = To3D(br.transform.position);
+            var iron = Plain(new Color(0.08f, 0.07f, 0.07f), 0.35f);
+            var leg = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            Destroy(leg.GetComponent<Collider>());
+            leg.transform.SetParent(go.transform, false);
+            leg.transform.localPosition = new Vector3(0, 0.4f, 0); leg.transform.localScale = new Vector3(0.12f, 0.4f, 0.12f);
+            leg.GetComponent<Renderer>().sharedMaterial = iron;
+            leg.GetComponent<Renderer>().shadowCastingMode = ShadowCastingMode.Off;
+            var bowl = new GameObject("Bowl");
+            bowl.transform.SetParent(go.transform, false);
+            var mb = new MeshBuilder();
+            mb.Cone(new Vector3(0, 1.05f, 0), 0.4f, -0.3f, 12); // inverted cone: a bowl
+            Finish(bowl, mb, iron, shadows: false); // the fire sits in it: it must not shadow its own light
+            var flame = new GameObject("Flame");
+            flame.transform.SetParent(go.transform, false);
+            var fm = new MeshBuilder();
+            fm.Cone(new Vector3(0, 1.0f, 0), 0.26f, 0.7f, 8);
+            Finish(flame, fm, Plain(new Color(1f, 0.5f, 0.15f), 0f, new Color(5f, 2.2f, 0.6f)), shadows: false);
+            flame.AddComponent<FlameFlicker>().brazier = br;
+        }
+
+        // ------------------------------------------------------------ lights
+
+        void SyncLights()
+        {
+            int shadowed = 0;
+            foreach (var l2 in built.GetComponentsInChildren<UnityEngine.Rendering.Universal.Light2D>(true))
+            {
+                if (l2.lightType != UnityEngine.Rendering.Universal.Light2D.LightType.Point) continue;
+                if (!lights.TryGetValue(l2, out var l3) || l3 == null)
+                {
+                    l3 = new GameObject("Light3D").AddComponent<Light>();
+                    l3.transform.SetParent(root, false);
+                    l3.type = LightType.Point;
+                    bool fire = l2.GetComponentInParent<Brazier>() != null;
+                    l3.shadows = fire && shadowed < 4 ? LightShadows.Soft : LightShadows.None;
+                    if (l3.shadows != LightShadows.None) shadowed++;
+                    lights[l2] = l3;
+                }
+                bool fireLight = l2.GetComponentInParent<Brazier>() != null;
+                l3.transform.position = To3D(l2.transform.position, fireLight ? 1.35f : 1.8f);
+                l3.color = l2.color;
+                l3.range = l2.pointLightOuterRadius * S * 1.7f;
+                l3.intensity = l2.intensity * (fireLight ? 7f : 4.5f);
+                l3.enabled = l2.isActiveAndEnabled && l2.intensity > 0.01f;
+            }
+        }
+
+        /// <summary>How brightly the fires light a point (sprites aren't lit by 3D lights, so they are tinted).</summary>
+        Color LightAt(Vector3 p)
+        {
+            var c = new Color(0.5f, 0.52f, 0.62f);
+            foreach (var l in lights.Values)
+            {
+                if (l == null || !l.enabled) continue;
+                float d = Vector3.Distance(l.transform.position, p + Vector3.up);
+                if (d >= l.range) continue;
+                float k = 1f - d / l.range;
+                c += l.color * (l.intensity * 0.12f * k * k);
+            }
+            return new Color(Mathf.Min(c.r, 1.25f), Mathf.Min(c.g, 1.25f), Mathf.Min(c.b, 1.25f));
+        }
+
+        // ------------------------------------------------------------ actors
+
+        void SyncActors(PlayerController player)
+        {
+            var live = new List<Transform>();
+            if (player != null) live.Add(player.transform);
+            foreach (var e in EnemyBase.All) if (e != null) live.Add(e.transform);
+            foreach (var pr in built.GetComponentsInChildren<Prop>()) if (pr.kind is "npc" or "cross" or "sign" or "bones" or "sack" or "ewe" or "greenman" or "bell") live.Add(pr.transform);
+
+            var camRot = Quaternion.Euler(pitch * 0.55f, 0f, 0f); // stand up, leaning back toward the camera
+            var keep = new HashSet<Transform>(live);
+            var gone = new List<Transform>();
+            foreach (var kv in mirrored) if (!keep.Contains(kv.Key) || kv.Key == null) gone.Add(kv.Key);
+            foreach (var t in gone)
+            {
+                var a = mirrored[t];
+                if (a.board != null) Destroy(a.board.gameObject);
+                if (a.shadow != null) Destroy(a.shadow.gameObject);
+                mirrored.Remove(t);
+            }
+
+            foreach (var t in live)
+            {
+                if (!mirrored.TryGetValue(t, out var a)) mirrored[t] = a = MakeActor(t);
+                var pos = To3D(t.position);
+                a.board.SetPositionAndRotation(pos, camRot);
+                a.shadow.position = pos + new Vector3(0, 0.015f, 0);
+                var tint = LightAt(pos);
+                bool brazier = t.GetComponent<Brazier>() != null;
+                for (int i = a.parts.Count - 1; i >= 0; i--)
+                {
+                    var (src, dst) = a.parts[i];
+                    if (src == null) { if (dst != null) Destroy(dst.gameObject); a.parts.RemoveAt(i); continue; }
+                    dst.enabled = src.enabled && src.gameObject.activeInHierarchy;
+                    if (!dst.enabled) continue;
+                    dst.sprite = src.sprite; dst.flipX = src.flipX; dst.flipY = src.flipY;
+                    var c = src.color;
+                    dst.color = brazier ? c * 1.6f : new Color(c.r * tint.r, c.g * tint.g, c.b * tint.b, c.a);
+                    Vector3 local = t.InverseTransformPoint(src.transform.position);
+                    dst.transform.localPosition = new Vector3(local.x * S, local.y * S, -0.001f * src.sortingOrder);
+                    dst.transform.localRotation = Quaternion.Euler(0, 0, src.transform.eulerAngles.z - t.eulerAngles.z);
+                    var ls = src.transform.lossyScale;
+                    dst.transform.localScale = new Vector3(ls.x * S, ls.y * S, 1f);
+                    if (src.drawMode != SpriteDrawMode.Simple) { dst.drawMode = src.drawMode; dst.size = src.size; }
+                }
+            }
+        }
+
+        Actor MakeActor(Transform t)
+        {
+            var a = new Actor();
+            a.board = new GameObject("Board " + t.name).transform;
+            a.board.SetParent(actors, false);
+            foreach (var sr in t.GetComponentsInChildren<SpriteRenderer>(true))
+            {
+                if (sr.name is "Shadow" or "Label" || sr.GetComponent<TextMesh>() != null) continue;
+                var go = new GameObject(sr.name);
+                go.transform.SetParent(a.board, false);
+                var dst = go.AddComponent<SpriteRenderer>();
+                dst.sortingOrder = sr.sortingOrder;
+                dst.shadowCastingMode = ShadowCastingMode.Off;
+                a.parts.Add((sr, dst));
+            }
+            // a soft blob shadow on the ground
+            var sh = new GameObject("BlobShadow");
+            sh.transform.SetParent(actors, false);
+            sh.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+            sh.transform.localScale = new Vector3(0.9f, 0.6f, 1f);
+            var ssr = sh.AddComponent<SpriteRenderer>();
+            ssr.sprite = Resources.Load<Sprite>("Sprites/circle");
+            ssr.color = new Color(0, 0, 0, 0.45f);
+            a.shadow = sh.transform;
+            return a;
+        }
+    }
+}
+
+namespace Biertan.Visual3D
+{
+    /// <summary>Wobbles a 3D brazier flame and hides it while the brazier is out.</summary>
+    public class FlameFlicker : MonoBehaviour
+    {
+        public Brazier brazier;
+        void Update()
+        {
+            bool lit = brazier != null && brazier.lit;
+            transform.localScale = lit ? new Vector3(1f, 0.85f + 0.25f * Mathf.PerlinNoise(Time.time * 6f, transform.position.x), 1f) : Vector3.zero;
+        }
+    }
+}

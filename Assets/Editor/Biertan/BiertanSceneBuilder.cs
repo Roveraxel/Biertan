@@ -68,6 +68,19 @@ namespace Biertan.EditorTools
         [MenuItem("Biertan/Build Boss Test: Strigoi Vlad")]
         public static void BuildVlad() => BuildScene("Assets/Scenes/Boss_Vlad.unity", "church");
 
+        [MenuItem("Biertan/Build 3D Prototype: Saschiz")]
+        public static void BuildProto3D()
+        {
+            const string path = "Assets/Scenes/Proto3D_Saschiz.unity";
+            BuildScene(path, "hub");
+            var host = Object.FindAnyObjectByType<LevelHost>();
+            host.chapterGear = true; // straight into Saschiz, no title screen
+            var w = host.gameObject.AddComponent<Biertan.Visual3D.World3D>();
+            w.pipeline = AssetDatabase.LoadAssetAtPath<UnityEngine.Rendering.RenderPipelineAsset>("Assets/Settings/PC_RPAsset.asset");
+            EditorSceneManager.MarkSceneDirty(host.gameObject.scene);
+            EditorSceneManager.SaveScene(host.gameObject.scene, path);
+        }
+
         [MenuItem("Biertan/Setup 2D Lighting")]
         public static void Setup2DLighting()
         {
