@@ -15,6 +15,8 @@ namespace Biertan.Core
         public AudioSource musicSource;
 
         readonly Dictionary<string, AudioClip> cache = new();
+        readonly Dictionary<string, AudioClip[]> variants = new();
+        float stepT;
 
         void Awake()
         {
@@ -36,10 +38,49 @@ namespace Biertan.Core
         /// <param name="pitch">Pitch/playback-speed multiplier.</param>
         public void Sfx(string name, float db = 0f, float pitch = 1f)
         {
-            var clip = Load(name);
-            if (clip == null || sfxSource == null) return;
-            sfxSource.pitch = pitch;
+            var set = Variants(name);
+            if (set.Length == 0 || sfxSource == null) return;
+            var clip = set[Random.Range(0, set.Length)];
+            // recorded sounds with several takes also vary their pitch a touch, so repeats don't sound canned
+            sfxSource.pitch = set.Length > 1 ? pitch * Random.Range(0.94f, 1.06f) : pitch;
             sfxSource.PlayOneShot(clip, DbToLinear(db));
+        }
+
+        /// <summary>A sound and its other takes: name, name_2, name_3 ... (e.g. hit, hit_2, hit_3).</summary>
+        AudioClip[] Variants(string name)
+        {
+            if (variants.TryGetValue(name, out var v)) return v;
+            var list = new List<AudioClip>();
+            var first = Load(name);
+            if (first != null) list.Add(first);
+            for (int i = 2; i <= 8; i++)
+            {
+                var c = Resources.Load<AudioClip>($"Audio/{name}_{i}");
+                if (c == null) break;
+                list.Add(c);
+            }
+            return variants[name] = list.ToArray();
+        }
+
+        /// <summary>Footsteps while the hunter walks: cobbles and stone in the villages, caves and the church,
+        /// grass and leaves out on the land.</summary>
+        void Update()
+        {
+            var gm = GameManager.I;
+            var p = gm != null ? gm.player : null;
+            if (p == null || gm.state != GameManager.State.Play) return;
+            var rb = p.GetComponent<Rigidbody2D>();
+            float speed = rb != null ? rb.linearVelocity.magnitude : 0f;
+            if (speed < 60f) { stepT = 0.05f; return; }
+            stepT -= Time.deltaTime * Mathf.Clamp(speed / 200f, 0.6f, 1.6f);
+            if (stepT > 0f) return;
+            stepT = 0.34f;
+            string surface = gm.current switch
+            {
+                "hub" or "richis" or "mosna" or "biertan" or "caves" or "gorge" or "church" => "step_concrete",
+                _ => "step_grass",
+            };
+            Sfx(surface, -15f);
         }
 
         public void SetMusic(string name, float db = 0f)

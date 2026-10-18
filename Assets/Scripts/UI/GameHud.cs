@@ -594,7 +594,8 @@ namespace Biertan.UI
             ("And in the Marriage Prison, Andreas and Sofia asked the council for one more week.", 20, 1),
             ("", 18, 1), ("Salt for the dead. Silver for what walks.", 22, 2), ("", 18, 1),
             ("BIERTAN · A Hunter's Ballad of Transylvania", 16, 3),
-            ("Made with Unity · art and sound generated in code", 14, 4),
+            ("Made with Unity · Textures: Poly Haven (CC0) · Sounds: Kenney (CC0)", 14, 4),
+            ("Music by Kevin MacLeod (incompetech.com), licensed under CC BY 4.0", 14, 4),
         };
 
         void DrawEnding(float e)
