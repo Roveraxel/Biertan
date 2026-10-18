@@ -38,6 +38,8 @@ namespace Biertan.Bosses
         public string HudName() => "MUMA PĂDURII";
         public string HudHint() => phase >= 2 && !Vulnerable() ? "Her bark turns steel. Catch her in a ring of salt (R)." : "";
 
+        public override bool Undead() => true; // salt finds her (muma.gd)
+
         public bool Vulnerable() => phase == 1 || vulnT > 0f;
 
         public override void SaltHit(Transform ring, float dt)

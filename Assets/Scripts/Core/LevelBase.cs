@@ -26,7 +26,7 @@ namespace Biertan.Core
         /// <summary>Called every time the player enters (after Build on first entry).</summary>
         public virtual void OnEnter() { }
 
-        public virtual Color Ambient() => Color.white;
+        public virtual Color Ambient() => Lights.Dusk(GameManager.I != null ? GameManager.I.dusk : 0.3f);
 
         public virtual EnemyBase SpawnEnemy(string kind, Vector2 pos)
         {

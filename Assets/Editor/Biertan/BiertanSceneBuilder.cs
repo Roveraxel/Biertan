@@ -3,6 +3,8 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 using Biertan.Core;
 using Biertan.Enemies;
 using Biertan.Levels;
@@ -25,8 +27,45 @@ namespace Biertan.EditorTools
         static int EnemyL => LayerMask.NameToLayer("Enemy");
 
         [MenuItem("Biertan/Build Test Arena")]
-        public static void Build()
+        public static void Build() => BuildScene(ScenePath, "sandbox");
+
+        [MenuItem("Biertan/Build Boss Test: Varcolac")]
+        public static void BuildVarcolac() => BuildScene("Assets/Scenes/Boss_Varcolac.unity", "arena");
+
+        [MenuItem("Biertan/Build Boss Test: Muma Padurii")]
+        public static void BuildMuma() => BuildScene("Assets/Scenes/Boss_Muma.unity", "hollow");
+
+        [MenuItem("Biertan/Setup 2D Lighting")]
+        public static void Setup2DLighting()
         {
+            const string rdPath = "Assets/Settings/Biertan_Renderer2D.asset";
+            const string urpPath = "Assets/Settings/Biertan_URP2D.asset";
+            Directory.CreateDirectory("Assets/Settings");
+            var urp = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(urpPath);
+            if (urp == null)
+            {
+                var rd = ScriptableObject.CreateInstance<Renderer2DData>();
+                AssetDatabase.CreateAsset(rd, rdPath);
+                urp = UniversalRenderPipelineAsset.Create(rd);
+                AssetDatabase.CreateAsset(urp, urpPath);
+                AssetDatabase.SaveAssets();
+            }
+            GraphicsSettings.defaultRenderPipeline = urp;
+            int keep = QualitySettings.GetQualityLevel();
+            for (int i = 0; i < QualitySettings.names.Length; i++)
+            {
+                QualitySettings.SetQualityLevel(i, false);
+                QualitySettings.renderPipeline = urp;
+            }
+            QualitySettings.SetQualityLevel(keep, false);
+            AssetDatabase.SaveAssets();
+            Debug.Log("Biertan: 2D renderer active (lanterns, fires, dusk).");
+        }
+
+        static void BuildScene(string scenePath, string levelId)
+        {
+            bool sandbox = levelId == "sandbox";
+            Setup2DLighting(); // before any SpriteRenderer is created, so they all get the lit sprite material
             if (World < 0 || PlayerL < 0 || EnemyL < 0)
             {
                 EditorUtility.DisplayDialog("Biertan", "Layers World / Player / Enemy are missing (Project Settings ▸ Tags and Layers).", "OK");
@@ -89,6 +128,36 @@ namespace Biertan.EditorTools
             var fade = canvasGo.AddComponent<ScreenFade>();
             fade.overlay = img;
 
+            var ambient = new GameObject("Global Light");
+            ambient.AddComponent<Light2D>();
+            ambient.AddComponent<AmbientLight>();
+
+            if (sandbox) BuildSandboxGround(white, circle);
+
+            // player
+            var pc = MakePlayer(cam, follow, salt, white, circle, lineMat);
+
+            if (sandbox)
+            {
+                var arena = new GameObject("TestArena").AddComponent<TestArena>();
+                arena.player = pc;
+            }
+            else
+            {
+                var host = new GameObject("LevelHost").AddComponent<LevelHost>();
+                host.player = pc;
+                host.levelId = levelId;
+                host.gameObject.AddComponent<DebugHud>();
+            }
+
+            EditorSceneManager.SaveScene(scene, scenePath);
+            AddToBuildSettings(scenePath);
+            AssetDatabase.SaveAssets();
+            Debug.Log("Biertan: scene built at " + scenePath + ". Press Play.");
+        }
+
+        static void BuildSandboxGround(Sprite white, Sprite circle)
+        {
             // ground + walls (a 2400 x 1600 clearing)
             var ground = MakeSprite("Ground", white, new Color(0.17f, 0.24f, 0.15f), -1000);
             ground.transform.localScale = new Vector3(2400, 1600, 1);
@@ -105,8 +174,10 @@ namespace Biertan.EditorTools
             Wall("Wall E", white, new Vector2(1220, 0), new Vector2(40, 1680));
             Wall("Rock", white, new Vector2(-180, 260), new Vector2(120, 70));
             Wall("Rock", white, new Vector2(260, -300), new Vector2(90, 90));
+        }
 
-            // player
+        static PlayerController MakePlayer(Camera cam, CameraFollow follow, GameObject salt, Sprite white, Sprite circle, Material lineMat)
+        {
             var pGo = new GameObject("Player");
             pGo.layer = PlayerL;
             var rb = pGo.AddComponent<Rigidbody2D>();
@@ -140,14 +211,9 @@ namespace Biertan.EditorTools
             arc.sortingOrder = 5; arc.enabled = false;
             view.arc = arc;
             follow.target = pGo.transform;
-
-            var arena = new GameObject("TestArena").AddComponent<TestArena>();
-            arena.player = pc;
-
-            EditorSceneManager.SaveScene(scene, ScenePath);
-            AddToBuildSettings(ScenePath);
-            AssetDatabase.SaveAssets();
-            Debug.Log("Biertan: Test Arena built at " + ScenePath + ". Press Play.");
+            // the wanderer's lantern (player.gd: radius 300, warm, 0.95)
+            Lights.Point(pGo.transform, 300f, new Color(1f, 0.82f, 0.5f), 0.95f, new Vector2(-11, 12));
+            return pc;
         }
 
         // ------------------------------------------------------------------ prefabs

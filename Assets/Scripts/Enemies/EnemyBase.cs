@@ -165,7 +165,8 @@ namespace Biertan.Enemies
             return false;
         }
 
-        public bool Undead() => kind is "iele" or "moroi" or "shade" or "strigoi" or "skull";
+        /// <summary>The unclean dead: burned by salt rings (salt_ring.gd checks this).</summary>
+        public virtual bool Undead() => kind is "iele" or "moroi" or "shade" or "strigoi" or "skull";
 
         // A burning skull that homes on the hunter and bursts on contact.
         bool SkullStep(float dt, Vector2 to, float d)
@@ -376,7 +377,7 @@ namespace Biertan.Enemies
             Destroy(gameObject);
         }
 
-        bool touchingWall;
+        protected bool touchingWall;
         void OnCollisionStay2D(Collision2D c)
         {
             if (c.gameObject.layer == LayerMask.NameToLayer("World")) touchingWall = true;

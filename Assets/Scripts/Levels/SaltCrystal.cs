@@ -17,7 +17,7 @@ namespace Biertan.Levels
             var col = gameObject.AddComponent<CircleCollider2D>();
             col.radius = 14f;
             gameObject.layer = LayerMask.NameToLayer("World");
-            var glow = Make("Glow", new Vector2(0, 14), new Vector2(110, 70), new Color(0.85f, 0.92f, 1f, 0.12f), -2);
+            var glow = Make("Glow", new Vector2(0, 14), new Vector2(90, 50), new Color(0.85f, 0.92f, 1f, 0.045f), -2);
             shards = new[]
             {
                 Make("Shard", new Vector2(-9, 16), new Vector2(12, 34), new Color(0.88f, 0.92f, 0.98f), 1),
@@ -62,7 +62,7 @@ namespace Biertan.Levels
             if (shards == null) return;
             float k = regrow > 0f ? 0.35f : 1f;
             for (int i = 0; i < 3; i++) shards[i].transform.localScale = new Vector3(shards[i].transform.localScale.x, (i == 1 ? 46 : i == 0 ? 34 : 28) * k, 1);
-            shards[3].color = new Color(0.85f, 0.92f, 1f, (regrow > 0f ? 0.03f : 0.12f) + 0.03f * Mathf.Sin(t * 3f));
+            shards[3].color = new Color(0.85f, 0.92f, 1f, (regrow > 0f ? 0.01f : 0.045f) + 0.015f * Mathf.Sin(t * 3f));
         }
     }
 }
