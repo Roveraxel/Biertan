@@ -35,6 +35,9 @@ namespace Biertan.EditorTools
         [MenuItem("Biertan/Build Boss Test: Muma Padurii")]
         public static void BuildMuma() => BuildScene("Assets/Scenes/Boss_Muma.unity", "hollow");
 
+        [MenuItem("Biertan/Build Level Test: Wolf Forest")]
+        public static void BuildForest() => BuildScene("Assets/Scenes/Level_Forest.unity", "forest");
+
         [MenuItem("Biertan/Setup 2D Lighting")]
         public static void Setup2DLighting()
         {

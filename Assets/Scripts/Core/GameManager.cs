@@ -85,6 +85,15 @@ namespace Biertan.Core
         // day/night cycle (0..1), mirrors G.dusk in the Godot build
         public float dusk = 0.3f;
 
+        // ---- dialogue (main.gd start_dialogue / advance_dialogue) ----
+        public string dlgSpeaker = "";
+        public List<string> dlgLines = new();
+        public int dlgIdx;
+        Action dlgAfter;
+        /// <summary>Brief lockout after a dialogue closes so the same key press doesn't re-open it.</summary>
+        public float inputBlock;
+        public int dlgFrame;
+
         public event Action StoryClosed;
         public bool testMode;
 
@@ -118,6 +127,7 @@ namespace Biertan.Core
             if (player != null)
                 player.frozen = state == State.Dialogue || state == State.Dead || state == State.Ending || state == State.Story;
 
+            inputBlock = Mathf.Max(0f, inputBlock - dt);
             if (state == State.Story) storyT += dt;
             if (state == State.Ending) endingT += dt;
         }
@@ -177,6 +187,31 @@ namespace Biertan.Core
             "richis" => "Richiș",
             _ => "Saschiz"
         };
+
+        // ---------------------------------------------------------------- dialogue
+
+        public void StartDialogue(string who, IList<string> lines, Action after = null)
+        {
+            dlgSpeaker = who;
+            dlgLines = new List<string>(lines);
+            dlgIdx = 0;
+            dlgAfter = after;
+            dlgFrame = Time.frameCount;
+            state = State.Dialogue;
+            AudioManager.I?.Sfx("blip", -6f);
+        }
+
+        public void AdvanceDialogue()
+        {
+            dlgIdx++;
+            AudioManager.I?.Sfx("blip", -8f, 0.9f);
+            if (dlgIdx < dlgLines.Count) return;
+            state = State.Play;
+            inputBlock = 0.25f;
+            var a = dlgAfter;
+            dlgAfter = null;
+            a?.Invoke();
+        }
 
         // ---------------------------------------------------------------- midnight
 

@@ -59,6 +59,7 @@ namespace Biertan.Player
         {
             rb = GetComponent<Rigidbody2D>();
             rb.gravityScale = 0f;
+            rb.mass = 20f; // creatures (mass 1) can't shove the hunter around; bosses (30-40) still can
             gameObject.layer = LayerMask.NameToLayer("Player"); // collision layer 2 equivalent
         }
 
@@ -145,7 +146,7 @@ namespace Biertan.Player
                 if (GameInput.AttackHeld() && attackCd <= 0f) Swing();
                 if (GameInput.PotionPressed()) Drink();
                 if (GameInput.SaltPressed()) ThrowSalt();
-                if (GameInput.InteractPressed()) Interactable.Nearest(transform.position)?.Interact();
+                if (GameInput.InteractPressed() && GameManager.I != null && GameManager.I.inputBlock <= 0f) Interactable.Nearest(transform.position)?.Interact();
             }
 
             if (dir != Vector2.zero) walkT += dt * 9f;

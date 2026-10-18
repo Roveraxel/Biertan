@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Biertan.Core;
@@ -6,9 +7,9 @@ using Biertan.Player;
 namespace Biertan.Levels
 {
     /// <summary>
-    /// Drops one level into a scene and runs it, for testing a single chapter or boss fight.
-    /// (The full game flow between levels comes with the level loader port.) Death or leaving
-    /// the level reloads the scene, so each attempt starts fresh.
+    /// Runs the ported levels inside one scene: builds the starting level, and moves between levels when
+    /// the game asks (forest → Moon Clearing, …), with a fade. Port of main.gd goto(). A level that isn't
+    /// ported yet (Saschiz, Richiș, …) restarts the scene instead, so every test run starts fresh.
     /// </summary>
     public class LevelHost : MonoBehaviour
     {
@@ -17,47 +18,83 @@ namespace Biertan.Levels
         [Tooltip("Starting stats roughly matching how far into the game this level is.")]
         public bool chapterGear = true;
 
+        LevelBase level;
+
+        static LevelBase Create(string id, GameObject go) => id switch
+        {
+            "forest" => go.AddComponent<WolfForest>(),
+            "arena" => go.AddComponent<MoonClearing>(),
+            "hollow" => go.AddComponent<HollowArena>(),
+            _ => null,
+        };
+
+        public static bool IsPorted(string id) => id is "forest" or "arena" or "hollow";
+
         void Start()
         {
             var gm = GameManager.I;
             gm.player = player;
             player.onToast = HudEvents.Toast;
             player.Died += () => StartCoroutine(gm.OnPlayerDied());
-
-            var go = new GameObject("Level: " + levelId);
-            LevelBase level = levelId switch
-            {
-                "arena" => go.AddComponent<MoonClearing>(),
-                "hollow" => go.AddComponent<HollowArena>(),
-                _ => null
-            };
-            if (level == null) { Debug.LogError("LevelHost: unknown level " + levelId); return; }
-
-            gm.current = levelId;
-            gm.level = level;
             gm.state = GameManager.State.Play;
-            gm.dusk = 0.45f;
+            gm.dusk = levelId == "forest" ? 0.3f : 0.45f;
             if (chapterGear) Gear(levelId);
 
+            LevelLoader.GotoHandler = (id, at) =>
+            {
+                if (IsPorted(id)) StartCoroutine(Switch(id, at));
+                else SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            };
+            Enter(levelId, null);
+        }
+
+        void Enter(string id, Vector2? at)
+        {
+            var gm = GameManager.I;
+            var go = new GameObject("Level: " + id);
+            level = Create(id, go);
+            if (level == null) { Debug.LogError("LevelHost: unknown level " + id); return; }
+            gm.current = id;
+            gm.level = level;
+            gm.midnightDone = false;
             level.Build();
-            player.transform.position = level.spawn;
+            Vector2 p = at ?? level.spawn;
+            player.transform.position = p;
             var rb = player.GetComponent<Rigidbody2D>();
-            rb.position = level.spawn;
+            rb.position = p;
             rb.linearVelocity = Vector2.zero;
             var cam = Camera.main;
-            if (cam != null) cam.transform.position = new Vector3(level.spawn.x, level.spawn.y, cam.transform.position.z);
+            if (cam != null) cam.transform.position = new Vector3(p.x, p.y, cam.transform.position.z);
             level.OnEnter();
             HudEvents.Banner(level.title, level.subtitle);
+        }
 
-            // respawn / return-home both mean "try again" in a single-level test
-            LevelLoader.GotoHandler = (_, __) => SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        IEnumerator Switch(string id, Vector2? at)
+        {
+            var gm = GameManager.I;
+            if (gm.transitioning) yield break;
+            gm.transitioning = true;
+            if (ScreenFade.I != null) yield return ScreenFade.I.FadeTo(1f, 0.4f);
+            if (level != null) Destroy(level.gameObject);
+            Biertan.Enemies.EnemyBase.All.Clear();
+            yield return null; // let the old level go
+            Enter(id, at);
+            gm.state = GameManager.State.Play;
+            if (ScreenFade.I != null) yield return ScreenFade.I.FadeTo(0f, 0.4f);
+            gm.transitioning = false;
         }
 
         void Gear(string id)
         {
             var p = player;
+            var gm = GameManager.I;
             switch (id)
             {
+                case "forest": // fresh from Saschiz, with Gheorghe's errand accepted
+                    gm.quest = 1;
+                    gm.eweQuest = 1;
+                    p.potions = 2;
+                    break;
                 case "arena":
                     p.potions = 3;
                     break;

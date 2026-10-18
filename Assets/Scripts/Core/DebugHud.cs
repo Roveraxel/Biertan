@@ -44,6 +44,7 @@ namespace Biertan.Core
             if (gm == null || kb == null) return;
             bool next = kb.enterKey.wasPressedThisFrame || kb.eKey.wasPressedThisFrame || kb.spaceKey.wasPressedThisFrame;
             if (gm.state == GameManager.State.Dead && next) gm.Respawn();
+            if (gm.state == GameManager.State.Dialogue && next && Time.frameCount > gm.dlgFrame) gm.AdvanceDialogue();
             if (gm.state == GameManager.State.Story && next && gm.storyT > 0.6f) gm.CloseStory();
         }
 
@@ -113,6 +114,16 @@ namespace Biertan.Core
                 Box(new Rect(0, 0, W, H), new Color(0.15f, 0, 0, 0.5f));
                 GUI.Label(new Rect(0, H * 0.4f, W, 60 * k), "YOU HAVE FALLEN", Style(40, TextAnchor.MiddleCenter, FontStyle.Bold));
                 GUI.Label(new Rect(0, H * 0.4f + 60 * k, W, 30 * k), "Enter to try again", Style(16, TextAnchor.MiddleCenter));
+            }
+
+            if (gm.state == GameManager.State.Dialogue && gm.dlgIdx < gm.dlgLines.Count)
+            {
+                float bw = Mathf.Min(W - 40 * k, 900 * k), bx = (W - bw) / 2f, bh = 130 * k, by = H - bh - 24 * k;
+                Box(new Rect(bx, by, bw, bh), new Color(0.06f, 0.05f, 0.05f, 0.92f));
+                Box(new Rect(bx, by, bw, 2 * k), new Color32(0xc9, 0xa2, 0x4a, 0xff));
+                GUI.Label(new Rect(bx + 18 * k, by + 10 * k, bw - 36 * k, 26 * k), gm.dlgSpeaker, Style(16, TextAnchor.UpperLeft, FontStyle.Bold));
+                GUI.Label(new Rect(bx + 18 * k, by + 38 * k, bw - 36 * k, bh - 48 * k), gm.dlgLines[gm.dlgIdx], Style(15));
+                GUI.Label(new Rect(bx, by + bh - 24 * k, bw - 18 * k, 20 * k), $"{gm.dlgIdx + 1}/{gm.dlgLines.Count}   Enter ▸", Style(12, TextAnchor.MiddleRight));
             }
 
             if (gm.state == GameManager.State.Story && GameManager.Stories.TryGetValue(gm.storyId, out var card))

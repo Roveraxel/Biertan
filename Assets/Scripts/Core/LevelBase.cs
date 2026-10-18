@@ -1,5 +1,7 @@
+using System;
 using UnityEngine;
 using Biertan.Enemies;
+using Biertan.Levels;
 
 namespace Biertan.Core
 {
@@ -128,6 +130,79 @@ namespace Biertan.Core
             col.radius = 10f * s;
             col.offset = new Vector2(0, 4);
             root.isStatic = true;
+        }
+
+        // ------------------------------------------------------------ props, triggers, light
+
+        /// <summary>level.gd add_prop(). Position in Godot coordinates.</summary>
+        public Prop AddProp(string kind, string id, string display, Vector2 godotPos, string prompt = "", Color? col = null)
+        {
+            var go = new GameObject("Prop " + kind + " " + id);
+            go.transform.SetParent(transform, false);
+            go.transform.position = P(godotPos);
+            var pr = go.AddComponent<Prop>();
+            pr.kind = kind; pr.id = id; pr.display = display; pr.prompt = prompt;
+            if (col.HasValue) pr.col = col.Value;
+            return pr;
+        }
+
+        /// <summary>level.gd add_trigger(): fires every time the hunter walks into the Godot-space rect.</summary>
+        public Trigger AddTrigger(Rect godotRect, Action onEnter)
+        {
+            var go = new GameObject("Trigger");
+            go.transform.SetParent(transform, false);
+            go.transform.position = P(godotRect.center);
+            var box = go.AddComponent<BoxCollider2D>();
+            box.isTrigger = true;
+            box.size = godotRect.size;
+            var t = go.AddComponent<Trigger>();
+            t.onEnter = onEnter;
+            return t;
+        }
+
+        public Brazier AddBrazier(Vector2 godotPos, bool lit = true)
+        {
+            var go = new GameObject("Brazier");
+            go.transform.SetParent(transform, false);
+            go.transform.position = P(godotPos);
+            var b = go.AddComponent<Brazier>();
+            b.lit = lit;
+            b.SetLit(lit);
+            return b;
+        }
+
+        /// <summary>level.gd add_torch(): a flickering point light with no visible source.</summary>
+        public void AddTorch(Vector2 godotPos, float radius = 240f, Color? col = null, float energy = 1.1f)
+        {
+            var go = new GameObject("Torch");
+            go.transform.SetParent(transform, false);
+            go.transform.position = P(godotPos);
+            var f = go.AddComponent<FlickerLight>();
+            f.light = Lights.Point(go.transform, radius, col ?? new Color(1f, 0.68f, 0.34f), energy);
+            f.baseEnergy = energy;
+        }
+
+        /// <summary>A thick dirt road along Godot-space points: rotated strips with round joints, lit like the ground.</summary>
+        protected void AddPath(Vector2[] godotPts, float width, Color color, int order)
+        {
+            var parent = new GameObject("Path").transform;
+            parent.SetParent(transform, false);
+            for (int i = 0; i < godotPts.Length; i++)
+            {
+                var a = P(godotPts[i]);
+                AddSprite("Joint", "circle", a, new Vector2(width, width), color, order, parent);
+                if (i == godotPts.Length - 1) break;
+                var b = P(godotPts[i + 1]);
+                var seg = AddSprite("Seg", "white", (a + b) / 2f, new Vector2(Vector2.Distance(a, b), width), color, order, parent);
+                seg.transform.rotation = Quaternion.Euler(0, 0, Mathf.Atan2(b.y - a.y, b.x - a.x) * Mathf.Rad2Deg);
+            }
+        }
+
+        public static float DistToSegment(Vector2 p, Vector2 a, Vector2 b)
+        {
+            var ab = b - a;
+            float k = Mathf.Clamp01(Vector2.Dot(p - a, ab) / Mathf.Max(0.0001f, ab.sqrMagnitude));
+            return Vector2.Distance(p, a + ab * k);
         }
     }
 }
