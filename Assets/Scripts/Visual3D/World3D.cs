@@ -90,8 +90,8 @@ namespace Biertan.Visual3D
             vol.isGlobal = true;
             var prof = ScriptableObject.CreateInstance<VolumeProfile>();
             var bloom = prof.Add<Bloom>(true); bloom.threshold.Override(0.95f); bloom.intensity.Override(0.7f); bloom.scatter.Override(0.65f);
-            var vig = prof.Add<Vignette>(true); vig.intensity.Override(0.42f); vig.smoothness.Override(0.5f);
-            var ca = prof.Add<ColorAdjustments>(true); ca.contrast.Override(22f); ca.saturation.Override(-18f); ca.postExposure.Override(0.85f);
+            var vig = prof.Add<Vignette>(true); vig.intensity.Override(0.34f); vig.smoothness.Override(0.5f);
+            var ca = prof.Add<ColorAdjustments>(true); ca.contrast.Override(22f); ca.saturation.Override(-18f); ca.postExposure.Override(1.4f);
             var tm = prof.Add<Tonemapping>(true); tm.mode.Override(TonemappingMode.ACES);
             var grain = prof.Add<FilmGrain>(true); grain.intensity.Override(0.18f);
             vol.profile = prof;
@@ -108,6 +108,7 @@ namespace Biertan.Visual3D
             SyncLights();
             SyncActors(gm.player);
             SyncLines();
+            UpdateCutaway(gm.player);
             FollowCamera(gm.player);
         }
 
@@ -182,11 +183,11 @@ namespace Biertan.Visual3D
         void ApplyDarkness(LevelBase level)
         {
             var a = level.Ambient();
-            float k = Mathf.Clamp((a.r * 0.3f + a.g * 0.59f + a.b * 0.11f) / 0.4f, 0.8f, 1.35f);
-            moon.intensity = 1.1f * k;
-            RenderSettings.ambientSkyColor = new Color(0.3f, 0.32f, 0.45f) * k;
-            RenderSettings.ambientEquatorColor = new Color(0.2f, 0.2f, 0.26f) * k;
-            RenderSettings.ambientGroundColor = new Color(0.1f, 0.09f, 0.08f) * k;
+            float k = Mathf.Clamp((a.r * 0.3f + a.g * 0.59f + a.b * 0.11f) / 0.4f, 1.0f, 1.45f);
+            moon.intensity = 1.7f * k;
+            RenderSettings.ambientSkyColor = new Color(0.42f, 0.44f, 0.58f) * k;
+            RenderSettings.ambientEquatorColor = new Color(0.3f, 0.29f, 0.34f) * k;
+            RenderSettings.ambientGroundColor = new Color(0.16f, 0.14f, 0.12f) * k;
             ambientK = k;
         }
 
@@ -199,6 +200,7 @@ namespace Biertan.Visual3D
             if (root != null) Destroy(root.gameObject);
             foreach (var l in lights.Values) if (l != null) Destroy(l.gameObject);
             lights.Clear();
+            coveredRoofs.Clear();
             foreach (var l in lines.Values) if (l != null) Destroy(l.gameObject);
             lines.Clear();
             foreach (var a in mirrored.Values) if (a.board != null) { Destroy(a.board.gameObject); Destroy(a.shadow.gameObject); }
@@ -231,6 +233,9 @@ namespace Biertan.Visual3D
 
             BuildDecals(level);
             foreach (var b in level.GetComponentsInChildren<Block>()) BuildBlock(b);
+            cutaways.Clear();
+            foreach (var cw in level.GetComponentsInChildren<CurtainWall>()) BuildCurtain(cw);
+            foreach (var way in level.GetComponentsInChildren<CoveredWay>()) BuildCoveredWay(way);
             foreach (Transform t in level.transform)
                 if (t.name is "Tree" or "Pine") BuildTree(t, t.name == "Pine");
             foreach (var br in level.GetComponentsInChildren<Brazier>()) BuildBrazier(br);
@@ -381,6 +386,100 @@ namespace Biertan.Visual3D
             }
             if (b.style is "house" or "church") BuildWindows(go.transform, min, max, b.style == "church");
             if (b.style == "house") BuildDoor(go.transform, min, max);
+        }
+
+        // ------------------------------------------------------------ Biertan's curved walls
+
+        readonly List<Transform> cutaways = new();
+        readonly List<(GameObject roof, Rect area)> coveredRoofs = new();
+
+        /// <summary>A curved fortification wall, one piece per segment so pieces near the camera can be cut away:
+        /// pale stone-and-plaster wall, a tiled roof over its walkway, buttress piers on the inside of the middle
+        /// ring, plain timber for the stairway's sides.</summary>
+        void BuildCurtain(CurtainWall cw)
+        {
+            bool gallery = cw.style == "gallery";
+            float H = gallery ? 1.1f : cw.h * S * HK * 1.6f;
+            float t = cw.thick * S;
+            var wallMat = gallery ? Wood : Mat("clay_plaster", 2.5f, new Color(0.8f, 0.78f, 0.72f));
+            var centroid = Vector2.zero;
+            foreach (var p in cw.pts) centroid += p;
+            centroid /= Mathf.Max(1, cw.pts.Count);
+            for (int i = 0; i < cw.pts.Count - 1; i++)
+            {
+                Vector2 a2 = cw.pts[i], b2 = cw.pts[i + 1];
+                if (Vector2.Distance(a2, b2) < 1f) continue;
+                Vector3 a = To3D(a2), b = To3D(b2), mid = (a + b) / 2f;
+                var u = (b - a).normalized;
+                a -= u * t * 0.35f; b += u * t * 0.35f; // overlap the joints
+                var go = new GameObject("Curtain");
+                go.transform.SetParent(root, false);
+                go.transform.position = mid;
+                var mb = new MeshBuilder();
+                mb.OrientedBox(a - mid, b - mid, t, H);
+                Finish(go, mb, wallMat);
+                if (!gallery)
+                {
+                    var roofGo = new GameObject("Walkway roof");
+                    roofGo.transform.SetParent(go.transform, false);
+                    var rm = new MeshBuilder();
+                    rm.OrientedGable(a - mid, b - mid, t + 0.35f, H, 0.45f);
+                    Finish(roofGo, rm, Roof);
+                    if (cw.style == "arches" && i % 2 == 0)
+                    {
+                        var inward = (To3D(centroid) - mid); inward.y = 0; inward.Normalize();
+                        var n = Vector3.Cross(Vector3.up, u);
+                        if (Vector3.Dot(n, inward) < 0) n = -n;
+                        var pier = new MeshBuilder();
+                        pier.OrientedBox(n * (t / 2f + 0.25f) - u * 0.25f, n * (t / 2f + 0.25f) + u * 0.25f, 0.5f, H * 0.82f);
+                        var pgo = new GameObject("Pier");
+                        pgo.transform.SetParent(go.transform, false);
+                        Finish(pgo, pier, Stone);
+                    }
+                }
+                cutaways.Add(go.transform);
+            }
+        }
+
+        /// <summary>The covered wooden stairway: posts down both sides and a tiled roof over the passage.</summary>
+        void BuildCoveredWay(CoveredWay way)
+        {
+            var r = way.godotRect;
+            float x0 = r.xMin * S, x1 = r.xMax * S, z0 = -r.yMax * S, z1 = -r.yMin * S, H = 1.9f;
+            var go = new GameObject("CoveredWay");
+            go.transform.SetParent(root, false);
+            var posts = new MeshBuilder();
+            for (float z = z0 + 0.3f; z < z1; z += 1.6f)
+                foreach (float x in new[] { x0 + 0.1f, x1 - 0.1f })
+                    posts.Box(new Vector3(x - 0.09f, 0, z - 0.09f), new Vector3(x + 0.09f, H, z + 0.09f), true);
+            Finish(go, posts, Wood);
+            var roofGo = new GameObject("Roof");
+            roofGo.transform.SetParent(go.transform, false);
+            var rm = new MeshBuilder();
+            rm.Gable(new Vector3(x0 - 0.1f, 0, z0), new Vector3(x1 + 0.1f, H, z1), 0.8f, 0.25f);
+            Finish(roofGo, rm, Roof);
+            coveredRoofs.Add((roofGo, new Rect(r.xMin, -r.yMax, r.width, r.height)));
+        }
+
+        /// <summary>Diablo's trick: walls between the camera and the hunter sink so he stays visible, and the
+        /// stairway's roof lifts away while he is under it.</summary>
+        void UpdateCutaway(PlayerController p)
+        {
+            if (p == null) return;
+            var pp = To3D(p.transform.position);
+            foreach (var t in cutaways)
+            {
+                if (t == null) continue;
+                var c = t.position;
+                bool front = c.z < pp.z - 0.2f && pp.z - c.z < 7.5f && Mathf.Abs(c.x - pp.x) < 3.2f;
+                float target = front ? 0.22f : 1f;
+                var s = t.localScale;
+                s.y = Mathf.MoveTowards(s.y, target, Time.deltaTime * 4f);
+                t.localScale = s;
+            }
+            Vector2 p2 = p.transform.position;
+            foreach (var (roof, area) in coveredRoofs)
+                if (roof != null) roof.SetActive(!area.Contains(p2));
         }
 
         void BuildWindows(Transform parent, Vector3 min, Vector3 max, bool church)
@@ -544,7 +643,7 @@ namespace Biertan.Visual3D
         /// <summary>How brightly the fires light a point (sprites aren't lit by 3D lights, so they are tinted).</summary>
         Color LightAt(Vector3 p)
         {
-            var c = new Color(0.5f, 0.52f, 0.62f) * ambientK;
+            var c = new Color(0.68f, 0.69f, 0.78f) * ambientK;
             foreach (var l in lights.Values)
             {
                 if (l == null || !l.enabled) continue;

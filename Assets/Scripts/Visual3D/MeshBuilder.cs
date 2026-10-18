@@ -135,7 +135,7 @@ namespace Biertan.Visual3D
                 float a0 = i * Mathf.PI * 2f / seg, a1 = (i + 1) * Mathf.PI * 2f / seg;
                 var p0 = c + new Vector3(Mathf.Cos(a0), 0, Mathf.Sin(a0)) * r;
                 var p1 = c + new Vector3(Mathf.Cos(a1), 0, Mathf.Sin(a1)) * r;
-                if (h > 0) Tri(p1, apex, p0); else Tri(p0, apex, p1);
+                if (h > 0) Tri(p0, apex, p1); else Tri(p1, apex, p0);
             }
         }
 
@@ -158,6 +158,33 @@ namespace Biertan.Visual3D
                 var p1 = c + q * new Vector3(Mathf.Cos(a1) * rx, 0, Mathf.Sin(a1) * rz);
                 Tri(c, p1, p0);
             }
+        }
+
+        /// <summary>A box along the ground segment a-b (local), thickness t, height h (no bottom).</summary>
+        public void OrientedBox(Vector3 a, Vector3 b, float t, float h)
+        {
+            var u = (b - a); u.y = 0; u.Normalize();
+            var n = Vector3.Cross(u, Vector3.up) * (t / 2f); // sides chosen so every face winds outward
+            Vector3 up = Vector3.up * h;
+            Vector3 a0 = a - n, a1 = a + n, b0 = b - n, b1 = b + n;
+            Quad(a0, a0 + up, b0 + up, b0);         // right side
+            Quad(b1, b1 + up, a1 + up, a1);         // left side
+            Quad(a1, a1 + up, a0 + up, a0);         // end at a
+            Quad(b0, b0 + up, b1 + up, b1);         // end at b
+            Quad(a0 + up, a1 + up, b1 + up, b0 + up); // top
+        }
+
+        /// <summary>A pitched roof along the segment a-b sitting on height h, width w, ridge rise.</summary>
+        public void OrientedGable(Vector3 a, Vector3 b, float w, float h, float rise)
+        {
+            var u = (b - a); u.y = 0; u.Normalize();
+            var n = Vector3.Cross(u, Vector3.up) * (w / 2f);
+            Vector3 up = Vector3.up * h, ridge = Vector3.up * (h + rise);
+            Vector3 a0 = a - n + up, a1 = a + n + up, b0 = b - n + up, b1 = b + n + up, ar = a + ridge, br = b + ridge;
+            Quad(a0, ar, br, b0);
+            Quad(b1, br, ar, a1);
+            Tri(a1, ar, a0);
+            Tri(b0, br, b1);
         }
 
         public Mesh Build()

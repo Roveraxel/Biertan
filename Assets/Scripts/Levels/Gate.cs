@@ -13,6 +13,15 @@ namespace Biertan.Levels
         Transform bars;
         SpriteRenderer seal;
 
+        /// <summary>A gate across a gap at any angle (the curved rings): centre in Godot coordinates, size along
+        /// and across the wall, rotation in Unity degrees.</summary>
+        public static Gate Make(Transform parent, Vector2 godotCenter, Vector2 size, float rotDeg)
+        {
+            var g = Make(parent, new Rect(godotCenter - size / 2f, size));
+            g.transform.rotation = Quaternion.Euler(0, 0, rotDeg);
+            return g;
+        }
+
         public static Gate Make(Transform parent, Rect godotRect)
         {
             var go = new GameObject("Gate") { layer = LayerMask.NameToLayer("World") };
