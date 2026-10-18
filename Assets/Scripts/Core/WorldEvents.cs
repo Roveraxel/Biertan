@@ -19,6 +19,8 @@ namespace Biertan.Core
             {
                 "anna" => gm.quest == 0 || gm.quest == 2,
                 "ileana" => !gm.metIleana,
+                "pastor" => gm.quest2 == 0 || gm.quest2 == 2,
+                "vasile" => !gm.metVasile && gm.quest2 >= 1,
                 "gheorghe" => gm.eweQuest == 0 || (gm.eweQuest == 1 && gm.EwesFound() >= 3),
                 "hermit" => !gm.SideHas("hermit"),
                 _ => false,
@@ -76,6 +78,44 @@ namespace Biertan.Core
                     AudioManager.I?.Sfx("potion", 0f, 0.7f);
                     FxUtil.Ring(player.transform.position, new Color(0.6f, 0.85f, 1f, 0.8f), 60f);
                     HudEvents.Toast("Cold, sweet water. You feel older and stronger.  +15 max health");
+                    break;
+                case "cross":
+                    p.used = true;
+                    player.hp = player.maxHp;
+                    AudioManager.I?.Sfx("potion", -4f, 0.8f);
+                    FxUtil.Ring(player.transform.position, new Color(1f, 0.85f, 0.5f, 0.8f), 60f);
+                    gm.StartDialogue("Wayside cross", new[]
+                    {
+                        "A troiță of carved oak, painted with suns and a little roof against the rain. Someone has left bread at its foot.",
+                        "You stand a moment. The wind drops. Your wounds close.",
+                    });
+                    break;
+                case "greenman":
+                    gm.StartDialogue("The Green Man", new[]
+                    {
+                        "A stone face wreathed in oak leaves, carved by Saxon masons three hundred years ago.",
+                        "Some say it guards the church from the wood. Some say the wood is watching through it.",
+                    });
+                    break;
+                case "bones":
+                    p.used = true;
+                    player.coins += 25;
+                    player.potions += 1;
+                    AudioManager.I?.Sfx("coin", -4f);
+                    HudEvents.Toast("A miner's purse and a stoppered flask.  +25 coins, +1 tincture");
+                    break;
+                case "sign" when p.id == "cave_sign":
+                    gm.StartDialogue("Miners' post", new[] { "THE SALT CAVES. Imperial salt workings, closed by order.", "Below, someone has carved: 'Thirty men went down. Thirty came up. Count them again.'" });
+                    break;
+                case "sign" when p.id == "garden_sign":
+                    gm.StartDialogue("Warning post", new[]
+                    {
+                        "A bear's skull is nailed to the post, and beneath it, scratched deep: GRĂDINA URSULUI.",
+                        "Past the thicket to the south-east lies the Bear's Garden. In the tale, Harap-Alb only came out of it alive because Saint Sunday put the bear to sleep. You have no such help.",
+                    });
+                    break;
+                case "sign" when p.id == "lake_sign":
+                    gm.StartDialogue("Scratched into the salt", new[] { "'She sings from the far side of the lake. The children follow the singing. Do not follow the singing.'" });
                     break;
                 case "sign":
                     gm.StartDialogue("Carved post", new[]
@@ -150,6 +190,80 @@ namespace Biertan.Core
                         });
                     else
                         gm.StartDialogue("Old Ileana", new[] { "A voice that knows your name is never a friend's, child. Do not answer it.", "Light is your armour in the dark. The dusk makes them bold." });
+                    break;
+
+                case "pastor":
+                    if (gm.quest2 == 0)
+                        gm.StartDialogue("Pfarrer Lukas", new[]
+                        {
+                            "You carry the fang of a varcolac. Then God has sent you, or something older has.",
+                            "Seven nights ago our children began to walk out of their beds, singing. Three are gone: little Ioan, Mitzi and Grete.",
+                            "The Iele dance in the Hollow Hills and lead the young away. The women say the singing ends at the Salt Caves, and past them lies the Hollow, where Muma Pădurii keeps her house.",
+                            "The Forest Mother takes children to keep the wood young. Bring them home. Vasile knows the caves, and salt is what the old dead cannot cross.",
+                        }, () =>
+                        {
+                            gm.quest2 = 1;
+                            player.potions += 1;
+                            HudEvents.Banner("QUEST: THE SINGING CHILDREN", "Find the children beyond the Salt Caves.");
+                            HudEvents.Toast("The pastor gives you a garlic tincture.");
+                        });
+                    else if (gm.quest2 == 1)
+                        gm.StartDialogue("Pfarrer Lukas", new[] { "The east gate leads to the Hollow Hills. Whatever you hear out there, do not dance." });
+                    else if (gm.quest2 == 2)
+                        gm.StartDialogue("Pfarrer Lukas", new[]
+                        {
+                            "They walked in at dawn, all three, with moss in their hair and no memory of the night. The bells rang for them.",
+                            "And this... a bell clapper, cast in Biertan. Muma Pădurii was keeping it in her hollow.",
+                            "Someone silenced the bells of Biertan on purpose, and paid the old powers to keep them quiet. Go on to Moșna. Take the clapper home.",
+                        }, () =>
+                        {
+                            gm.quest2 = 3;
+                            player.coins += 60;
+                            player.hp = player.maxHp;
+                            HudEvents.Banner("LEVEL 2 COMPLETE", "+60 coins.  Moșna awaits.");
+                            gm.SaveGame();
+                        });
+                    else
+                        gm.StartDialogue("Pfarrer Lukas", new[] { "Moșna is the next fortress on the road to Biertan. The clapper must go home." });
+                    break;
+
+                case "vasile":
+                    if (!gm.metVasile)
+                        gm.StartDialogue("Vasile", new[]
+                        {
+                            "Going down into the salt? Then you will want this pouch.",
+                            "Throw salt at your feet and it makes a circle the dead cannot cross. Anything unclean inside it burns. Iele hate it too.",
+                            "Thirty years I cut salt down there. Miners buried in salt do not rot, and some of them got up again. Moroi, the old women call them.",
+                        }, () =>
+                        {
+                            gm.metVasile = true;
+                            player.saltUnlocked = true;
+                            player.salt += 4;
+                            HudEvents.Toast("Salt pouch.  +4 salt  (R to throw)");
+                        });
+                    else
+                        gm.StartDialogue("Vasile", new[] { "The caves are full of salt-stone. Chip a piece where it glows.", "Or three pinches for ten coins, if you'd rather not bend." }, BuySalt);
+                    break;
+
+                case "katharina":
+                    if (!player.wormwood)
+                        gm.StartDialogue("Katharina", new[] { "Wormwood and garlic, my dear. The Iele cannot bear the smell of pelin.", "Wear a sprig and their song will not hold your legs. Forty coins." }, BuyWormwood);
+                    else
+                        gm.StartDialogue("Katharina", new[] { "Garlic tincture, ten coins. The road east is long." }, BuyPotion);
+                    break;
+
+                case "rozalia":
+                    if (gm.quest2 < 2)
+                        gm.StartDialogue("Rozalia", new[] { "My Ioan walked out singing. His eyes were open but he did not see me.", "Please. Bring him home." });
+                    else if (!gm.rozaliaThanked)
+                        gm.StartDialogue("Rozalia", new[] { "He is home. He remembers only a green woman and honey cake.", "Take these. I made them for him, but he has his mother now." }, () =>
+                        {
+                            gm.rozaliaThanked = true;
+                            player.potions += 2;
+                            HudEvents.Toast("Rozalia gives you two tinctures.");
+                        });
+                    else
+                        gm.StartDialogue("Rozalia", new[] { "God keep you on the road, Wanderer." });
                     break;
 
                 case "hermit":

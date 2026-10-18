@@ -10,6 +10,7 @@ namespace Biertan.Levels
         float regrow;
         SpriteRenderer[] shards;
         float t;
+        UnityEngine.Rendering.Universal.Light2D lamp;
 
         void Start()
         {
@@ -25,6 +26,7 @@ namespace Biertan.Levels
                 Make("Shard", new Vector2(10, 14), new Vector2(11, 28), new Color(0.8f, 0.86f, 0.95f), 1),
                 glow,
             };
+            lamp = Lights.Point(transform, 170f, new Color(0.75f, 0.85f, 1f), 0.8f, new Vector2(0, 16));
             shards[0].transform.localRotation = Quaternion.Euler(0, 0, 18);
             shards[2].transform.localRotation = Quaternion.Euler(0, 0, -20);
         }
@@ -60,6 +62,7 @@ namespace Biertan.Levels
             t += Time.deltaTime;
             regrow = Mathf.Max(0f, regrow - Time.deltaTime);
             if (shards == null) return;
+            lamp.intensity = (regrow > 0f ? 0.25f : 0.8f) + 0.08f * Mathf.Sin(t * 2f + transform.position.x);
             float k = regrow > 0f ? 0.35f : 1f;
             for (int i = 0; i < 3; i++) shards[i].transform.localScale = new Vector3(shards[i].transform.localScale.x, (i == 1 ? 46 : i == 0 ? 34 : 28) * k, 1);
             shards[3].color = new Color(0.85f, 0.92f, 1f, (regrow > 0f ? 0.01f : 0.045f) + 0.015f * Mathf.Sin(t * 3f));

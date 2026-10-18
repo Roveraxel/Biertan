@@ -41,6 +41,15 @@ namespace Biertan.EditorTools
         [MenuItem("Biertan/Build Level Test: Wolf Forest")]
         public static void BuildForest() => BuildScene("Assets/Scenes/Level_Forest.unity", "forest");
 
+        [MenuItem("Biertan/Build Level Test: Richis (chapter 2)")]
+        public static void BuildRichis() => BuildScene("Assets/Scenes/Level_Richis.unity", "richis");
+
+        [MenuItem("Biertan/Build Level Test: Hollow Hills")]
+        public static void BuildHills() => BuildScene("Assets/Scenes/Level_Hills.unity", "hills");
+
+        [MenuItem("Biertan/Build Level Test: Salt Caves")]
+        public static void BuildCaves() => BuildScene("Assets/Scenes/Level_Caves.unity", "caves");
+
         [MenuItem("Biertan/Setup 2D Lighting")]
         public static void Setup2DLighting()
         {

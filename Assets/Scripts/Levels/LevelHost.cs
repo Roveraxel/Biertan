@@ -26,11 +26,14 @@ namespace Biertan.Levels
             "hub" => go.AddComponent<Saschiz>(),
             "forest" => go.AddComponent<WolfForest>(),
             "arena" => go.AddComponent<MoonClearing>(),
+            "richis" => go.AddComponent<Richis>(),
+            "hills" => go.AddComponent<HollowHills>(),
+            "caves" => go.AddComponent<SaltCaves>(),
             "hollow" => go.AddComponent<HollowArena>(),
             _ => null,
         };
 
-        public static bool IsPorted(string id) => id is "hub" or "forest" or "arena" or "hollow";
+        public static bool IsPorted(string id) => id is "hub" or "forest" or "arena" or "richis" or "hills" or "caves" or "hollow";
 
         void Start()
         {
@@ -118,7 +121,7 @@ namespace Biertan.Levels
             if (gm.transitioning) yield break;
             gm.transitioning = true;
             if (ScreenFade.I != null && !GameManager.Instant) yield return ScreenFade.I.FadeTo(1f, 0.35f);
-            if (level != null) Destroy(level.gameObject);
+            if (level != null) { level.gameObject.SetActive(false); Destroy(level.gameObject); } // gone at once, freed at frame end
             gm.boss = null;
             if (!GameManager.Instant) yield return null; // let the old level go
             Enter(id, godotAt);
@@ -141,6 +144,15 @@ namespace Biertan.Levels
                 case "arena":
                     gm.quest = 1;
                     p.potions = 3;
+                    break;
+                case "richis": // chapter 1 done: the Vârcolac slain, Anna's reward, Hans's whetting
+                case "hills":
+                case "caves":
+                    gm.quest = 3; gm.visitedRichis = true;
+                    if (id != "richis") gm.quest2 = 1;
+                    if (id == "caves") { gm.metVasile = true; p.saltUnlocked = true; p.salt = 4; }
+                    p.maxHp = p.hp = 110f; p.dmg = 16f; p.potions = 3; p.coins = 70;
+                    p.charmDodge = true;
                     break;
                 case "hollow": // after the Vârcolac and the salt caves
                     gm.quest = 3;

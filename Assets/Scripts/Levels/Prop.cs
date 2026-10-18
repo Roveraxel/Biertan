@@ -25,7 +25,8 @@ namespace Biertan.Levels
         GameObject visual;
         SpriteRenderer[] flames;
         TextMesh marker;
-        SpriteRenderer hole;
+        SpriteRenderer hole, ember;
+        GameObject purse;
 
         static Material unlit;
         static Material Unlit => unlit != null ? unlit : (unlit = Resources.Load<Material>("LineMat"));
@@ -34,7 +35,7 @@ namespace Biertan.Levels
         {
             gameObject.AddComponent<SortingGroup>();
             gameObject.layer = LayerMask.NameToLayer("World");
-            if (kind is "npc" or "sign" or "sack" or "ewe")
+            if (kind is "npc" or "sign" or "sack" or "ewe" or "cross" or "greenman" or "bones")
             {
                 var col2d = gameObject.AddComponent<CircleCollider2D>();
                 col2d.radius = 12f;
@@ -89,6 +90,49 @@ namespace Biertan.Levels
                         flames[i * 2].sharedMaterial = flames[i * 2 + 1].sharedMaterial = Unlit;
                     }
                     hole = Part("Hole", "circle", new Vector2(0, 2), new Vector2(24, 11), new Color32(0x1a, 0x14, 0x10, 0xff), -1, visual.transform);
+                    break;
+                case "cross":
+                {
+                    var wood = new Color32(0x4a, 0x33, 0x20, 0xff);
+                    var gold = new Color32(0xc9, 0xa2, 0x4a, 0xff);
+                    Part("Post", "white", new Vector2(0, 32), new Vector2(6, 64), wood, 0, visual.transform);
+                    Part("Beam", "white", new Vector2(0, 49), new Vector2(36, 6), wood, 1, visual.transform);
+                    Part("Roof", "tri", new Vector2(0, 68), new Vector2(48, 16), new Color32(0x2e, 0x22, 0x17, 0xff), 2, visual.transform);
+                    Part("Sun", "circle", new Vector2(0, 40), new Vector2(10, 10), gold, 3, visual.transform);
+                    for (int i = 0; i < 8; i++)
+                    {
+                        float a = i * Mathf.PI / 4f;
+                        var ray = Part("Ray", "white", new Vector2(0, 40) + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * 8f, new Vector2(4, 1.5f), gold, 3, visual.transform);
+                        ray.transform.localRotation = Quaternion.Euler(0, 0, a * Mathf.Rad2Deg);
+                    }
+                    ember = Part("Ember", "circle", new Vector2(0, 6), new Vector2(6, 6), new Color(1f, 0.7f, 0.3f, 0.8f), 3, visual.transform);
+                    ember.sharedMaterial = Unlit;
+                    glow = Lights.Point(transform, 150f, new Color(1f, 0.8f, 0.5f), 0.5f, new Vector2(0, 30));
+                    break;
+                }
+                case "greenman":
+                {
+                    Part("Stone", "white", new Vector2(0, 30), new Vector2(44, 52), new Color32(0x8d, 0x87, 0x7a, 0xff), 0, visual.transform);
+                    Part("Face", "circle", new Vector2(0, 32), new Vector2(30, 30), new Color32(0x6a, 0x64, 0x58, 0xff), 1, visual.transform);
+                    for (int i = 0; i < 7; i++)
+                    {
+                        float a = Mathf.PI + i * Mathf.PI / 6f; // Godot's upper half-circle of oak leaves
+                        Part("Leaf", "circle", new Vector2(0, 32) + new Vector2(Mathf.Cos(a), -Mathf.Sin(a)) * 17f, new Vector2(14, 14), new Color32(0x5a, 0x6a, 0x44, 0xff), 2, visual.transform);
+                    }
+                    Part("EyeL", "circle", new Vector2(-5, 34), new Vector2(4, 4), new Color32(0x1a, 0x14, 0x10, 0xff), 3, visual.transform);
+                    Part("EyeR", "circle", new Vector2(5, 34), new Vector2(4, 4), new Color32(0x1a, 0x14, 0x10, 0xff), 3, visual.transform);
+                    Part("Mouth", "white", new Vector2(0, 24), new Vector2(12, 2), new Color32(0x3a, 0x3a, 0x2a, 0xff), 3, visual.transform);
+                    break;
+                }
+                case "bones":
+                    purse = new GameObject("Purse");
+                    purse.transform.SetParent(visual.transform, false);
+                    Part("Sack", "circle", new Vector2(0, 8), new Vector2(20, 20), new Color32(0x8a, 0x6a, 0x3a, 0xff), 0, purse.transform);
+                    Part("Tie", "white", new Vector2(0, 19), new Vector2(8, 3), new Color32(0xc9, 0xa2, 0x4a, 0xff), 1, purse.transform);
+                    var bone = Part("Bone", "white", new Vector2(-7, 4), new Vector2(22, 3), new Color32(0xd8, 0xd2, 0xc0, 0xff), 2, visual.transform);
+                    bone.transform.localRotation = Quaternion.Euler(0, 0, 10);
+                    Part("Skull", "circle", new Vector2(12, 6), new Vector2(12, 12), new Color32(0xd8, 0xd2, 0xc0, 0xff), 2, visual.transform);
+                    Part("Socket", "circle", new Vector2(10, 7), new Vector2(3, 3), new Color32(0x1a, 0x14, 0x10, 0xff), 3, visual.transform);
                     break;
                 case "sign":
                     Part("Post", "white", new Vector2(0, 17), new Vector2(4, 34), new Color32(0x4a, 0x33, 0x20, 0xff), 0, visual.transform);
@@ -156,6 +200,13 @@ namespace Biertan.Levels
                 marker.gameObject.SetActive(WorldEvents.MarkerFor(id));
                 marker.transform.localPosition = new Vector3(0, 72 + Mathf.Sin(t * 4f) * 2f, 0);
             }
+            if (kind == "cross")
+            {
+                ember.enabled = !used;
+                ember.color = new Color(1f, 0.7f, 0.3f, 0.6f + 0.3f * Mathf.Sin(t * 5f));
+                glow.intensity = used ? 0.25f : 0.5f;
+            }
+            if (kind == "bones") purse.SetActive(!used);
             if (kind == "treasure")
             {
                 bool burning = CanInteract();
