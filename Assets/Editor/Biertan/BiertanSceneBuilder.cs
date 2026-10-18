@@ -59,6 +59,15 @@ namespace Biertan.EditorTools
         [MenuItem("Biertan/Build Boss Test: Balaur")]
         public static void BuildBalaur() => BuildScene("Assets/Scenes/Boss_Balaur.unity", "gorge");
 
+        [MenuItem("Biertan/Build Level Test: Biertan (chapter 4)")]
+        public static void BuildBiertan() => BuildScene("Assets/Scenes/Level_Biertan.unity", "biertan");
+
+        [MenuItem("Biertan/Build Level Test: Three Walls")]
+        public static void BuildWalls() => BuildScene("Assets/Scenes/Level_Walls.unity", "walls");
+
+        [MenuItem("Biertan/Build Boss Test: Strigoi Vlad")]
+        public static void BuildVlad() => BuildScene("Assets/Scenes/Boss_Vlad.unity", "church");
+
         [MenuItem("Biertan/Setup 2D Lighting")]
         public static void Setup2DLighting()
         {

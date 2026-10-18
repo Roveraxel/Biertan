@@ -46,6 +46,7 @@ namespace Biertan.Core
             if (gm.state == GameManager.State.Dead && next) gm.Respawn();
             if (gm.state == GameManager.State.Dialogue && next && Time.frameCount > gm.dlgFrame) gm.AdvanceDialogue();
             if (gm.state == GameManager.State.Story && next && gm.storyT > 0.6f) gm.CloseStory();
+            if (gm.state == GameManager.State.Ending && gm.endingT > 4f && kb.anyKey.wasPressedThisFrame) gm.LeaveEnding();
         }
 
         void Box(Rect r, Color c)
@@ -126,8 +127,44 @@ namespace Biertan.Core
                 GUI.Label(new Rect(bx, by + bh - 24 * k, bw - 18 * k, 20 * k), $"{gm.dlgIdx + 1}/{gm.dlgLines.Count}   Enter ▸", Style(12, TextAnchor.MiddleRight));
             }
 
+            if (gm.state == GameManager.State.Ending) { DrawEnding(gm.endingT, k, W, H); return; }
             if (gm.state == GameManager.State.Story && GameManager.Stories.TryGetValue(gm.storyId, out var card))
                 DrawStory(card, gm.storyId, k, W, H);
+        }
+
+        static readonly (string text, int size, int tone)[] EndingLines =
+        {
+            ("THE BELLS OF BIERTAN", 52, 0), ("", 18, 1),
+            ("At dawn the great bell rang over the valley, and the Iele stopped their dancing.", 20, 1),
+            ("In Saschiz, Frau Anna's sheep came home. In Richiș, the children sang in church, and only there.", 20, 1),
+            ("In Moșna, the carters took the Biertan road. In the vineyards, the dead lay still.", 20, 1),
+            ("And in the Marriage Prison, Andreas and Sofia asked the council for one more week.", 20, 1),
+            ("", 18, 1), ("Salt for the dead. Silver for what walks.", 22, 2), ("", 18, 1),
+            ("BIERTAN · A Hunter's Ballad of Transylvania", 16, 3),
+            ("Made with Unity · art and sound generated in code", 14, 4),
+        };
+
+        /// <summary>hud.gd draw_ending(): the closing ballad, line by line.</summary>
+        void DrawEnding(float e, float k, float W, float H)
+        {
+            Box(new Rect(0, 0, W, H), new Color(0.02f, 0.02f, 0.03f));
+            Color[] tones = { new(0.93f, 0.9f, 0.84f), new(0.62f, 0.6f, 0.56f), new Color32(0xff, 0xb3, 0x47, 0xff), new(0.43f, 0.42f, 0.39f), new(0.37f, 0.36f, 0.34f) };
+            float y = H * 0.22f;
+            for (int i = 0; i < EndingLines.Length; i++)
+            {
+                var l = EndingLines[i];
+                var c = tones[l.tone]; c.a = Mathf.Clamp01(e - i * 0.6f);
+                var st = Style(l.size, TextAnchor.MiddleCenter, i == 0 ? FontStyle.Bold : FontStyle.Normal);
+                st.normal.textColor = c;
+                GUI.Label(new Rect(0, y, W, (l.size + 14) * k), l.text, st);
+                y += (l.size + 18) * k;
+            }
+            if (e > 4f)
+            {
+                var st = Style(16, TextAnchor.MiddleCenter);
+                st.normal.textColor = new Color(0.62f, 0.6f, 0.56f, 0.5f + 0.5f * Mathf.Sin(Time.time * 3f));
+                GUI.Label(new Rect(0, H - 50 * k, W, 30 * k), "Press any key to return", st);
+            }
         }
 
         void DrawStory(GameManager.StoryCard card, string id, float k, float W, float H)

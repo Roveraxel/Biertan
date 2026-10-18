@@ -360,6 +360,16 @@ namespace Biertan.Core
 
         public void CloseStory() => StoryClosed?.Invoke();
 
+        /// <summary>Leaving the ending: back to Biertan with the bells ringing (the title screen is not ported yet,
+        /// so this goes straight where Continue would).</summary>
+        public void LeaveEnding()
+        {
+            endingT = -999f;
+            state = State.Play;
+            if (player != null) player.frozen = false;
+            LevelLoader.Goto("biertan", new Vector2(900, 860));
+        }
+
         public IEnumerator ToTitle()
         {
             if (!Instant) yield return ScreenFade.I.FadeTo(1f, 0.6f);

@@ -33,10 +33,13 @@ namespace Biertan.Levels
             "mosna" => go.AddComponent<Mosna>(),
             "vineyard" => go.AddComponent<BurntVineyards>(),
             "gorge" => go.AddComponent<DrownedQuarry>(),
+            "biertan" => go.AddComponent<BiertanVillage>(),
+            "walls" => go.AddComponent<ThreeWalls>(),
+            "church" => go.AddComponent<ChurchOfBiertan>(),
             _ => null,
         };
 
-        public static bool IsPorted(string id) => id is "hub" or "forest" or "arena" or "richis" or "hills" or "caves" or "hollow" or "mosna" or "vineyard" or "gorge";
+        public static bool IsPorted(string id) => id is "hub" or "forest" or "arena" or "richis" or "hills" or "caves" or "hollow" or "mosna" or "vineyard" or "gorge" or "biertan" or "walls" or "church";
 
         void Start()
         {
@@ -164,6 +167,15 @@ namespace Biertan.Levels
                     if (id != "mosna") { gm.quest3 = 1; p.torch = true; gm.side.Add("magda"); gm.visitedMosna = true; }
                     p.maxHp = p.hp = 120f; p.dmg = 18f; p.potions = id == "gorge" ? 4 : 3; p.coins = 90;
                     p.charmDodge = true; p.saltUnlocked = true; p.salt = 6;
+                    break;
+                case "biertan": // chapter 3 done: the Balaur slain, Konrad's reward
+                case "walls":
+                case "church":
+                    gm.quest = 3; gm.quest2 = 3; gm.quest3 = 3; gm.visitedRichis = true; gm.visitedMosna = true; gm.metVasile = true;
+                    gm.side.Add("magda");
+                    if (id != "biertan") { gm.quest4 = 1; gm.visitedBiertan = true; }
+                    p.maxHp = p.hp = 130f; p.dmg = 22f; p.potions = id == "biertan" ? 3 : 5; p.coins = 120;
+                    p.charmDodge = true; p.saltUnlocked = true; p.salt = id == "biertan" ? 6 : 9; p.torch = true;
                     break;
                 case "hollow": // after the Vârcolac and the salt caves
                     gm.quest = 3;

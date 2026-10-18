@@ -110,6 +110,10 @@ namespace Biertan.Levels
                     glow = Lights.Point(transform, 150f, new Color(1f, 0.8f, 0.5f), 0.5f, new Vector2(0, 30));
                     break;
                 }
+                case "bell": // the rope of the great bell
+                    Part("Rope", "white", new Vector2(0, 60), new Vector2(6, 100), new Color32(0x8a, 0x7a, 0x5a, 0xff), 0, visual.transform);
+                    Part("Knob", "circle", new Vector2(0, 8), new Vector2(14, 14), new Color32(0xb0, 0x8a, 0x3a, 0xff), 1, visual.transform);
+                    break;
                 case "greenman":
                 {
                     Part("Stone", "white", new Vector2(0, 30), new Vector2(44, 52), new Color32(0x8d, 0x87, 0x7a, 0xff), 0, visual.transform);

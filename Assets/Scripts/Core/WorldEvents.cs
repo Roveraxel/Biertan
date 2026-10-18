@@ -24,6 +24,7 @@ namespace Biertan.Core
                 "gheorghe" => gm.eweQuest == 0 || (gm.eweQuest == 1 && gm.EwesFound() >= 3),
                 "hermit" => !gm.SideHas("hermit"),
                 "konrad" => gm.quest3 == 0 || gm.quest3 == 2,
+                "sexton" => gm.quest4 == 0,
                 _ => false,
             };
         }
@@ -114,6 +115,12 @@ namespace Biertan.Core
                         "A bear's skull is nailed to the post, and beneath it, scratched deep: GRĂDINA URSULUI.",
                         "Past the thicket to the south-east lies the Bear's Garden. In the tale, Harap-Alb only came out of it alive because Saint Sunday put the bear to sleep. You have no such help.",
                     });
+                    break;
+                case "bell":
+                    if (gm.level is Biertan.Levels.ChurchOfBiertan church) church.RingBell();
+                    break;
+                case "sign" when p.id == "prison_sign":
+                    gm.StartDialogue("The Marriage Prison", new[] { "For three hundred years, couples who wished to part were locked in here together: one bed, one table, one plate, one spoon.", "Most came out still married. Tonight it holds the last living souls of Biertan." });
                     break;
                 case "sign" when p.id == "yard_sign":
                     gm.StartDialogue("Churchyard gate", new[] { "'HIER RUHEN DIE TOTEN VON MESCHEN.' Here rest the dead of Moșna.", "Someone has scratched beneath it in Romanian: 'Not all of them.' The earth of every second grave is turned." });
@@ -257,6 +264,48 @@ namespace Biertan.Core
                         gm.StartDialogue("Katharina", new[] { "Wormwood and garlic, my dear. The Iele cannot bear the smell of pelin.", "Wear a sprig and their song will not hold your legs. Forty coins." }, BuyWormwood);
                     else
                         gm.StartDialogue("Katharina", new[] { "Garlic tincture, ten coins. The road east is long." }, BuyPotion);
+                    break;
+
+                case "sexton":
+                    if (gm.quest4 == 0)
+                        gm.StartDialogue("Martin, Sexton", new[]
+                        {
+                            "A living face, and a clapper of the great bell in your pack. Then Konrad sent you. God bless that stubborn Saxon.",
+                            "He came at the turn of the year. A boyar's son from over the mountains, they said, dead three winters. Vlad. He had the bells stilled first, so the dead would not hear the hour of judgement.",
+                            "His thralls hold the three walls. Each gate is sealed by a ward of blood. Break the wards and the gates will rise.",
+                            "Here is my key to the church; it opens one of the nineteen locks of the sacristy door, and the side door besides. Hang the clapper, ring the great bell, and he will have to stand in his flesh.",
+                        }, () =>
+                        {
+                            gm.quest4 = 1;
+                            player.potions += 2;
+                            player.salt += 3;
+                            HudEvents.Banner("QUEST: THE BELLS OF BIERTAN", "Climb the three walls. Destroy Strigoi Vlad.");
+                            HudEvents.Toast("Received: the sexton's key, two tinctures and salt");
+                        });
+                    else if (gm.quest4 == 1)
+                        gm.StartDialogue("Martin, Sexton", new[] { "Tinctures and salt, ten coins each. Take what you need. Nothing up there will sell you anything." }, BuyPotion);
+                    else
+                        gm.StartDialogue("Martin, Sexton", new[] { "Listen to them. Three hundred years those bells have rung over this valley, and they ring again because of you.", "Stay as long as you like, Wanderer. Biertan owes you its every hour." });
+                    break;
+
+                case "andreas":
+                    if (gm.quest4 < 2)
+                        gm.StartDialogue("Andreas", new[] { "The council locked us in here to make up, Sofia and me. Two weeks, one spoon. On the third night the dead came down the hill.", "We have not argued since. Funny, that." });
+                    else
+                        gm.StartDialogue("Andreas", new[] { "When the council lets us out, I think we will stay married. Do not tell the council." });
+                    break;
+
+                case "sofia":
+                    if (!gm.sofiaGift)
+                        gm.StartDialogue("Sofia", new[] { "Take this. My wedding ribbon. My grandmother said a red ribbon keeps the strigoi from the throat.", "Bring it back to me when the bells ring." }, () =>
+                        {
+                            gm.sofiaGift = true;
+                            player.maxHp += 20f;
+                            player.hp = player.maxHp;
+                            HudEvents.Toast("Wedding ribbon.  (+20 max health)");
+                        });
+                    else
+                        gm.StartDialogue("Sofia", gm.quest4 >= 2 ? new[] { "Keep it. You have earned more than a ribbon." } : new[] { "Come back to us. Both of you: you and the ribbon." });
                     break;
 
                 case "konrad":
