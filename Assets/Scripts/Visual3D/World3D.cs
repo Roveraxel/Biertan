@@ -39,7 +39,7 @@ namespace Biertan.Visual3D
         readonly Dictionary<Transform, Actor> mirrored = new();
         readonly Dictionary<string, Material> mats = new();
 
-        class Actor { public Transform board, shadow; public CharacterBody body; public FolkFigures.Art? folk; public PixelFigure pix; public float seed, dir = 1f; public Vector3 last; public Vector2 vel; public bool hasLast; public List<(SpriteRenderer src, SpriteRenderer dst)> parts = new(); public (TextMesh src, TextMesh dst) text; }
+        class Actor { public Transform board, shadow; public CharacterBody body; public FolkFigures.Art? folk; public PixelFigure pix; public float lastStrike; public float seed, dir = 1f; public Vector3 last; public Vector2 vel; public bool hasLast; public List<(SpriteRenderer src, SpriteRenderer dst)> parts = new(); public (TextMesh src, TextMesh dst) text; }
 
         public static Vector3 To3D(Vector2 p, float h = 0f) => new(p.x * S, h, p.y * S);
 
@@ -714,6 +714,12 @@ namespace Biertan.Visual3D
                     if ((a.folk.HasValue || a.pix != null) && src.name is "Head") { dst.enabled = false; continue; }
                     if (a.pix != null && src.name is "Body")
                     {
+                        // a monster's strike leaves three red claw rakes in front of it
+                        if (t.GetComponent<EnemyBase>() is EnemyBase ce)
+                        {
+                            if (ce.strikeT > a.lastStrike + 0.05f) ClawSlash.Spawn(root, pos, new Vector3(ce.face.x, 0f, ce.face.y));
+                            a.lastStrike = ce.strikeT;
+                        }
                         // a frame-animated pixel figure, upright to the camera so it isn't foreshortened
                         var spr = a.pix.Tick(t, a.vel, Time.deltaTime);
                         if (spr == null) { dst.enabled = false; continue; }
@@ -875,6 +881,64 @@ namespace Biertan.Visual3D
 
 namespace Biertan.Visual3D
 {
+    /// <summary>Three red claw rakes swept through the air in front of a striking monster, fading fast.</summary>
+    public class ClawSlash : MonoBehaviour
+    {
+        LineRenderer[] rakes; float t;
+        const float Life = 0.32f;
+
+        public static void Spawn(Transform parent, Vector3 at, Vector3 dir)
+        {
+            if (dir.sqrMagnitude < 0.0001f) dir = Vector3.back;
+            dir.Normalize();
+            var go = new GameObject("ClawSlash");
+            go.transform.SetParent(parent, false);
+            go.transform.SetPositionAndRotation(at + Vector3.up * 0.75f, Quaternion.LookRotation(dir, Vector3.up));
+            var c = go.AddComponent<ClawSlash>();
+            var mat = Resources.Load<Material>("LineMat");
+            c.rakes = new LineRenderer[3];
+            for (int i = 0; i < 3; i++)
+            {
+                var lr = new GameObject("Rake").AddComponent<LineRenderer>();
+                lr.transform.SetParent(go.transform, false);
+                lr.useWorldSpace = false; lr.sharedMaterial = mat; lr.positionCount = 9;
+                lr.alignment = LineAlignment.View; lr.numCapVertices = 2;
+                lr.shadowCastingMode = ShadowCastingMode.Off;
+                lr.widthCurve = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.5f, 1f), new Keyframe(1f, 0f));
+                lr.widthMultiplier = 0.09f;
+                c.rakes[i] = lr;
+            }
+            c.Draw(0f);
+        }
+
+        void Draw(float k)
+        {
+            // a diagonal downward rake from upper-left to lower-right, revealed as k goes 0..1
+            for (int i = 0; i < 3; i++)
+            {
+                var lr = rakes[i];
+                float off = (i - 1) * 0.16f;
+                for (int j = 0; j < lr.positionCount; j++)
+                {
+                    float u = Mathf.Min(j / (lr.positionCount - 1f), Mathf.Clamp01(k * 1.6f));
+                    float x = Mathf.Lerp(-0.45f, 0.45f, u) + off * 0.3f;
+                    float y = Mathf.Lerp(0.45f, -0.4f, u) + off;
+                    float z = 0.55f + Mathf.Sin(u * Mathf.PI) * 0.18f;
+                    lr.SetPosition(j, new Vector3(x, y, z));
+                }
+                var col = new Color(0.85f, 0.08f, 0.06f, (1f - k) * 0.95f);
+                lr.startColor = col; lr.endColor = new Color(1f, 0.55f, 0.45f, col.a);
+            }
+        }
+
+        void Update()
+        {
+            t += Time.deltaTime;
+            Draw(Mathf.Clamp01(t / Life));
+            if (t >= Life) Destroy(gameObject);
+        }
+    }
+
     /// <summary>Wobbles a 3D brazier flame and hides it while the brazier is out.</summary>
     public class FlameFlicker : MonoBehaviour
     {

@@ -26,6 +26,7 @@ namespace Biertan.Enemies
         [Header("Runtime")]
         public string state = "idle";
         public float t, atkCd, flash, salted, orbit;
+        public float strikeT;   // > 0 while a bite or strike just landed (drawn as the attack animation)
         public Vector2 face = Vector2.right, knock, lungeDir, home;
         public bool hitDone;
 
@@ -84,6 +85,7 @@ namespace Biertan.Enemies
             t += dt;
             flash = Mathf.Max(0f, flash - dt);
             atkCd = Mathf.Max(0f, atkCd - dt);
+            strikeT = Mathf.Max(0f, strikeT - dt);
             if (player == null) player = FindAnyObjectByType<PlayerController>();
             if (player == null || player.hp <= 0f) { rb.linearVelocity = Vector2.zero; return; }
 
@@ -270,6 +272,7 @@ namespace Biertan.Enemies
             float amount = dmg * mult * (garlic ? 0.5f : 1f);
             player.Hurt(amount, dir);
             atkCd = 1.1f;
+            strikeT = 0.5f;
             if (!garlic)
             {
                 hp = Mathf.Min(maxHp, hp + amount * 0.5f);

@@ -88,7 +88,7 @@ namespace Biertan.Visual3D
             if (t.GetComponent<EnemyBase>() is EnemyBase e)
             {
                 if (e.hp <= 0f) return "death";
-                if (e.state is "windup" or "lunge" or "leap") return "attack";
+                if (e.strikeT > 0f || e.state is "windup" or "lunge" or "leap" or "crouch") return "attack";
                 if (e.flash > 0.08f) return "hurt";
                 return speed > 0.3f ? "walk" : "idle";
             }
