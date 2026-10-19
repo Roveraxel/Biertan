@@ -18,10 +18,31 @@ namespace Biertan.Core
         readonly Dictionary<string, AudioClip[]> variants = new();
         float stepT;
 
+        // music crossfades between two players; an ambient bed (wind, cave drip) loops underneath
+        AudioSource musicB, amb;
+        float musicTarget = 1f, ambTarget;
+        string ambName = "";
+        const float Fade = 1.6f;
+
+        // creature cries play through a small pool so each can sit left or right of the hunter
+        readonly List<AudioSource> pool = new();
+        float vocalT;
+
         void Awake()
         {
             if (I != null && I != this) { Destroy(gameObject); return; }
             I = this;
+            musicB = NewSource(true);
+            amb = NewSource(true);
+            for (int i = 0; i < 6; i++) pool.Add(NewSource(false));
+        }
+
+        AudioSource NewSource(bool loop)
+        {
+            var a = gameObject.AddComponent<AudioSource>();
+            a.playOnAwake = false; a.loop = loop; a.spatialBlend = 0f; a.volume = 0f;
+            if (sfxSource != null) a.outputAudioMixerGroup = sfxSource.outputAudioMixerGroup;
+            return a;
         }
 
         AudioClip Load(string name)
@@ -47,6 +68,28 @@ namespace Biertan.Core
             sfxSource.PlayOneShot(clip, DbToLinear(db));
         }
 
+        /// <summary>A sound heard from somewhere in the world: quieter with distance from the hunter and panned
+        /// toward the side it comes from. Silent past about 900 units.</summary>
+        public void SfxAt(string name, Vector2 at, float db = 0f, float pitch = 1f)
+        {
+            var p = GameManager.I != null ? GameManager.I.player : null;
+            if (p == null) { Sfx(name, db, pitch); return; }
+            Vector2 d = at - (Vector2)p.transform.position;
+            float dist = d.magnitude;
+            if (dist > 900f) return;
+            var set = Variants(name);
+            if (set.Length == 0) return;
+            AudioSource src = null;
+            foreach (var a in pool) if (!a.isPlaying) { src = a; break; }
+            if (src == null) return; // already crowded: let this cry go
+            float fall = Mathf.Clamp01(1f - (dist - 150f) / 750f);
+            src.clip = set[Random.Range(0, set.Length)];
+            src.pitch = pitch * Random.Range(0.94f, 1.06f);
+            src.panStereo = Mathf.Clamp(d.x / 450f, -0.8f, 0.8f);
+            src.volume = DbToLinear(db) * fall * fall;
+            src.Play();
+        }
+
         /// <summary>A sound and its other takes: name, name_2, name_3 ... (e.g. hit, hit_2, hit_3).</summary>
         AudioClip[] Variants(string name)
         {
@@ -67,6 +110,13 @@ namespace Biertan.Core
         /// grass and leaves out on the land.</summary>
         void Update()
         {
+            float k = Time.unscaledDeltaTime / Fade;
+            if (musicSource != null) musicSource.volume = Mathf.MoveTowards(musicSource.volume, musicTarget, k * Mathf.Max(musicTarget, 0.3f));
+            if (musicB != null) { musicB.volume = Mathf.MoveTowards(musicB.volume, 0f, k * 0.6f); if (musicB.isPlaying && musicB.volume <= 0f) musicB.Stop(); }
+            if (amb != null) amb.volume = Mathf.MoveTowards(amb.volume, ambTarget, k * 0.5f);
+            UpdateAmbient();
+            UpdateVocals();
+
             var gm = GameManager.I;
             var p = gm != null ? gm.player : null;
             if (p == null || gm.state != GameManager.State.Play) return;
@@ -88,11 +138,82 @@ namespace Biertan.Core
         {
             var clip = Load(name);
             if (clip == null || musicSource == null) return;
-            if (musicSource.clip == clip && musicSource.isPlaying) { musicSource.volume = DbToLinear(db); return; }
+            musicTarget = DbToLinear(db);
+            if (musicSource.clip == clip && musicSource.isPlaying) return;
+            // the old tune hands over to a second player and fades out while the new one fades in
+            if (musicSource.isPlaying && musicB != null)
+            {
+                musicB.clip = musicSource.clip; musicB.timeSamples = musicSource.timeSamples;
+                musicB.volume = musicSource.volume; musicB.Play();
+            }
             musicSource.clip = clip;
             musicSource.loop = true;
-            musicSource.volume = DbToLinear(db);
+            musicSource.volume = 0f;
             musicSource.Play();
+        }
+
+        /// <summary>The bed of sound under the music: dripping stone underground, wind everywhere else.</summary>
+        void UpdateAmbient()
+        {
+            var gm = GameManager.I;
+            string want = ""; float db = -60f;
+            if (gm != null && gm.state is GameManager.State.Play or GameManager.State.Dialogue)
+            {
+                switch (gm.current)
+                {
+                    case "caves": case "gorge": want = "amb_cave"; db = -14f; break;
+                    case "church": want = "amb_cave"; db = -20f; break;
+                    case "hub": case "richis": case "mosna": case "biertan": want = "amb_wind"; db = -24f; break;
+                    case "": break;
+                    default: want = "amb_wind"; db = -16f; break;
+                }
+            }
+            if (want != ambName)
+            {
+                // fade the old bed down before swapping it
+                ambTarget = 0f;
+                if (amb.volume > 0.01f && amb.isPlaying) return;
+                ambName = want;
+                amb.Stop();
+                if (want == "") return;
+                amb.clip = Load(want);
+                if (amb.clip == null) return;
+                amb.Play();
+            }
+            ambTarget = want == "" ? 0f : DbToLinear(db);
+        }
+
+        /// <summary>Hunting creatures now and then give voice: wolves snarl and howl, the strigoi hisses,
+        /// the pricolici growls. Heard from where they are.</summary>
+        void UpdateVocals()
+        {
+            var gm = GameManager.I;
+            if (gm == null || gm.state != GameManager.State.Play) return;
+            vocalT -= Time.deltaTime;
+            if (vocalT > 0f) return;
+            vocalT = 0.5f;
+            foreach (var e in Biertan.Enemies.EnemyBase.All)
+            {
+                if (e == null || e.hp <= 0f || e.state is "idle" or "dormant") continue;
+                if (Random.value > 0.06f) continue; // about one cry every eight seconds each
+                Vocal(e, false);
+            }
+        }
+
+        /// <summary>A creature's cry; first=true when it has just caught the hunter's scent.</summary>
+        public void Vocal(Biertan.Enemies.EnemyBase e, bool first)
+        {
+            Vector2 at = e.transform.position;
+            switch (e.kind)
+            {
+                case "wolf":
+                    if (first && Random.value < 0.5f) SfxAt("howl", at, -10f, Random.Range(0.95f, 1.15f));
+                    else SfxAt("growl", at, -8f, Random.Range(0.9f, 1.1f));
+                    break;
+                case "pricolici": SfxAt(first ? "roar_wolf" : "growl", at, first ? -6f : -5f, first ? 0.9f : Random.Range(0.7f, 0.8f)); break;
+                case "strigoi": SfxAt("hiss", at, -9f, Random.Range(0.8f, 0.95f)); break;
+                case "moroi": SfxAt("whisper", at, -10f, Random.Range(0.85f, 1f)); break;
+            }
         }
 
         static float DbToLinear(float db) => Mathf.Pow(10f, db / 20f);

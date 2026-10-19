@@ -129,3 +129,8 @@ Assets/Resources/Models3D/Anims/
 Assets/Resources/Models3D/Anims.meta
 Assets/Resources/Models3D/Skeletons/
 Assets/Resources/Models3D/Skeletons.meta
+
+# Mixkit sound effects (Mixkit License): usable in the game, not redistributable on their own
+Assets/Resources/Audio/growl.mp3*
+Assets/Resources/Audio/growl_2.mp3*
+Assets/Resources/Audio/roar_wolf.mp3*

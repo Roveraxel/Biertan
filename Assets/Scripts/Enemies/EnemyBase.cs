@@ -109,7 +109,7 @@ namespace Biertan.Enemies
                             if (kind == "moroi") AudioManager.I?.Sfx("moroi", -4f, Random.Range(0.85f, 1.1f));
                             else AudioManager.I?.Sfx("shriek", -8f, Random.Range(0.8f, 0.95f));
                         }
-                        else state = "chase";
+                        else { state = "chase"; AudioManager.I?.Vocal(this, true); }
                     }
                     break;
                 case "rise":
