@@ -116,6 +116,7 @@ namespace Biertan.Core
             if (amb != null) amb.volume = Mathf.MoveTowards(amb.volume, ambTarget, k * 0.5f);
             UpdateAmbient();
             UpdateVocals();
+            UpdateNightCalls();
 
             var gm = GameManager.I;
             var p = gm != null ? gm.player : null;
@@ -164,8 +165,9 @@ namespace Biertan.Core
                     case "caves": case "gorge": want = "amb_cave"; db = -14f; break;
                     case "church": want = "amb_cave"; db = -20f; break;
                     case "hub": case "richis": case "mosna": case "biertan": want = "amb_wind"; db = -24f; break;
+                    case "forest": want = "amb_woods"; db = -12f; break;
                     case "": break;
-                    default: want = "amb_wind"; db = -16f; break;
+                    default: want = "amb_night"; db = -16f; break;
                 }
             }
             if (want != ambName)
@@ -198,6 +200,23 @@ namespace Biertan.Core
                 if (Random.value > 0.06f) continue; // about one cry every eight seconds each
                 Vocal(e, false);
             }
+        }
+
+        /// <summary>Now and then an owl or a crow calls from somewhere out in the dark, wherever the sky is open.</summary>
+        float nightT = 8f;
+        void UpdateNightCalls()
+        {
+            var gm = GameManager.I;
+            if (gm == null || gm.player == null || gm.state != GameManager.State.Play) return;
+            if (gm.current is "" or "caves" or "gorge" or "church") return;
+            nightT -= Time.deltaTime;
+            if (nightT > 0f) return;
+            nightT = Random.Range(12f, 30f);
+            Vector2 at = (Vector2)gm.player.transform.position + Random.insideUnitCircle.normalized * Random.Range(350f, 700f);
+            float r = Random.value;
+            if (r < 0.55f) SfxAt("owl", at, -8f, Random.Range(0.95f, 1.05f));
+            else if (r < 0.85f) SfxAt("crow", at, -10f, Random.Range(0.9f, 1.1f));
+            else SfxAt("owl_shriek", at, -12f);
         }
 
         /// <summary>A creature's cry; first=true when it has just caught the hunter's scent.</summary>

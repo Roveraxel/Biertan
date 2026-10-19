@@ -374,6 +374,12 @@ namespace Biertan.Enemies
         protected virtual void Die()
         {
             Died?.Invoke(this);
+            switch (kind)
+            {
+                case "wolf": AudioManager.I?.SfxAt("die_wolf", Pos, -9f, Random.Range(0.95f, 1.1f)); break;
+                case "pricolici": AudioManager.I?.SfxAt("die_beast", Pos, -6f, 0.85f); break;
+                case "strigoi": AudioManager.I?.SfxAt("die_beast", Pos, -8f, 1.2f); break;
+            }
             if (coin > 0 && player != null)
             {
                 player.coins += coin;
