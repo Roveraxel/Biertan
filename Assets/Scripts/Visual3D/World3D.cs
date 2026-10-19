@@ -815,6 +815,20 @@ namespace Biertan.Visual3D
             foreach (var k in dead) { if (lines[k] != null) Destroy(lines[k].gameObject); lines.Remove(k); }
         }
 
+        /// <summary>A pixel figure is drawn wider than the old sprite: grow the actor's collision circle (and an
+        /// enemy's reach, which is measured from it) so bodies keep a believable distance instead of overlapping.</summary>
+        static void FitBody(Transform t)
+        {
+            const float body = 18f; // half the drawn shoulder width, in 2D units
+            var col = t.GetComponent<CircleCollider2D>();
+            if (t.GetComponent<EnemyBase>() is EnemyBase e)
+            {
+                if (e.radius < body) e.radius = body;
+                if (col != null) col.radius = Mathf.Max(col.radius, e.radius * 0.95f);
+            }
+            else if (col != null) col.radius = Mathf.Max(col.radius, 16f);
+        }
+
         Actor MakeActor(Transform t)
         {
             var a = new Actor();
@@ -842,6 +856,7 @@ namespace Biertan.Visual3D
             }
             a.body = CharacterBody.Enabled ? CharacterBody.Create(t, actors) : null;
             a.pix = PixelFigure.For(t);
+            if (a.pix != null) FitBody(t);
             a.folk = a.pix == null ? FolkFigures.For(t) : null;
             a.seed = Random.value;
             // a soft blob shadow on the ground
