@@ -674,6 +674,17 @@ namespace Biertan.Visual3D
             foreach (var t in gone)
             {
                 var a = mirrored[t];
+                // a slain pixel creature keeps its last pose, topples over in a spreading pool of blood and fades
+                if (a.pix != null && a.board != null && a.body == null && a.parts.Count > 0 && t == null)
+                {
+                    var bodyR = a.parts.Find(p => p.src == null && p.dst != null && p.dst.enabled).dst;
+                    if (bodyR != null)
+                    {
+                        Corpse.Make(a.board, a.shadow, a.dir >= 0f ? 1f : -1f, a.vel, a.pix.Flip);
+                        mirrored.Remove(t);
+                        continue;
+                    }
+                }
                 if (a.board != null) Destroy(a.board.gameObject);
                 if (a.shadow != null) Destroy(a.shadow.gameObject);
                 if (a.body != null && t != null) Destroy(a.body.gameObject); // a destroyed actor's body plays its death
@@ -728,9 +739,14 @@ namespace Biertan.Visual3D
                         dst.sprite = spr; dst.flipX = a.pix.Flip; dst.flipY = false;
                         var pc = src.color;
                         dst.color = new Color(pc.r * tint.r, pc.g * tint.g, pc.b * tint.b, pc.a);
+                        // a hit flares the figure blood-red for a moment and squashes it against the blow
+                        float hurt = t.GetComponent<EnemyBase>() is EnemyBase he ? Mathf.Clamp01(he.flash / 0.12f)
+                                   : t.GetComponent<PlayerController>() is PlayerController hp ? Mathf.Clamp01((hp.hurtFlash - 0.15f) / 0.15f) : 0f;
+                        if (hurt > 0f) dst.color = Color.Lerp(dst.color, new Color(1f, 0.25f, 0.2f, pc.a), hurt * 0.75f);
+                        a.dir = a.pix.Flip ? -1f : 1f;
                         dst.transform.localPosition = new Vector3(0f, -still.bounds.min.y * k - still.bounds.size.y * 0.06f * k, -0.001f * src.sortingOrder);
                         dst.transform.localRotation = Quaternion.Euler(pitch * 0.45f, 0f, 0f); // board leans part-way; this finishes facing the camera
-                        dst.transform.localScale = new Vector3(k, k, 1f);
+                        dst.transform.localScale = new Vector3(k * (1f + 0.08f * hurt), k * (1f - 0.06f * hurt), 1f);
                         continue;
                     }
                     if (a.folk.HasValue && src.name is "Body")
@@ -882,6 +898,64 @@ namespace Biertan.Visual3D
 
 namespace Biertan.Visual3D
 {
+    /// <summary>What is left of a slain pixel creature: its last frame tips over onto the ground beside a pool of
+    /// blood that spreads out, then both darken and fade away.</summary>
+    public class Corpse : MonoBehaviour
+    {
+        Transform board, pool;
+        SpriteRenderer[] parts; Color[] baseCol; SpriteRenderer poolR;
+        Quaternion start; Vector3 startPos; float side, t;
+        const float Fall = 0.35f, Stay = 2.2f, Fade = 1.0f;
+
+        public static void Make(Transform board, Transform shadow, float facing, Vector2 vel, bool flipped)
+        {
+            var c = board.gameObject.AddComponent<Corpse>();
+            c.board = board; c.start = board.rotation; c.startPos = board.position;
+            // falls away from the blow: backwards from the way it was facing
+            c.side = flipped ? -1f : 1f;
+            c.parts = board.GetComponentsInChildren<SpriteRenderer>();
+            foreach (var r in c.parts) if (r.name != "Body") r.enabled = false;
+            c.baseCol = System.Array.ConvertAll(c.parts, r => r.color);
+            if (shadow != null)
+            {
+                c.pool = shadow; c.poolR = shadow.GetComponent<SpriteRenderer>();
+                shadow.gameObject.SetActive(true);
+                shadow.localScale = new Vector3(0.2f, 0.12f, 1f);
+            }
+        }
+
+        void Update()
+        {
+            t += Time.deltaTime;
+            float f = Mathf.Clamp01(t / Fall);
+            float ease = 1f - (1f - f) * (1f - f);
+            // tip over sideways about the feet and settle a touch into the ground
+            board.rotation = start * Quaternion.Euler(0f, 0f, side * 82f * ease);
+            board.position = startPos + new Vector3(0f, -0.04f * ease, 0f);
+            float dark = Mathf.Lerp(1f, 0.55f, Mathf.Clamp01(t / (Fall + Stay)));
+            float alpha = 1f - Mathf.Clamp01((t - Fall - Stay) / Fade);
+            for (int i = 0; i < parts.Length; i++)
+            {
+                if (parts[i] == null || !parts[i].enabled) continue;
+                var b = baseCol[i];
+                parts[i].color = new Color(b.r * dark, b.g * dark * 0.9f, b.b * dark * 0.9f, b.a * alpha);
+            }
+            if (pool != null)
+            {
+                float g = Mathf.Clamp01((t - 0.15f) / 1.2f);
+                float sz = Mathf.Lerp(0.2f, 1.1f, 1f - (1f - g) * (1f - g));
+                pool.position = startPos + new Vector3(-side * 0.35f, 0.012f, 0f);
+                pool.localScale = new Vector3(sz, sz * 0.6f, 1f);
+                poolR.color = new Color(0.32f, 0.02f, 0.03f, 0.75f * alpha);
+            }
+            if (t > Fall + Stay + Fade)
+            {
+                if (pool != null) Destroy(pool.gameObject);
+                Destroy(board.gameObject);
+            }
+        }
+    }
+
     /// <summary>Three red claw rakes swept through the air in front of a striking monster, fading fast.</summary>
     public class ClawSlash : MonoBehaviour
     {
