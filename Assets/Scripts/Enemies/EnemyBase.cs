@@ -361,7 +361,11 @@ namespace Biertan.Enemies
             hp -= amount;
             flash = 0.12f;
             knock = dir * 280f;
-            AudioManager.I?.Sfx("hit", -5f);
+            // a blade in flesh for the living and the undead-in-flesh; a dull knock for bone, straw and spirits
+            bool flesh = kind is "wolf" or "pricolici" or "strigoi" or "moroi";
+            if (!flesh) AudioManager.I?.Sfx("hit", -5f);
+            else if (hp <= 0f) AudioManager.I?.Sfx("kill", -6f, Random.Range(0.95f, 1.05f));
+            else { AudioManager.I?.Sfx("slash", -8f); AudioManager.I?.Sfx("hit", -14f, 0.8f); }
             if (state is "dormant" or "idle") state = "chase";
             FxUtil.Text(Pos, Mathf.RoundToInt(amount).ToString(), new Color32(0xff, 0xe0, 0x8a, 0xff));
             if (hp <= 0f) Die();

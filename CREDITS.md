@@ -13,6 +13,7 @@ By Kevin MacLeod (incompetech.com), licensed under Creative Commons: By Attribut
 - "Malicious" (Strigoi Vlad)
 
 ## Sound effects
+- `Audio/swing*.mp3`, `slash*.mp3`, `kill.mp3`: Mixkit ("Fast sword whoosh", "Sword slash swoosh", "Sword blade swish", "Sword cutting flesh", "Sword gore slash hit", "Sword cutting and killing"), Mixkit Sound Effects Free License. Not in the repository; download from mixkit.co/free-sound-effects/sword/.
 - `Audio/growl.mp3`, `growl_2.mp3`, `roar_wolf.mp3`: Mixkit ("Hellhound monster growl", "Wolf attack", "Werewolf roar"), Mixkit Sound Effects Free License. Not in the repository; download from mixkit.co/free-sound-effects/wolf/.
 Kenney (https://kenney.nl), CC0: RPG Audio, Impact Sounds, Interface Sounds (hits, hurt, dodge, coins,
 potion, bell, ward, salt, footsteps, menu). The creature sounds and ambiences are still generated in code.

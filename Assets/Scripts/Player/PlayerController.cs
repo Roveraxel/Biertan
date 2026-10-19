@@ -154,7 +154,7 @@ namespace Biertan.Player
 
         void Swing()
         {
-            AudioManager.I?.Sfx("swing", -6f);
+            AudioManager.I?.Sfx("swing", -9f);
             attackT = 0.18f;
             attackCd = 0.36f;
             const float reach = 82f;
