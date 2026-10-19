@@ -57,6 +57,7 @@ namespace Biertan.Visual3D
                 {
                     case "strigoi": return Get("strigoi", 1.35f)?.Clone();
                     case "pricolici": return Get("pricolici", 1.5f)?.Clone();
+                    case "wolf": return Get("wolf", 1.0f)?.Clone();
                 }
             return null;
         }
@@ -119,17 +120,20 @@ namespace Biertan.Visual3D
             t0 += dt;
             float fps = cur switch { "walk" => Mathf.Clamp(vel.magnitude * 3.2f, 6f, 14f), "attack" => 12f, "death" => 10f, _ => 7f };
             Flip = false;
-            if (!clips.TryGetValue(cur + "_" + dir, out var frames))
+            // a figure drawn without a strike (the wolf) springs at its prey with a quick burst of its run
+            string anim = cur == "attack" && !clips.ContainsKey("attack_south") && !clips.ContainsKey("attack_east") ? "walk" : cur;
+            if (anim != cur) fps = 18f;
+            if (!clips.TryGetValue(anim + "_" + dir, out var frames))
             {
                 // a missing side borrows its mirror (west from east and so on), else the camera-facing clip
                 string mirror = dir.Replace("west", "@").Replace("east", "west").Replace("@", "east");
-                if (mirror != dir && clips.TryGetValue(cur + "_" + mirror, out frames)) Flip = true;
-                else clips.TryGetValue(cur + "_south", out frames);
+                if (mirror != dir && clips.TryGetValue(anim + "_" + mirror, out frames)) Flip = true;
+                else clips.TryGetValue(anim + "_south", out frames);
             }
             if (frames != null && frames.Length > 0)
             {
                 int i = (int)(t0 * fps);
-                i = cur is "death" or "attack" ? Mathf.Min(i, frames.Length - 1) : i % frames.Length;
+                i = anim is "death" or "attack" ? Mathf.Min(i, frames.Length - 1) : i % frames.Length;
                 return frames[i];
             }
             return stills.TryGetValue(dir, out var s) ? s : (stills.TryGetValue("south", out var s2) ? s2 : null);

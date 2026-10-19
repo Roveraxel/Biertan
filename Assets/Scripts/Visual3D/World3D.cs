@@ -829,7 +829,7 @@ namespace Biertan.Visual3D
             var col = t.GetComponent<CircleCollider2D>();
             if (t.GetComponent<EnemyBase>() is EnemyBase e)
             {
-                float b = e.kind == "pricolici" ? 22f : body; // the wolf-man stands broader
+                float b = e.kind == "pricolici" ? 22f : e.kind == "wolf" ? 15f : body; // the wolf-man stands broader
                 if (e.radius < b) e.radius = b;
                 if (col != null) col.radius = Mathf.Max(col.radius, e.radius * 0.95f);
             }

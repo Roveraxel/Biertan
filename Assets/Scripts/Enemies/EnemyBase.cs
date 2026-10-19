@@ -127,7 +127,7 @@ namespace Biertan.Enemies
                         if (d < radius + 26f && atkCd <= 0f)
                         {
                             player.Hurt(dmg * mult, dir);
-                            atkCd = 1f;
+                            atkCd = 1f; strikeT = 0.45f;
                             knock = -dir * 220f; // bounce off so it can't sit inside the hunter
                         }
                     }
