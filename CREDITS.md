@@ -18,3 +18,12 @@ potion, bell, ward, salt, footsteps, menu). The creature sounds and ambiences ar
 
 ## Photos
 See `Assets/Resources/Photos/credits.json` (Wikimedia Commons).
+
+## Characters
+- Hunter and strigoi pixel sprites and animations: generated with PixelLab (pixellab.ai) for this project.
+- Painted figures in `Resources/Sprites/Folk`: generated with Canva's AI image tool for this project.
+- Wolf model and animations: Quaternius, Ultimate Animated Animals (CC0).
+
+## Music (Romanian folk)
+- `Audio/Folk/music_hub.ogg`: Petru Laicu din Banat, "Pasere nevinovată / Mai bade Ioane / Ce mai faci", Columbia E2600, 1915 (public domain recording, via the Internet Archive).
+- Other `Audio/Folk` tracks are Pixabay Content License tracks ("Vibrant Romanian Folk 01/02" by alanajordan, "Atlas • Romania" by Vadim_Makes_Sound, "Transylvanian Groove" by FaithVentureMedia). They are kept out of this repository; the game falls back to the earlier score when they are absent.

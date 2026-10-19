@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Scenes/Proto3D_Saschiz.unity
+    guid: f4e34f2ad2bb840b7b83b2449e300aaf
+  - enabled: 1
     path: Assets/Scenes/Level_Biertan.unity
     guid: 783bce24041ea4a8db63512e813ea72f
   - enabled: 1

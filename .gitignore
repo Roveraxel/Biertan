@@ -115,3 +115,17 @@ InitTestScene*.unity*
 
 # downloaded third-party packs (unpacked locally, not redistributed)
 _packs/
+Assets/Resources/Models3D/Mixamo/
+Assets/Resources/Models3D/Mixamo.meta
+# Pixabay Content License tracks: usable in the game, not redistributable on their own
+Assets/Resources/Audio/Folk/music_biertan.ogg*
+Assets/Resources/Audio/Folk/music_forest.ogg*
+Assets/Resources/Audio/Folk/music_hills.ogg*
+Assets/Resources/Audio/Folk/music_vineyard.ogg*
+# CC0 character/animation packs tried and set aside (large; re-downloadable from Quaternius / KayKit)
+Assets/Resources/Models3D/Chars/
+Assets/Resources/Models3D/Chars.meta
+Assets/Resources/Models3D/Anims/
+Assets/Resources/Models3D/Anims.meta
+Assets/Resources/Models3D/Skeletons/
+Assets/Resources/Models3D/Skeletons.meta

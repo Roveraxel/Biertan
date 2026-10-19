@@ -28,7 +28,8 @@ namespace Biertan.Core
         {
             if (cache.TryGetValue(name, out var c)) return c;
             // Audio/SFX/<name>.ogg and Audio/Music/<name>.ogg, imported under Resources/Audio/
-            var clip = Resources.Load<AudioClip>($"Audio/{name}");
+            // Romanian folk recordings (Audio/Folk) take the place of the older score where present
+            var clip = Resources.Load<AudioClip>($"Audio/Folk/{name}") ?? Resources.Load<AudioClip>($"Audio/{name}");
             cache[name] = clip;
             if (clip == null) Debug.LogWarning($"AudioManager: missing clip '{name}'");
             return clip;

@@ -39,7 +39,7 @@ namespace Biertan.Visual3D
         readonly Dictionary<Transform, Actor> mirrored = new();
         readonly Dictionary<string, Material> mats = new();
 
-        class Actor { public Transform board, shadow; public List<(SpriteRenderer src, SpriteRenderer dst)> parts = new(); public (TextMesh src, TextMesh dst) text; }
+        class Actor { public Transform board, shadow; public CharacterBody body; public FolkFigures.Art? folk; public PixelFigure pix; public float seed, dir = 1f; public Vector3 last; public Vector2 vel; public bool hasLast; public List<(SpriteRenderer src, SpriteRenderer dst)> parts = new(); public (TextMesh src, TextMesh dst) text; }
 
         public static Vector3 To3D(Vector2 p, float h = 0f) => new(p.x * S, h, p.y * S);
 
@@ -676,6 +676,7 @@ namespace Biertan.Visual3D
                 var a = mirrored[t];
                 if (a.board != null) Destroy(a.board.gameObject);
                 if (a.shadow != null) Destroy(a.shadow.gameObject);
+                if (a.body != null && t != null) Destroy(a.body.gameObject); // a destroyed actor's body plays its death
                 mirrored.Remove(t);
             }
 
@@ -683,9 +684,17 @@ namespace Biertan.Visual3D
             {
                 if (!mirrored.TryGetValue(t, out var a)) mirrored[t] = a = MakeActor(t);
                 var pos = To3D(t.position);
+                float dtv = Time.deltaTime;
+                if (a.hasLast && dtv > 0f)
+                {
+                    var v = new Vector2(pos.x - a.last.x, pos.z - a.last.z) / dtv;
+                    if (v.magnitude > 30f) v = Vector2.zero; // a teleport
+                    a.vel = Vector2.Lerp(a.vel, v, 1f - Mathf.Exp(-dtv * 10f));
+                }
+                a.last = pos; a.hasLast = true;
                 bool flat = IsFlat(t);
                 a.board.SetPositionAndRotation(pos + (flat ? new Vector3(0, 0.03f, 0) : Vector3.zero), flat ? flatRot : camRot);
-                a.shadow.gameObject.SetActive(!flat && t.GetComponent<FloatingText>() == null && t.GetComponent<BloodBolt>() == null);
+                a.shadow.gameObject.SetActive(!flat && a.body == null && t.GetComponent<FloatingText>() == null && t.GetComponent<BloodBolt>() == null);
                 a.shadow.position = pos + new Vector3(0, 0.015f, 0);
                 var tint = LightAt(pos);
                 if (a.text.src != null)
@@ -700,8 +709,40 @@ namespace Biertan.Visual3D
                 {
                     var (src, dst) = a.parts[i];
                     if (src == null) { if (dst != null) Destroy(dst.gameObject); a.parts.RemoveAt(i); continue; }
-                    dst.enabled = src.enabled && src.gameObject.activeInHierarchy;
+                    dst.enabled = src.enabled && src.gameObject.activeInHierarchy && !(a.body != null && src.name is "Body" or "Head");
                     if (!dst.enabled) continue;
+                    if ((a.folk.HasValue || a.pix != null) && src.name is "Head") { dst.enabled = false; continue; }
+                    if (a.pix != null && src.name is "Body")
+                    {
+                        // a frame-animated pixel figure, upright to the camera so it isn't foreshortened
+                        var spr = a.pix.Tick(t, a.vel, Time.deltaTime);
+                        if (spr == null) { dst.enabled = false; continue; }
+                        var still = a.pix.Still ?? spr;
+                        float k = a.pix.height / Mathf.Max(0.01f, still.bounds.size.y * 0.82f);
+                        dst.sprite = spr; dst.flipX = a.pix.Flip; dst.flipY = false;
+                        var pc = src.color;
+                        dst.color = new Color(pc.r * tint.r, pc.g * tint.g, pc.b * tint.b, pc.a);
+                        dst.transform.localPosition = new Vector3(0f, -still.bounds.min.y * k - still.bounds.size.y * 0.06f * k, -0.001f * src.sortingOrder);
+                        dst.transform.localRotation = Quaternion.Euler(pitch * 0.45f, 0f, 0f); // board leans part-way; this finishes facing the camera
+                        dst.transform.localScale = new Vector3(k, k, 1f);
+                        continue;
+                    }
+                    if (a.folk.HasValue && src.name is "Body")
+                    {
+                        // a painted figure: full height, turned the way the actor goes, moved procedurally
+                        var art = a.folk.Value;
+                        float f = FolkFigures.Facing(t, a.vel);
+                        if (f != 0f) a.dir = f;
+                        FolkFigures.Motion(t, a.vel.magnitude, Time.time, a.seed, a.dir, out var off, out var lean, out var sc);
+                        float k = art.height / Mathf.Max(0.01f, art.sprite.bounds.size.y);
+                        dst.sprite = art.sprite; dst.flipX = a.dir != art.facing; dst.flipY = false;
+                        var fc = src.color;
+                        dst.color = new Color(fc.r * tint.r, fc.g * tint.g, fc.b * tint.b, fc.a);
+                        dst.transform.localPosition = new Vector3(off.x, -art.sprite.bounds.min.y * k * sc.y + off.y, -0.001f * src.sortingOrder);
+                        dst.transform.localRotation = Quaternion.Euler(0, 0, lean);
+                        dst.transform.localScale = new Vector3(k * sc.x, k * sc.y, 1f);
+                        continue;
+                    }
                     dst.sprite = src.sprite; dst.flipX = src.flipX; dst.flipY = src.flipY;
                     var c = src.color;
                     dst.color = brazier ? c * 1.6f : new Color(c.r * tint.r, c.g * tint.g, c.b * tint.b, c.a);
@@ -744,10 +785,21 @@ namespace Biertan.Visual3D
                 }
                 seen.Add(src);
                 dst.enabled = src.enabled && src.gameObject.activeInHierarchy && src.positionCount > 1;
+                // the hunter's slash: a bright swoosh at waist height tracing the sword's real reach
+                bool swoosh = dst.enabled && src.GetComponentInParent<Biertan.Player.PlayerController>() != null;
                 if (!dst.enabled) continue;
                 dst.sharedMaterial = src.sharedMaterial;
                 dst.startColor = src.startColor; dst.endColor = src.endColor;
                 dst.widthMultiplier = src.widthMultiplier * S; dst.widthCurve = src.widthCurve;
+                if (swoosh)
+                {
+                    dst.widthMultiplier = 0.34f;
+                    dst.widthCurve = new AnimationCurve(new Keyframe(0f, 0.05f), new Keyframe(0.75f, 1f), new Keyframe(1f, 0.3f));
+                    var g = new Gradient();
+                    g.SetKeys(new[] { new GradientColorKey(new Color(1f, 0.95f, 0.85f), 0f), new GradientColorKey(Color.white, 1f) },
+                              new[] { new GradientAlphaKey(0f, 0f), new GradientAlphaKey(0.55f, 0.6f), new GradientAlphaKey(0.95f, 1f) });
+                    dst.colorGradient = g;
+                }
                 dst.loop = src.loop;
                 int n = src.positionCount;
                 if (dst.positionCount != n) dst.positionCount = n;
@@ -755,7 +807,7 @@ namespace Biertan.Visual3D
                 {
                     var p = src.GetPosition(i);
                     if (!src.useWorldSpace) p = src.transform.TransformPoint(p);
-                    dst.SetPosition(i, To3D(p, 0.05f));
+                    dst.SetPosition(i, To3D(p, swoosh ? 0.55f : 0.05f));
                 }
             }
             var dead = new List<LineRenderer>();
@@ -788,6 +840,10 @@ namespace Biertan.Visual3D
                 dtm.anchor = tm.anchor; dtm.alignment = tm.alignment; dtm.fontSize = tm.fontSize;
                 a.text = (tm, dtm);
             }
+            a.body = CharacterBody.Enabled ? CharacterBody.Create(t, actors) : null;
+            a.pix = PixelFigure.For(t);
+            a.folk = a.pix == null ? FolkFigures.For(t) : null;
+            a.seed = Random.value;
             // a soft blob shadow on the ground
             var sh = new GameObject("BlobShadow");
             sh.transform.SetParent(actors, false);
