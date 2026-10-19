@@ -136,7 +136,7 @@ namespace Biertan.Enemies
                 case "windup":
                     velocity = knock;
                     face = to.normalized;
-                    if (t > 0.5f) { state = "lunge"; t = 0f; lungeDir = to.normalized; hitDone = false; }
+                    if (t > 0.5f) { state = "lunge"; t = 0f; lungeDir = to.normalized; hitDone = false; strikeT = 0.5f; }
                     break;
                 case "lunge":
                     velocity = lungeDir * 470f;
