@@ -56,6 +56,7 @@ namespace Biertan.Visual3D
                 switch (e.kind)
                 {
                     case "strigoi": return Get("strigoi", 1.35f)?.Clone();
+                    case "pricolici": return Get("pricolici", 1.5f)?.Clone();
                 }
             return null;
         }
