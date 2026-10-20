@@ -39,7 +39,7 @@ namespace Biertan.Visual3D
         readonly Dictionary<Transform, Actor> mirrored = new();
         readonly Dictionary<string, Material> mats = new();
 
-        class Actor { public Transform board, shadow; public CharacterBody body; public FolkFigures.Art? folk; public PixelFigure pix; public float lastStrike; public float seed, dir = 1f; public Vector3 last; public Vector2 vel; public bool hasLast; public List<(SpriteRenderer src, SpriteRenderer dst)> parts = new(); public (TextMesh src, TextMesh dst) text; }
+        class Actor { public EntityId id; public Transform board, shadow; public CharacterBody body; public FolkFigures.Art? folk; public PixelFigure pix; public float lastStrike; public float seed, dir = 1f; public Vector3 last; public Vector2 vel; public bool hasLast; public List<(SpriteRenderer src, SpriteRenderer dst)> parts = new(); public (TextMesh src, TextMesh dst) text; }
 
         public static Vector3 To3D(Vector2 p, float h = 0f) => new(p.x * S, h, p.y * S);
 
@@ -118,7 +118,30 @@ namespace Biertan.Visual3D
             var target = To3D(p.transform.position);
             camTarget = Vector3.Distance(camTarget, target) > 20f ? target : Vector3.Lerp(camTarget, target, 1f - Mathf.Exp(-Time.deltaTime * 6f));
             var rot = Quaternion.Euler(pitch, 0f, 0f);
-            cam.transform.SetPositionAndRotation(camTarget + rot * new Vector3(0f, 0f, -distance), rot);
+            // a jolt on heavy blows that dies away within a quarter second
+            shake = Mathf.MoveTowards(shake, 0f, Time.unscaledDeltaTime * 0.6f);
+            Vector3 jolt = shake > 0f ? new Vector3(Random.Range(-1f, 1f), Random.Range(-1f, 1f), 0f) * shake : Vector3.zero;
+            cam.transform.SetPositionAndRotation(camTarget + rot * (new Vector3(0f, 0f, -distance) + jolt), rot);
+        }
+
+        float shake;
+        /// <summary>Shake the camera by about this many metres (it settles on its own).</summary>
+        public static void Shake(float amount) { if (Active) I.shake = Mathf.Max(I.shake, amount); }
+
+        /// <summary>Sparks where the blade lands, at a 2D world point, thrown along dir.</summary>
+        public static void Spark(Vector2 at, Vector2 dir)
+        {
+            if (Active) HitSpark.Spawn(I.root, To3D(at, 0.8f), new Vector3(dir.x, 0f, dir.y));
+        }
+
+        /// <summary>Freeze the game for a heartbeat so a killing blow lands with weight.</summary>
+        public static void HitStop(float seconds) { if (Active) I.StartCoroutine(I.Freeze(seconds)); }
+        System.Collections.IEnumerator Freeze(float seconds)
+        {
+            if (Time.timeScale < 1f) yield break;
+            Time.timeScale = 0.05f;
+            yield return new WaitForSecondsRealtime(seconds);
+            if (Time.timeScale < 0.1f) Time.timeScale = 1f;
         }
 
         /// <summary>The 2D world point under the mouse (for aiming), through the ground plane.</summary>
@@ -204,6 +227,7 @@ namespace Biertan.Visual3D
             foreach (var l in lines.Values) if (l != null) Destroy(l.gameObject);
             lines.Clear();
             foreach (var a in mirrored.Values) if (a.board != null) { Destroy(a.board.gameObject); Destroy(a.shadow.gameObject); }
+            EnemyBase.Slain.Clear();
             mirrored.Clear();
             built = level;
             if (level == null) return;
@@ -675,7 +699,7 @@ namespace Biertan.Visual3D
             {
                 var a = mirrored[t];
                 // a slain pixel creature keeps its last pose, topples over in a spreading pool of blood and fades
-                if (a.pix != null && a.board != null && a.body == null && a.parts.Count > 0 && t == null)
+                if (a.pix != null && a.board != null && a.body == null && a.parts.Count > 0 && t == null && EnemyBase.Slain.Remove(a.id))
                 {
                     var bodyR = a.parts.Find(p => p.src == null && p.dst != null && p.dst.enabled).dst;
                     if (bodyR != null)
@@ -882,6 +906,7 @@ namespace Biertan.Visual3D
             if (a.pix != null) FitBody(t);
             a.folk = a.pix == null ? FolkFigures.For(t) : null;
             a.seed = Random.value;
+            a.id = t.GetEntityId();
             // a soft blob shadow on the ground
             var sh = new GameObject("BlobShadow");
             sh.transform.SetParent(actors, false);
@@ -1009,6 +1034,61 @@ namespace Biertan.Visual3D
         void Update()
         {
             t += Time.deltaTime;
+            Draw(Mathf.Clamp01(t / Life));
+            if (t >= Life) Destroy(gameObject);
+        }
+    }
+
+    /// <summary>A burst of short pale streaks and red flecks where the hunter's blade bites.</summary>
+    public class HitSpark : MonoBehaviour
+    {
+        LineRenderer[] streaks; Vector3[] dirs; float t;
+        const float Life = 0.16f;
+
+        public static void Spawn(Transform parent, Vector3 at, Vector3 dir)
+        {
+            if (dir.sqrMagnitude < 0.0001f) dir = Vector3.back;
+            dir.Normalize();
+            var go = new GameObject("HitSpark");
+            go.transform.SetParent(parent, false);
+            go.transform.position = at;
+            var c = go.AddComponent<HitSpark>();
+            var mat = Resources.Load<Material>("LineMat");
+            int n = 7;
+            c.streaks = new LineRenderer[n]; c.dirs = new Vector3[n];
+            for (int i = 0; i < n; i++)
+            {
+                var lr = new GameObject("Streak").AddComponent<LineRenderer>();
+                lr.transform.SetParent(go.transform, false);
+                lr.useWorldSpace = false; lr.sharedMaterial = mat; lr.positionCount = 2;
+                lr.alignment = LineAlignment.View; lr.shadowCastingMode = ShadowCastingMode.Off;
+                lr.widthCurve = new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(1f, 0.1f));
+                lr.widthMultiplier = i < 4 ? 0.045f : 0.07f;
+                // mostly along the blow, fanned out, some flung upward
+                var d = Quaternion.Euler(Random.Range(-35f, 35f), Random.Range(-55f, 55f), 0f) * dir;
+                d.y += Random.Range(0.1f, 0.7f);
+                c.dirs[i] = d.normalized * Random.Range(0.5f, 0.95f);
+                c.streaks[i] = lr;
+            }
+            c.Draw(0f);
+        }
+
+        void Draw(float k)
+        {
+            float e = 1f - (1f - k) * (1f - k);
+            for (int i = 0; i < streaks.Length; i++)
+            {
+                var lr = streaks[i];
+                lr.SetPosition(0, dirs[i] * (0.15f + e * 0.55f));
+                lr.SetPosition(1, dirs[i] * (0.15f + e * 0.55f + 0.18f * (1f - k)));
+                var col = i < 4 ? new Color(1f, 0.93f, 0.75f, 1f - k) : new Color(0.7f, 0.05f, 0.05f, 1f - k);
+                lr.startColor = col; lr.endColor = col;
+            }
+        }
+
+        void Update()
+        {
+            t += Time.unscaledDeltaTime;
             Draw(Mathf.Clamp01(t / Life));
             if (t >= Life) Destroy(gameObject);
         }

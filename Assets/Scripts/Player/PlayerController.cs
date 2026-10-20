@@ -165,8 +165,12 @@ namespace Biertan.Player
                 if (to.magnitude < reach + e.radius &&
                     (close || Vector2.Angle(facing, to) < 72f))
                 {
-                    e.Hurt(dmg, to.magnitude > 1f ? to.normalized : facing);
+                    Vector2 hitDir = to.magnitude > 1f ? to.normalized : facing;
+                    e.Hurt(dmg, hitDir);
                     if (vampT > 0f) hp = Mathf.Min(maxHp, hp + 3f);
+                    Biertan.Visual3D.World3D.Spark((Vector2)e.transform.position - hitDir * e.radius * 0.5f, hitDir);
+                    if (e.hp <= 0f) { Biertan.Visual3D.World3D.Shake(0.12f); Biertan.Visual3D.World3D.HitStop(0.07f); }
+                    else Biertan.Visual3D.World3D.Shake(0.05f);
                 }
             }
         }
@@ -212,6 +216,7 @@ namespace Biertan.Player
             if (invT > 0f || hp <= 0f || god) return;
             hp -= amount;
             invT = 0.55f;
+            Biertan.Visual3D.World3D.Shake(Mathf.Clamp(amount * 0.012f, 0.06f, 0.2f));
 
             var gm = GameManager.I;
             if (gm != null && gm.current == "hollow")

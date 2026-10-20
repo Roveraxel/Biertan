@@ -16,6 +16,8 @@ namespace Biertan.Enemies
     public class EnemyBase : MonoBehaviour
     {
         public static readonly List<EnemyBase> All = new();
+        /// <summary>Creatures slain by damage (not merely removed), by instance id, for the 3D view's corpses.</summary>
+        public static readonly HashSet<EntityId> Slain = new();
         public event System.Action<EnemyBase> Died;
 
         [Header("Stats")]
@@ -374,6 +376,7 @@ namespace Biertan.Enemies
         protected virtual void Die()
         {
             Died?.Invoke(this);
+            Slain.Add(transform.GetEntityId());
             switch (kind)
             {
                 case "wolf": AudioManager.I?.SfxAt("die_wolf", Pos, -9f, Random.Range(0.95f, 1.1f)); break;
