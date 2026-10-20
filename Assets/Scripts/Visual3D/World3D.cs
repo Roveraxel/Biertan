@@ -234,6 +234,7 @@ namespace Biertan.Visual3D
             root = new GameObject("World3D: " + level.name).transform;
             actors = new GameObject("Actors").transform;
             actors.SetParent(root, false);
+            Atmosphere.Build(root, GameManager.I != null ? GameManager.I.current : "");
 
             // ground
             var size = level.size * S;
