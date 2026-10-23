@@ -191,6 +191,56 @@ namespace Biertan.Visual3D
         Material Stone => Mat("castle_wall_slates", 2.4f, new Color(0.8f, 0.78f, 0.74f));
         Material Wood => Mat("brown_planks_05", 1.6f, new Color(0.75f, 0.68f, 0.6f));
 
+        /// <summary>A soft, large-scale patchwork of lighter and darker earth laid over a tiled ground texture,
+        /// so its repeats don't line up into visible stripes.</summary>
+        Material Macro(Material m, float metres = 22f)
+        {
+            if (macroTex == null)
+            {
+                const int N = 256;
+                macroTex = new Texture2D(N, N, TextureFormat.RGBA32, true) { wrapMode = TextureWrapMode.Repeat };
+                for (int y = 0; y < N; y++)
+                    for (int x = 0; x < N; x++)
+                    {
+                        // tileable fractal noise: sample a torus so the edges meet
+                        float u = x / (float)N * Mathf.PI * 2f, w = y / (float)N * Mathf.PI * 2f;
+                        float v = 0f, amp = 0.55f, f = 1f;
+                        for (int o = 0; o < 4; o++)
+                        {
+                            v += amp * (Mathf.PerlinNoise(Mathf.Cos(u) * f + 7f + o * 13f, Mathf.Sin(u) * f + Mathf.Cos(w) * f * 0.7f + 3f) +
+                                        Mathf.PerlinNoise(Mathf.Sin(w) * f + 31f + o * 5f, Mathf.Cos(w) * f + Mathf.Sin(u) * f * 0.7f + 11f) - 1f);
+                            amp *= 0.5f; f *= 2f;
+                        }
+                        float g = Mathf.Clamp01(0.5f + v * 0.45f);
+                        macroTex.SetPixel(x, y, new Color(g, g, g, 1f));
+                    }
+                macroTex.Apply(true);
+            }
+            return m;
+        }
+        Texture2D macroTex;
+
+        /// <summary>Lays the patchwork over the ground as a faint dark veil just above it: shadowy hollows and
+        /// paler stretches at a scale far larger than the texture's repeat.</summary>
+        void MacroVeil(Vector2 size, float metres = 22f)
+        {
+            Macro(null);
+            var veilTex = new Texture2D(macroTex.width, macroTex.height, TextureFormat.RGBA32, true) { wrapMode = TextureWrapMode.Repeat };
+            var px = macroTex.GetPixels();
+            for (int i = 0; i < px.Length; i++) { float d = Mathf.Clamp01((0.62f - px[i].r) * 1.6f); px[i] = new Color(0.02f, 0.025f, 0.02f, d * 0.55f); }
+            veilTex.SetPixels(px); veilTex.Apply(true);
+            var mat = new Material(Resources.Load<Material>("LineMat")) { mainTexture = veilTex, name = "GroundVeil" };
+            mat.mainTextureScale = size / metres;
+            var go = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            Destroy(go.GetComponent<Collider>());
+            go.name = "GroundVeil";
+            go.transform.SetParent(root, false);
+            go.transform.SetPositionAndRotation(new Vector3(size.x / 2f - 35f, 0.004f, -size.y / 2f + 35f), Quaternion.Euler(90f, 0f, 0f));
+            go.transform.localScale = new Vector3(size.x, size.y, 1f);
+            var r = go.GetComponent<MeshRenderer>();
+            r.sharedMaterial = mat; r.shadowCastingMode = ShadowCastingMode.Off;
+        }
+
         Material GroundFor(string id, LevelBase level) => id switch
         {
             "hub" or "richis" or "mosna" or "biertan" => Ground,
@@ -240,6 +290,8 @@ namespace Biertan.Visual3D
             var size = level.size * S;
             // the ground runs well past the map's edges so the camera never looks into a void
             Quad("Ground", new Vector3(size.x / 2f, 0f, -size.y / 2f), size + new Vector2(70f, 70f), GroundFor(GameManager.I.current, level));
+            if (GameManager.I.current is "forest" or "hills" or "vineyard" or "walls" or "arena" or "hollow")
+                MacroVeil(size + new Vector2(70f, 70f));
             ApplyDarkness(level);
 
             foreach (var sr in level.GetComponentsInChildren<SpriteRenderer>())
