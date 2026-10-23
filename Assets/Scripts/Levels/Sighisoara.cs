@@ -67,6 +67,7 @@ namespace Biertan.Levels
             AddGraves();
             AddTrees();
             AddClutter();
+            AddTutorial();
 
             // lights: the Clock Tower gate, the Tailors' gate, the citadel square
             foreach (var g in gates)
@@ -221,6 +222,45 @@ namespace Biertan.Levels
             var end = axis.x < 0 ? b.c + axis * len / 2f : b.c - axis * len / 2f;   // the western end
             float ts = wid * 0.5f;
             AddBlockRotated(end + (b.c - end).normalized * ts * 0.5f, new Vector2(ts, ts), b.angle, "tower", 200f);
+        }
+
+        // ---------------------------------------------------------------- the opening job
+
+        /// <summary>The bacon thieves: the butcher on the square, the clues and the cellar at the Butchers' Tower.</summary>
+        void AddTutorial()
+        {
+            Vector2 At(float x, float y) => Free(SighisoaraMap.At(x, y));
+            AddProp("task", "notice", "Notice", At(140f, -80f), "E   Read the notice");
+            AddProp("npc", "butcher", "Meister Thomas · Butcher", At(86f, 12f), "E   Speak with Meister Thomas", new Color32(0x6a, 0x3a, 0x30, 0xff));
+            AddProp("npc", "child", "Mihai", At(72f, 46f), "E   Speak with Mihai", new Color32(0x6a, 0x5a, 0x40, 0xff));
+            var wife = At(-100f, -80f);
+            AddProp("npc", "butcherwife", "Frau Gertrud", wife, "E   Speak with Frau Gertrud", new Color32(0x5a, 0x4a, 0x5a, 0xff));
+            AddProp("task", "hearth", "Hearth", Free(wife + new Vector2(-60f, -40f)), "E   Look at the hearth");
+            AddTorch(wife + new Vector2(-60f, -40f), 160f, new Color(1f, 0.55f, 0.25f), 0.6f);
+            AddProp("clue", "dogs", "", At(-112f, -116f), "E   Examine");
+            AddProp("clue", "grating", "", At(-107f, -91f), "E   Examine");
+            AddProp("clue", "flour", "", At(-97f, -86f), "E   Examine");
+            AddProp("clue", "hook", "", At(-91f, -97f), "E   Examine");
+            AddProp("clue", "storks", "", At(-87f, -110f), "E   Examine");
+            var wood = At(-115f, -89f);
+            AddDecor(wood + new Vector2(0f, -14f), "firewood", 30f);
+            AddProp("task", "firewood", "Firewood", wood, "E   Look at the firewood");
+            AddProp("task", "cellar", "Cellar door", At(-116f, -99f), "E   Try the cellar door");
+            AddProp("task", "sign", "Guild sign", At(-113f, -104f), "E   Look at the guild sign");
+        }
+
+        /// <summary>A Godot-space spot nudged out of any house or the wall, so people and clues stand in the open.</summary>
+        Vector2 Free(Vector2 g)
+        {
+            if (!NearBuilding(g, 18f) && !NearWall(g, 45f)) return g;
+            for (float r = 40f; r <= 600f; r += 40f)
+                for (int k = 0; k < 12; k++)
+                {
+                    float a = k * Mathf.PI / 6f;
+                    var p = g + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * r;
+                    if (!NearBuilding(p, 18f) && !NearWall(p, 45f)) return p;
+                }
+            return g;
         }
 
         // ---------------------------------------------------------------- street clutter

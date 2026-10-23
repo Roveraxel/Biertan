@@ -25,7 +25,7 @@ namespace Biertan.Core
                 "hermit" => !gm.SideHas("hermit"),
                 "konrad" => gm.quest3 == 0 || gm.quest3 == 2,
                 "sexton" => gm.quest4 == 0,
-                _ => false,
+                _ => SighisoaraTutorial.Marker(id),
             };
         }
 
@@ -33,6 +33,7 @@ namespace Biertan.Core
         {
             var gm = GM;
             var player = gm.player;
+            if (p.kind is "clue" or "task") { SighisoaraTutorial.Use(p); return; }
             switch (p.kind)
             {
                 case "npc":
@@ -143,6 +144,7 @@ namespace Biertan.Core
 
         public static void Talk(string id)
         {
+            if (SighisoaraTutorial.Talk(id)) return;
             var gm = GM;
             var player = gm.player;
             switch (id)

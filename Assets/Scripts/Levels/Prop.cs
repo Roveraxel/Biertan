@@ -27,6 +27,7 @@ namespace Biertan.Levels
         TextMesh marker;
         SpriteRenderer hole, ember;
         GameObject purse;
+        SpriteRenderer glint;
 
         static Material unlit;
         static Material Unlit => unlit != null ? unlit : (unlit = Resources.Load<Material>("LineMat"));
@@ -110,6 +111,11 @@ namespace Biertan.Levels
                     glow = Lights.Point(transform, 150f, new Color(1f, 0.8f, 0.5f), 0.5f, new Vector2(0, 30));
                     break;
                 }
+                case "clue":
+                case "task":
+                    // nothing to see but a soft glint while there is something left to learn here
+                    glint = Part("Glint", "circle", new Vector2(0, 26), new Vector2(12, 12), new Color(1f, 0.78f, 0.4f, 0f), 5, visual.transform);
+                    break;
                 case "bell": // the rope of the great bell
                     Part("Rope", "white", new Vector2(0, 60), new Vector2(6, 100), new Color32(0x8a, 0x7a, 0x5a, 0xff), 0, visual.transform);
                     Part("Knob", "circle", new Vector2(0, 8), new Vector2(14, 14), new Color32(0xb0, 0x8a, 0x3a, 0xff), 1, visual.transform);
@@ -211,6 +217,15 @@ namespace Biertan.Levels
                 glow.intensity = used ? 0.25f : 0.5f;
             }
             if (kind == "bones") purse.SetActive(!used);
+            if (glint != null)
+            {
+                var pl = GameManager.I != null ? GameManager.I.player : null;
+                float d = pl != null ? Vector2.Distance(pl.transform.position, transform.position) : 9999f;
+                bool show = SighisoaraTutorial.Pending(this) && d < 320f;
+                float a = show ? Mathf.Clamp01((320f - d) / 160f) * (0.55f + 0.35f * Mathf.Sin(t * 4f)) : 0f;
+                glint.color = new Color(1f, 0.78f, 0.4f, a);
+                glint.transform.localPosition = new Vector3(0, 26 + Mathf.Sin(t * 2f) * 3f, 0);
+            }
             if (kind == "treasure")
             {
                 bool burning = CanInteract();

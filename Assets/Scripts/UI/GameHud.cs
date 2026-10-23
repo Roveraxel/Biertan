@@ -351,6 +351,7 @@ namespace Biertan.UI
 
         static string QuestLine(GameManager gm)
         {
+            if (gm.current == "sighisoara") return Biertan.Levels.SighisoaraTutorial.Objective();
             string q = gm.quest switch
             {
                 0 => "Speak with Frau Anna at the inn.",
