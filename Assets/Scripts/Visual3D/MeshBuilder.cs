@@ -48,6 +48,16 @@ namespace Biertan.Visual3D
             tri.AddRange(new[] { i, i + 1, i + 2 });
         }
 
+        /// <summary>A triangle with its own vertex normals, for soft-shaded rounded shapes.</summary>
+        public void TriSmooth(Vector3 a, Vector3 b, Vector3 c, Vector3 na, Vector3 nb, Vector3 nc)
+        {
+            int i = v.Count;
+            v.Add(a); v.Add(b); v.Add(c);
+            n.Add(na); n.Add(nb); n.Add(nc);
+            uv.Add(new Vector2(a.x, a.z)); uv.Add(new Vector2(b.x, b.z)); uv.Add(new Vector2(c.x, c.z));
+            tri.AddRange(new[] { i, i + 1, i + 2 });
+        }
+
         /// <summary>An axis-aligned box from min to max (no bottom).</summary>
         public void Box(Vector3 min, Vector3 max, bool top)
         {

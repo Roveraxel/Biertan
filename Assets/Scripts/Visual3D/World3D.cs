@@ -573,44 +573,29 @@ namespace Biertan.Visual3D
             var go = new GameObject(pine ? "Pine3D" : "Tree3D");
             go.transform.SetParent(root, false);
             go.transform.position = To3D(p);
-            var bark = Plain(new Color(0.3f, 0.21f, 0.13f));
-            var trunk = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            Destroy(trunk.GetComponent<Collider>());
-            trunk.transform.SetParent(go.transform, false);
-            trunk.transform.localScale = new Vector3(0.22f, 0.9f, 0.22f) * sc;
-            trunk.transform.localPosition = new Vector3(0, 0.9f * sc, 0);
-            trunk.GetComponent<Renderer>().sharedMaterial = bark;
-            int seed = (int)(p.x * 13 + p.y * 7);
+            int seed = Mathf.Abs((int)(p.x * 13 + p.y * 7));
             var rnd = new System.Random(seed);
-            if (pine)
-            {
-                var needles = Plain(new Color(0.12f, 0.24f, 0.17f), 0.05f);
-                for (int i = 0; i < 4; i++)
-                {
-                    var cone = new GameObject("Tier");
-                    cone.transform.SetParent(go.transform, false);
-                    float r = (1.5f - i * 0.3f) * sc, y = (1.1f + i * 0.85f) * sc;
-                    var mb = new MeshBuilder();
-                    mb.Cone(new Vector3(0, y, 0), r, 1.5f * sc, 10);
-                    Finish(cone, mb, needles);
-                }
-            }
-            else
-            {
-                Color[] pal = { new(0.2f, 0.34f, 0.17f), new(0.26f, 0.4f, 0.18f), new(0.5f, 0.34f, 0.12f) };
-                var leaf = Plain(pal[rnd.Next(3)], 0.05f);
-                for (int i = 0; i < 5; i++)
-                {
-                    var blob = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                    Destroy(blob.GetComponent<Collider>());
-                    blob.transform.SetParent(go.transform, false);
-                    float a = i * 1.26f + (float)rnd.NextDouble();
-                    var off = i == 0 ? Vector3.zero : new Vector3(Mathf.Cos(a), (float)rnd.NextDouble() * 0.5f - 0.2f, Mathf.Sin(a)) * 0.7f;
-                    blob.transform.localPosition = (new Vector3(0, 2.3f, 0) + off) * sc;
-                    blob.transform.localScale = Vector3.one * (i == 0 ? 1.9f : 1.3f) * sc;
-                    blob.GetComponent<Renderer>().sharedMaterial = leaf;
-                }
-            }
+            string lvl = GameManager.I != null ? GameManager.I.current : "";
+            bool deepWoods = lvl is "forest" or "hollow";
+            var parts = new Trees.Parts { bark = new MeshBuilder(), leaves = new MeshBuilder(), leaves2 = new MeshBuilder(), ground = new MeshBuilder(), stone = new MeshBuilder() };
+            bool dead = !pine && deepWoods && rnd.NextDouble() < 0.14;
+            Color leafA, leafB;
+            if (pine) { leafA = new Color(0.07f, 0.15f, 0.12f); leafB = new Color(0.09f, 0.19f, 0.14f); Trees.Spruce(parts, Vector3.zero, sc, rnd); }
+            else { leafA = Trees.LeafColor(seed, 0); leafB = Trees.LeafColor(seed, 1); Trees.Broadleaf(parts, Vector3.zero, sc, rnd, dead); }
+            if (!(lvl is "hub" or "richis" or "mosna" or "biertan")) Trees.Undergrowth(parts, Vector3.zero, sc, rnd);
+            Part(go, "Bark", parts.bark, Plain(dead ? new Color(0.27f, 0.26f, 0.24f) : new Color(0.2f, 0.15f, 0.11f), 0.05f), true);
+            Part(go, "Leaves", parts.leaves, Plain(leafA, 0.08f), true);
+            Part(go, "Leaves2", parts.leaves2, Plain(leafB, 0.08f), true);
+            Part(go, "Undergrowth", parts.ground, Plain(new Color(0.13f, 0.19f, 0.1f), 0.05f), false);
+            Part(go, "Stone", parts.stone, Plain(new Color(0.33f, 0.33f, 0.31f), 0.15f), true);
+        }
+
+        void Part(GameObject parent, string name, MeshBuilder mb, Material m, bool shadows)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(parent.transform, false);
+            Finish(go, mb, m, shadows);
+            if (go.GetComponent<MeshFilter>().sharedMesh.vertexCount == 0) Destroy(go);
         }
 
         void BuildBrazier(Brazier br)
