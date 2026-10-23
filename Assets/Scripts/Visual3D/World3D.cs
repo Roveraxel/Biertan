@@ -654,6 +654,7 @@ namespace Biertan.Visual3D
                     bool fire = l2.GetComponentInParent<Brazier>() != null;
                     l3.shadows = fire && shadowed < 4 ? LightShadows.Soft : LightShadows.None;
                     if (l3.shadows != LightShadows.None) shadowed++;
+                    if (fire) Atmosphere.Embers(l3.transform);
                     lights[l2] = l3;
                 }
                 bool fireLight = l2.GetComponentInParent<Brazier>() != null;
@@ -662,6 +663,10 @@ namespace Biertan.Visual3D
                 l3.range = l2.pointLightOuterRadius * S * 1.7f;
                 l3.intensity = l2.intensity * (fireLight ? 7f : 4.5f);
                 l3.enabled = l2.isActiveAndEnabled && l2.intensity > 0.01f;
+                if (fireLight && l3.transform.childCount > 0 && l3.transform.GetChild(0).GetComponent<ParticleSystem>() is ParticleSystem em)
+                {
+                    var emission = em.emission; emission.enabled = l3.enabled; // a doused fire stops sparking
+                }
             }
         }
 

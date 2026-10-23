@@ -35,6 +35,40 @@ namespace Biertan.Visual3D
                 a.Dust(levelId == "church" ? 40 : 60);
         }
 
+        /// <summary>Sparks that rise from a fire, twist on the draught and wink out. Parented to the fire's light.</summary>
+        public static ParticleSystem Embers(Transform fire)
+        {
+            Materials();
+            var go = new GameObject("Embers");
+            go.transform.SetParent(fire, false);
+            go.transform.localPosition = new Vector3(0f, -0.15f, 0f);
+            var ps = go.AddComponent<ParticleSystem>();
+            ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            var m = ps.main;
+            m.simulationSpace = ParticleSystemSimulationSpace.World;
+            m.maxParticles = 40;
+            m.startLifetime = new ParticleSystem.MinMaxCurve(0.8f, 1.8f);
+            m.startSize = new ParticleSystem.MinMaxCurve(0.09f, 0.15f);
+            m.startSpeed = new ParticleSystem.MinMaxCurve(0.6f, 1.5f);
+            m.gravityModifier = -0.08f;
+            var e = ps.emission; e.rateOverTime = 14f;
+            e.SetBursts(new[] { new ParticleSystem.Burst(0f, 2, 5, 0, Random.Range(1.2f, 2.6f)) }); // now and then the fire pops
+            var sh = ps.shape; sh.shapeType = ParticleSystemShapeType.Cone; sh.angle = 14f; sh.radius = 0.08f;
+            sh.rotation = new Vector3(-90f, 0f, 0f);
+            var n = ps.noise; n.enabled = true; n.strength = 0.45f; n.frequency = 1.4f; n.scrollSpeed = 0.6f;
+            var col = ps.colorOverLifetime; col.enabled = true;
+            var g = new Gradient();
+            g.SetKeys(new[] { new GradientColorKey(new Color(1f, 0.9f, 0.55f), 0f), new GradientColorKey(new Color(1f, 0.6f, 0.15f), 0.6f), new GradientColorKey(new Color(0.85f, 0.2f, 0.04f), 1f) },
+                      new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0.9f, 0.5f), new GradientAlphaKey(0f, 1f) });
+            col.color = g;
+            var sz = ps.sizeOverLifetime; sz.enabled = true; sz.size = new ParticleSystem.MinMaxCurve(1f, AnimationCurve.Linear(0f, 1f, 1f, 0.3f));
+            var r = go.GetComponent<ParticleSystemRenderer>();
+            r.sharedMaterial = softMat;
+            r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            ps.Play();
+            return ps;
+        }
+
         static void Materials()
         {
             if (softMat != null) return;
