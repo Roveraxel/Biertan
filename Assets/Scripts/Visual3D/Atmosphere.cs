@@ -22,7 +22,7 @@ namespace Biertan.Visual3D
             a.level = levelId;
             Materials();
             bool under = levelId is "caves" or "gorge" or "church";
-            bool village = levelId is "hub" or "richis" or "mosna" or "biertan" or "walls";
+            bool village = levelId is "hub" or "richis" or "mosna" or "biertan" or "walls" or "sighisoara";
             bool woods = levelId is "forest" or "hollow" or "hills" or "arena";
 
             if (!under)

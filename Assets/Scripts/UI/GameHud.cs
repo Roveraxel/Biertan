@@ -423,7 +423,7 @@ namespace Biertan.UI
                         Txt(subLabel, "BLOOD CURSE", 12 * k, new Color32(0xd0, 0x70, 0x70, 0xff), TextAnchor.MiddleLeft);
                     }
                     break;
-                case "hub": case "richis": case "mosna": case "biertan":
+                case "hub": case "richis": case "mosna": case "biertan": case "sighisoara":
                     Txt(R(24, 50, 300, 16), "SAFE HAVEN", 12 * k, Amber, TextAnchor.MiddleLeft);
                     break;
             }

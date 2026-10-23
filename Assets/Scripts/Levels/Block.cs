@@ -14,6 +14,8 @@ namespace Biertan.Levels
         public string style = "wall";
         public Vector2 footprint;   // w, d in Godot pixels
         public float h = 18f;
+        public float angle;         // degrees, counter-clockwise; the footprint turns about its bottom-centre
+        public bool solid = true;   // false: drawn but walked through (a gate tower's vault)
 
         static readonly Color Amber = new Color32(0xff, 0xb3, 0x47, 0xff);
 
@@ -23,6 +25,7 @@ namespace Biertan.Levels
             var col = gameObject.AddComponent<BoxCollider2D>();
             col.size = footprint;
             col.offset = new Vector2(0, footprint.y / 2f);
+            col.enabled = solid;
             gameObject.isStatic = true;
             if (style == "hidden") return;
             gameObject.AddComponent<SortingGroup>();

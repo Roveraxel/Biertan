@@ -243,7 +243,7 @@ namespace Biertan.Visual3D
 
         Material GroundFor(string id, LevelBase level) => id switch
         {
-            "hub" or "richis" or "mosna" or "biertan" => Ground,
+            "hub" or "richis" or "mosna" or "biertan" or "sighisoara" => Ground,
             "forest" or "hills" or "vineyard" or "walls" => Mat("forest_leaves_02", 3f, new Color(0.6f, 0.58f, 0.52f)),
             "arena" or "hollow" => Mat("forest_leaves_02", 3f, new Color(0.42f, 0.44f, 0.38f)),
             "caves" or "gorge" => Mat("castle_wall_slates", 3f, new Color(0.36f, 0.34f, 0.32f)),
@@ -274,6 +274,7 @@ namespace Biertan.Visual3D
             foreach (var l in lights.Values) if (l != null) Destroy(l.gameObject);
             lights.Clear();
             coveredRoofs.Clear();
+            coveredLines.Clear();
             foreach (var l in lines.Values) if (l != null) Destroy(l.gameObject);
             lines.Clear();
             foreach (var a in mirrored.Values) if (a.board != null) { Destroy(a.board.gameObject); Destroy(a.shadow.gameObject); }
@@ -301,16 +302,19 @@ namespace Biertan.Visual3D
                     Quad("Cobbles", To3D(sr.transform.position, 0.01f), sr.size * S, Cobble);
                 else if (sr.name.StartsWith("GateRoad"))
                     Quad("GateRoad", To3D(sr.transform.position, 0.008f), (Vector2)sr.transform.lossyScale * S, Cobble);
-                else if (sr.transform.parent != null && sr.transform.parent.name == "Path" && sr.name == "Seg")
+                else if (sr.transform.parent != null && sr.transform.parent.name is "Path" or "Cobbles" && sr.name is "Seg" or "Joint")
                 {
-                    var q = Quad("Road", To3D(sr.transform.position, 0.006f), (Vector2)sr.transform.lossyScale * S, Road);
+                    bool cob = sr.transform.parent.name == "Cobbles";
+                    if (!cob && sr.name == "Joint") continue;
+                    if (sr.name == "Joint") { var j = Quad("CobbleJoint", To3D(sr.transform.position, 0.0065f), (Vector2)sr.transform.lossyScale * S * 0.9f, Cobble); continue; }
+                    var q = Quad(cob ? "Cobbles" : "Road", To3D(sr.transform.position, cob ? 0.007f : 0.006f), (Vector2)sr.transform.lossyScale * S, cob ? Cobble : Road);
                     q.transform.rotation = Quaternion.Euler(0f, -sr.transform.eulerAngles.z, 0f);
                 }
             }
 
             BuildDecals(level);
-            foreach (var b in level.GetComponentsInChildren<Block>()) BuildBlock(b);
             cutaways.Clear();
+            foreach (var b in level.GetComponentsInChildren<Block>()) BuildBlock(b);
             foreach (var cw in level.GetComponentsInChildren<CurtainWall>()) BuildCurtain(cw);
             foreach (var way in level.GetComponentsInChildren<CoveredWay>()) BuildCoveredWay(way);
             foreach (Transform t in level.transform)
@@ -329,7 +333,7 @@ namespace Biertan.Visual3D
         {
             string id = GameManager.I != null ? GameManager.I.current : "";
             if (id is "" or "caves" or "gorge" or "church") return;
-            bool village = id is "hub" or "richis" or "mosna" or "biertan";
+            bool village = id is "hub" or "richis" or "mosna" or "biertan" or "sighisoara";
             Vector2 mapM = level.size * S;
             const float margin = 15f;
             float spacing = village ? 2.4f : 1.9f;
@@ -397,7 +401,7 @@ namespace Biertan.Visual3D
             {
                 if (sr.sortingOrder > -100 || !sr.enabled || sr.sprite == null) continue;
                 if (sr.name is "Ground" || sr.name.StartsWith("Tiled") || sr.name.StartsWith("GateRoad")) continue;
-                if (sr.transform.parent != null && sr.transform.parent.name == "Path") continue;
+                if (sr.transform.parent != null && sr.transform.parent.name is "Path" or "Cobbles") continue;
                 if (sr.GetComponentInParent<Block>() != null) continue;
                 Vector2 sz = sr.transform.lossyScale;
                 if (Mathf.Abs(sz.x) < 14f && Mathf.Abs(sz.y) < 14f) continue; // ground specks: the texture covers them
@@ -492,7 +496,7 @@ namespace Biertan.Visual3D
                 case "house":
                     wallMat = Plaster;
                     walls.Box(min, max, top: false);
-                    roof.Gable(min, max, Mathf.Min(w, d) * 0.55f, 0.18f);
+                    roof.Gable(min, max, Mathf.Min(Mathf.Min(w, d) * 0.55f, 2.4f), 0.18f);
                     BuildBeams(go.transform, min, max);
                     break;
                 case "church":
@@ -507,6 +511,25 @@ namespace Biertan.Visual3D
                     roof.Pyramid(min, max, Mathf.Max(w, d) * 1.25f, 0.12f);
                     BuildSlits(go.transform, min, max);
                     break;
+                case "clocktower":
+                {
+                    // Sighișoara's Clock Tower: a tall shaft, a steep spire and four corner turrets
+                    wallMat = Plaster;
+                    walls.Box(min, max, top: false);
+                    float sp = Mathf.Max(w, d);
+                    roof.Pyramid(min, max, sp * 2.6f, 0.25f);
+                    float t = sp * 0.2f;
+                    foreach (float cx in new[] { min.x, max.x })
+                        foreach (float cz in new[] { min.z, max.z })
+                        {
+                            var tmin = new Vector3(cx - t / 2f, max.y - 0.3f, cz - t / 2f);
+                            var tmax = new Vector3(cx + t / 2f, max.y + t * 1.1f, cz + t / 2f);
+                            walls.Box(tmin, tmax, top: false);
+                            roof.Pyramid(tmin, tmax, t * 2.2f, 0.06f);
+                        }
+                    BuildSlits(go.transform, min, max);
+                    break;
+                }
                 case "wall":
                     walls.Box(min, max, top: true);
                     walls.Merlons(min, max);
@@ -536,6 +559,15 @@ namespace Biertan.Visual3D
             }
             if (b.style is "house" or "church") BuildWindows(go.transform, min, max, b.style == "church");
             if (b.style == "house") BuildDoor(go.transform, min, max);
+            if (Mathf.Abs(b.angle) > 0.01f)
+            {
+                var pivot = new GameObject("Turned " + b.style);
+                pivot.transform.SetParent(root, false);
+                pivot.transform.position = new Vector3(p.x * S, 0f, p.y * S);
+                go.transform.SetParent(pivot.transform, true);
+                pivot.transform.rotation = Quaternion.Euler(0f, -b.angle, 0f);
+                if (b.style == "house") cutaways.Add(pivot.transform);
+            }
         }
 
         /// <summary>
@@ -645,6 +677,7 @@ namespace Biertan.Visual3D
         /// <summary>The covered wooden stairway: posts down both sides and a tiled roof over the passage.</summary>
         void BuildCoveredWay(CoveredWay way)
         {
+            if (way.width > 0f) { BuildCoveredLine(way); return; }
             var r = way.godotRect;
             float x0 = r.xMin * S, x1 = r.xMax * S, z0 = -r.yMax * S, z1 = -r.yMin * S, H = 1.9f;
             var go = new GameObject("CoveredWay");
@@ -660,6 +693,33 @@ namespace Biertan.Visual3D
             rm.Gable(new Vector3(x0 - 0.1f, 0, z0), new Vector3(x1 + 0.1f, H, z1), 0.8f, 0.25f);
             Finish(roofGo, rm, Roof);
             coveredRoofs.Add((roofGo, new Rect(r.xMin, -r.yMax, r.width, r.height)));
+        }
+
+        readonly List<(GameObject roof, Vector2 a, Vector2 b, float half)> coveredLines = new();
+
+        /// <summary>A roofed passage along a line: posts both sides and a shingle roof following it.</summary>
+        void BuildCoveredLine(CoveredWay way)
+        {
+            Vector3 a = To3D(way.a), b = To3D(way.b);
+            var u = (b - a).normalized;
+            var n = Vector3.Cross(Vector3.up, u);
+            float half = way.width * S / 2f, H = 1.9f, len = Vector3.Distance(a, b);
+            var go = new GameObject("CoveredStair");
+            go.transform.SetParent(root, false);
+            var posts = new MeshBuilder();
+            for (float s = 0.3f; s < len; s += 1.6f)
+                foreach (float side in new[] { -1f, 1f })
+                {
+                    var c = a + u * s + n * side * (half - 0.1f);
+                    posts.Box(c - new Vector3(0.09f, 0, 0.09f), c + new Vector3(0.09f, H, 0.09f), true);
+                }
+            Finish(go, posts, Wood);
+            var roofGo = new GameObject("Roof");
+            roofGo.transform.SetParent(go.transform, false);
+            var rm = new MeshBuilder();
+            rm.OrientedGable(a, b, way.width * S + 0.3f, H, 0.8f);
+            Finish(roofGo, rm, Roof);
+            coveredLines.Add((roofGo, way.a, way.b, way.width / 2f));
         }
 
         /// <summary>Diablo's trick: walls between the camera and the hunter sink so he stays visible, and the
@@ -679,6 +739,13 @@ namespace Biertan.Visual3D
                 t.localScale = s;
             }
             Vector2 p2 = p.transform.position;
+            foreach (var (roof, la, lb, half) in coveredLines)
+            {
+                if (roof == null) continue;
+                var ab = lb - la;
+                float k = Mathf.Clamp01(Vector2.Dot(p2 - la, ab) / ab.sqrMagnitude);
+                roof.SetActive(Vector2.Distance(p2, la + ab * k) > half + 20f);
+            }
             foreach (var (roof, area) in coveredRoofs)
                 if (roof != null) roof.SetActive(!area.Contains(p2));
         }
@@ -780,7 +847,7 @@ namespace Biertan.Visual3D
             Color leafA, leafB;
             if (pine) { leafA = new Color(0.07f, 0.15f, 0.12f); leafB = new Color(0.09f, 0.19f, 0.14f); Trees.Spruce(parts, Vector3.zero, sc, rnd); }
             else { leafA = Trees.LeafColor(seed, 0); leafB = Trees.LeafColor(seed, 1); Trees.Broadleaf(parts, Vector3.zero, sc, rnd, dead); }
-            if (!(lvl is "hub" or "richis" or "mosna" or "biertan")) Trees.Undergrowth(parts, Vector3.zero, sc, rnd);
+            if (!(lvl is "hub" or "richis" or "mosna" or "biertan" or "sighisoara")) Trees.Undergrowth(parts, Vector3.zero, sc, rnd);
             Part(go, "Bark", parts.bark, Plain(dead ? new Color(0.27f, 0.26f, 0.24f) : new Color(0.2f, 0.15f, 0.11f), 0.05f), true);
             Part(go, "Leaves", parts.leaves, Plain(leafA, 0.08f), true);
             Part(go, "Leaves2", parts.leaves2, Plain(leafB, 0.08f), true);

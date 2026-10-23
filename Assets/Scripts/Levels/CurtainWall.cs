@@ -51,5 +51,8 @@ namespace Biertan.Levels
     public class CoveredWay : MonoBehaviour
     {
         public Rect godotRect;
+        // or a passage along a line (Unity 2D points), e.g. Sighișoara's Scholars' Stairs
+        public Vector2 a, b;
+        public float width;
     }
 }

@@ -97,6 +97,22 @@ namespace Biertan.Core
             return b;
         }
 
+        /// <summary>A block turned to follow its street: centre and size in Godot units, angle in degrees
+        /// counter-clockwise (as seen on a map, north up).</summary>
+        public Block AddBlockRotated(Vector2 godotCentre, Vector2 size, float angleDeg, string style, float h, bool solid = true)
+        {
+            var go = new GameObject("Block " + style);
+            go.transform.SetParent(transform, false);
+            float r = angleDeg * Mathf.Deg2Rad;
+            var up = new Vector2(-Mathf.Sin(r), Mathf.Cos(r));
+            go.transform.position = P(godotCentre) - up * size.y / 2f;
+            go.transform.rotation = Quaternion.Euler(0, 0, angleDeg);
+            var b = go.AddComponent<Block>();
+            b.style = style; b.footprint = size; b.h = h; b.angle = angleDeg; b.solid = solid;
+            b.Build();
+            return b;
+        }
+
         /// <summary>Scatter flattened blots of colour over a Godot-space rect (grass, moss, dirt).</summary>
         protected void Scatter(Rect godotRect, int count, Color[] colors)
         {
@@ -245,9 +261,9 @@ namespace Biertan.Core
         }
 
         /// <summary>A thick dirt road along Godot-space points: rotated strips with round joints, lit like the ground.</summary>
-        protected void AddPath(Vector2[] godotPts, float width, Color color, int order)
+        protected void AddPath(Vector2[] godotPts, float width, Color color, int order, string kind = "Path")
         {
-            var parent = new GameObject("Path").transform;
+            var parent = new GameObject(kind).transform;
             parent.SetParent(transform, false);
             for (int i = 0; i < godotPts.Length; i++)
             {

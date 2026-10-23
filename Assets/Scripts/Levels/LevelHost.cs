@@ -24,6 +24,7 @@ namespace Biertan.Levels
         static LevelBase Create(string id, GameObject go) => id switch
         {
             "hub" => go.AddComponent<Saschiz>(),
+            "sighisoara" => go.AddComponent<Sighisoara>(),
             "forest" => go.AddComponent<WolfForest>(),
             "arena" => go.AddComponent<MoonClearing>(),
             "richis" => go.AddComponent<Richis>(),
@@ -39,7 +40,7 @@ namespace Biertan.Levels
             _ => null,
         };
 
-        public static bool IsPorted(string id) => id is "hub" or "forest" or "arena" or "richis" or "hills" or "caves" or "hollow" or "mosna" or "vineyard" or "gorge" or "biertan" or "walls" or "church";
+        public static bool IsPorted(string id) => id is "hub" or "sighisoara" or "forest" or "arena" or "richis" or "hills" or "caves" or "hollow" or "mosna" or "vineyard" or "gorge" or "biertan" or "walls" or "church";
 
         void Start()
         {
@@ -97,7 +98,7 @@ namespace Biertan.Levels
             // music, ambience and the hour, as main.gd goto()
             var music = id switch
             {
-                "hub" or "richis" or "mosna" => "music_hub",
+                "hub" or "richis" or "mosna" or "sighisoara" => "music_hub",
                 "forest" or "walls" => "music_forest",
                 "arena" => "music_boss",
                 "hills" => "music_hills",
@@ -113,7 +114,7 @@ namespace Biertan.Levels
             if (id == "richis") gm.visitedRichis = true;
             if (id == "mosna") gm.visitedMosna = true;
             if (id == "biertan") gm.visitedBiertan = true;
-            if (id is "hub" or "richis" or "mosna" or "biertan") { gm.dusk = 0.45f; gm.SaveGame(); }
+            if (id is "hub" or "richis" or "mosna" or "biertan" or "sighisoara") { gm.dusk = 0.45f; gm.SaveGame(); }
             else if (id == "hills" && gm.dusk < 0.2f) gm.dusk = 0.2f;
             else if (id == "vineyard" && gm.dusk < 0.45f) gm.dusk = 0.45f;
             else if (id == "forest" && gm.dusk < 0.15f) gm.dusk = 0.15f;

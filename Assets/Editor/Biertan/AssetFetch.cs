@@ -8,7 +8,15 @@ namespace Biertan.EditorTools
     /// using the editor's own network connection.</summary>
     public static class AssetFetch
     {
-        static readonly HttpClient Http = new() { Timeout = System.TimeSpan.FromSeconds(120) };
+        static readonly HttpClient Http = MakeClient();
+
+        static HttpClient MakeClient()
+        {
+            var c = new HttpClient { Timeout = System.TimeSpan.FromSeconds(120) };
+            // some open-data services (e.g. OpenStreetMap's Overpass API) refuse requests without one
+            c.DefaultRequestHeaders.UserAgent.ParseAdd("BiertanGame/1.0 (Unity editor asset fetch)");
+            return c;
+        }
 
         /// <summary>Downloads every "url&lt;TAB&gt;path" line of a list file; returns a short report.</summary>
         public static string DownloadList(string listFile)
