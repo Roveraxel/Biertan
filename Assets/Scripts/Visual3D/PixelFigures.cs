@@ -45,7 +45,8 @@ namespace Biertan.Visual3D
         public static PixelFigure Get(string name, float height)
         {
             string key = name + height;
-            if (!cache.TryGetValue(key, out var f)) { f = new PixelFigure(name, height); cache[key] = f; }
+            // an empty entry is retried: the sprites may have been added since (the cache outlives play sessions)
+            if (!cache.TryGetValue(key, out var f) || f.stills.Count == 0) { f = new PixelFigure(name, height); cache[key] = f; }
             return f.stills.Count > 0 ? f : null;
         }
 
