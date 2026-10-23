@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Biertan.Enemies;
 using Biertan.Player;
+using Biertan.Levels;
 
 namespace Biertan.Visual3D
 {
@@ -60,7 +61,10 @@ namespace Biertan.Visual3D
                     case "wolf": return Get("wolf", 1.0f)?.Clone();
                     case "moroi": return Get("moroi", 1.35f)?.Clone();
                     case "iele": return Get("iele", 1.12f)?.Clone();
+                    case "shade": return Get("shade", 1.3f)?.Clone();
                 }
+            // villagers: Sprites/Pixel/npc_<id>, used as soon as that villager has been drawn
+            if (t.GetComponent<Prop>() is Prop pr && pr.kind == "npc") return Get("npc_" + pr.id, 1.25f)?.Clone();
             return null;
         }
 
@@ -113,6 +117,12 @@ namespace Biertan.Visual3D
             {
                 if (t.GetComponent<PlayerController>() is PlayerController p) look = p.facing;
                 else if (t.GetComponent<EnemyBase>() is EnemyBase e) look = e.face;
+                else if (t.GetComponent<Prop>() != null && Biertan.Core.GameManager.I?.player is PlayerController hp2)
+                {
+                    // a villager turns to look at the hunter when he comes near
+                    Vector2 to = hp2.transform.position - t.position;
+                    look = to.magnitude < 160f ? to.normalized : Vector2.down;
+                }
             }
             bool eight = stills.ContainsKey("south-east");
             if (look.sqrMagnitude > 0.0001f) dir = DirFrom(new Vector2(look.x, look.y), eight);

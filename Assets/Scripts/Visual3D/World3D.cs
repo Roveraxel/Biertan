@@ -830,8 +830,17 @@ namespace Biertan.Visual3D
                             hover = 0.18f + Mathf.Sin(Time.time * 2.3f + a.seed * 9f) * 0.06f;
                             var fc2 = dst.color; dst.color = new Color(fc2.r * 0.85f, fc2.g * 0.9f, fc2.b, fc2.a * 0.8f);
                         }
+                        // the shade is smoke in a man's shape: it drifts higher, sways into its glide, and the
+                        // light passes half through it; when it strikes it surges up and swells
+                        float sway = 0f;
+                        if (t.GetComponent<EnemyBase>() is EnemyBase sh && sh.kind == "shade")
+                        {
+                            hover = 0.32f + Mathf.Sin(Time.time * 3.1f + a.seed * 9f) * 0.09f + (sh.strikeT > 0f ? 0.15f * sh.strikeT : 0f);
+                            sway = Mathf.Clamp(-a.vel.x * 4f, -14f, 14f) + Mathf.Sin(Time.time * 1.7f + a.seed * 5f) * 3f;
+                            var sc3 = dst.color; dst.color = new Color(sc3.r * 0.7f, sc3.g * 0.72f, sc3.b * 0.85f, sc3.a * (0.86f + 0.08f * Mathf.Sin(Time.time * 5f + a.seed)));
+                        }
                         dst.transform.localPosition = new Vector3(0f, -still.bounds.min.y * k - still.bounds.size.y * 0.06f * k - sink * a.pix.height * 1.25f + hover, -0.001f * src.sortingOrder);
-                        dst.transform.localRotation = Quaternion.Euler(pitch * 0.45f, 0f, 0f); // board leans part-way; this finishes facing the camera
+                        dst.transform.localRotation = Quaternion.Euler(pitch * 0.45f, 0f, sway); // board leans part-way; this finishes facing the camera
                         dst.transform.localScale = new Vector3(k * (1f + 0.08f * hurt), k * (1f - 0.06f * hurt), 1f);
                         continue;
                     }
