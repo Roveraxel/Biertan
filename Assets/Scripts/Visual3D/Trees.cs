@@ -125,7 +125,7 @@ namespace Biertan.Visual3D
         }
 
         /// <summary>A broadleaf (beech, oak) in autumn, or a dead one with bare grey limbs.</summary>
-        public static void Broadleaf(Parts p, Vector3 at, float sc, System.Random rnd, bool dead)
+        public static void Broadleaf(Parts p, Vector3 at, float sc, System.Random rnd, bool dead, bool low = false)
         {
             float h = (2.1f + (float)rnd.NextDouble() * 0.6f) * sc;
             var lean = new Vector3((float)rnd.NextDouble() - 0.5f, 0f, (float)rnd.NextDouble() - 0.5f) * 0.5f * sc;
@@ -134,13 +134,13 @@ namespace Biertan.Visual3D
             Limb(p.bark, a + Vector3.down * 0.1f, b, r0 * 1.25f, r0 * 0.85f, 7);
             Limb(p.bark, b, top, r0 * 0.85f, r0 * 0.45f, 7);
             // roots flaring into the ground
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < (low ? 0 : 4); i++)
             {
                 float ang = i * Mathf.PI / 2f + (float)rnd.NextDouble();
                 var d = new Vector3(Mathf.Cos(ang), 0, Mathf.Sin(ang));
                 Limb(p.bark, a + Vector3.up * 0.35f * sc, a + d * 0.5f * sc + Vector3.down * 0.05f, r0 * 0.45f, r0 * 0.12f, 5);
             }
-            int limbs = dead ? 6 : 4;
+            int limbs = dead ? 6 : low ? 3 : 4;
             var ends = new List<Vector3> { top };
             for (int i = 0; i < limbs; i++)
             {
@@ -168,16 +168,16 @@ namespace Biertan.Visual3D
                 var cc = ends[i] + Vector3.up * 0.12f * sc;
                 var mbL = i % 3 == 1 ? p.leaves2 : p.leaves;
                 Clump(mbL, cc, size, rnd, 0.28f, 0.5f, true);
-                Tufts(mbL, cc, size, rnd, 7);
+                if (!low) Tufts(mbL, cc, size, rnd, 7);
             }
         }
 
         /// <summary>A Carpathian spruce: a straight dark trunk under ragged tiers of drooping boughs.</summary>
-        public static void Spruce(Parts p, Vector3 at, float sc, System.Random rnd)
+        public static void Spruce(Parts p, Vector3 at, float sc, System.Random rnd, bool low = false)
         {
             float h = (4.2f + (float)rnd.NextDouble() * 1.4f) * sc;
             Limb(p.bark, at + Vector3.down * 0.1f, at + Vector3.up * h * 0.85f, 0.16f * sc, 0.05f * sc, 6);
-            int tiers = 6;
+            int tiers = low ? 4 : 6;
             for (int i = 0; i < tiers; i++)
             {
                 float k = i / (float)(tiers - 1);
@@ -186,7 +186,7 @@ namespace Biertan.Visual3D
                 float tierH = Mathf.Lerp(1.15f, 0.8f, k) * sc;
                 var c = at + Vector3.up * y;
                 var apex = c + Vector3.up * tierH;
-                int seg = 12;
+                int seg = low ? 8 : 12;
                 float twist = (float)rnd.NextDouble() * Mathf.PI;
                 var mb = i % 2 == 0 ? p.leaves : p.leaves2;
                 var rim = new Vector3[seg];
@@ -203,7 +203,7 @@ namespace Biertan.Visual3D
                 {
                     var q0 = rim[j]; var q1 = rim[(j + 1) % seg];
                     TriOut(mb, q0, q1, apex, c + Vector3.down * 0.5f);
-                    TriOut(mb, q0, q1, inner, apex + Vector3.up * 2f); // underside, so the tiers aren't hollow from the low camera
+                    if (!low) TriOut(mb, q0, q1, inner, apex + Vector3.up * 2f); // underside, so the tiers aren't hollow from the low camera
                 }
             }
         }

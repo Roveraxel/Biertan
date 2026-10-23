@@ -316,6 +316,76 @@ namespace Biertan.Visual3D
             foreach (Transform t in level.transform)
                 if (t.name is "Tree" or "Pine") BuildTree(t, t.name == "Pine");
             foreach (var br in level.GetComponentsInChildren<Brazier>()) BuildBrazier(br);
+            BuildWilds(level);
+        }
+
+        /// <summary>
+        /// The world doesn't stop at the map's edge: beyond it grows thick, dark forest (thinning to a meadow
+        /// strip around the villages), so the hunter never looks out over an empty plain. Roads that leave the map
+        /// keep a clear lane through it. It is scenery only: the level's own borders already stop the hunter.
+        /// Built cheaply (simpler trees, merged into one mesh per patch of ground).
+        /// </summary>
+        void BuildWilds(LevelBase level)
+        {
+            string id = GameManager.I != null ? GameManager.I.current : "";
+            if (id is "" or "caves" or "gorge" or "church") return;
+            bool village = id is "hub" or "richis" or "mosna" or "biertan";
+            Vector2 mapM = level.size * S;
+            const float margin = 15f;
+            float spacing = village ? 2.4f : 1.9f;
+            // exits: triggers near an edge, each keeps a lane open straight out of the map
+            var lanes = new List<(Vector2 at, Vector2 dir)>();
+            foreach (var tr in level.GetComponentsInChildren<Trigger>(true))
+            {
+                Vector2 t2 = tr.transform.position;
+                var m = new Vector2(t2.x * S, -t2.y * S); // metres, z positive downward
+                float dl = m.x, dr = mapM.x - m.x, dt = m.y, db = mapM.y - m.y;
+                float best = Mathf.Min(Mathf.Min(dl, dr), Mathf.Min(dt, db));
+                if (best > 4f) continue;
+                var dir = best == dl ? Vector2.left : best == dr ? Vector2.right : best == dt ? Vector2.down : Vector2.up;
+                lanes.Add((m, dir));
+            }
+            var chunks = new Dictionary<(int, int), Trees.Parts>();
+            var rnd = new System.Random(id.GetHashCode());
+            for (float x = -margin; x < mapM.x + margin; x += spacing)
+                for (float z = -margin; z < mapM.y + margin; z += spacing)
+                {
+                    float px = x + ((float)rnd.NextDouble() - 0.5f) * spacing * 0.8f;
+                    float pz = z + ((float)rnd.NextDouble() - 0.5f) * spacing * 0.8f;
+                    float ox = Mathf.Max(0f, Mathf.Max(-px, px - mapM.x)), oz = Mathf.Max(0f, Mathf.Max(-pz, pz - mapM.y));
+                    float outside = Mathf.Sqrt(ox * ox + oz * oz);
+                    if (outside < (village ? 4.5f : 0.8f)) continue;
+                    if (village && outside < 8f && rnd.NextDouble() < 0.6) continue; // a ragged forest edge
+                    bool inLane = false;
+                    foreach (var (at, dir) in lanes)
+                    {
+                        var rel = new Vector2(px, pz) - at;
+                        float along = Vector2.Dot(rel, dir);
+                        float across = Mathf.Abs(rel.x * dir.y - rel.y * dir.x);
+                        if (along > -2f && across < 3.2f + along * 0.05f) { inLane = true; break; }
+                    }
+                    if (inLane) continue;
+                    var key = (Mathf.FloorToInt(px / 12f), Mathf.FloorToInt(pz / 12f));
+                    if (!chunks.TryGetValue(key, out var parts))
+                        chunks[key] = parts = new Trees.Parts { bark = new MeshBuilder(), leaves = new MeshBuilder(), leaves2 = new MeshBuilder(), ground = new MeshBuilder(), stone = new MeshBuilder() };
+                    float sc = 0.85f + (float)rnd.NextDouble() * 0.5f;
+                    var at3 = new Vector3(px, 0f, -pz);
+                    if (rnd.NextDouble() < (id is "forest" or "hollow" ? 0.5 : 0.3)) Trees.Spruce(parts, at3, sc, rnd, true);
+                    else Trees.Broadleaf(parts, at3, sc, rnd, false, true);
+                }
+            var bark = Plain(new Color(0.13f, 0.1f, 0.08f), 0.05f);
+            var dark = Plain(new Color(0.07f, 0.12f, 0.09f), 0.06f);
+            var rust = Plain(id is "forest" or "hollow" ? new Color(0.2f, 0.12f, 0.07f) : new Color(0.15f, 0.17f, 0.09f), 0.06f);
+            var wilds = new GameObject("Wilds");
+            wilds.transform.SetParent(root, false);
+            foreach (var kv in chunks)
+            {
+                var g = new GameObject("Wild " + kv.Key);
+                g.transform.SetParent(wilds.transform, false);
+                Part(g, "Bark", kv.Value.bark, bark, false);
+                Part(g, "Leaves", kv.Value.leaves, dark, true);
+                Part(g, "Leaves2", kv.Value.leaves2, rust, true);
+            }
         }
 
         /// <summary>Flat ground features drawn by the 2D level (lakes, chambers, yards, carpets, graves, clearings)
@@ -404,6 +474,7 @@ namespace Biertan.Visual3D
         void BuildBlock(Block b)
         {
             if (b.style is "hidden" or "vine") return;
+            if (b.style == "wall" && Mathf.Max(b.footprint.x, b.footprint.y) > 120f) { BuildRingWall(b); return; }
             Vector2 p = b.transform.position;
             float w = b.footprint.x * S, d = b.footprint.y * S, h = Mathf.Max(0.25f, b.h * S * HK);
             // keep rock and walls low enough to see over from the camera, as Diablo does
@@ -431,8 +502,10 @@ namespace Biertan.Visual3D
                     break;
                 case "tower":
                     wallMat = Plaster;
+                    max.y = Mathf.Max(max.y, 4.2f); // towers stand well above the 2.9 m ring wall
                     walls.Box(min, max, top: false);
                     roof.Pyramid(min, max, Mathf.Max(w, d) * 1.25f, 0.12f);
+                    BuildSlits(go.transform, min, max);
                     break;
                 case "wall":
                     walls.Box(min, max, top: true);
@@ -463,6 +536,57 @@ namespace Biertan.Visual3D
             }
             if (b.style is "house" or "church") BuildWindows(go.transform, min, max, b.style == "church");
             if (b.style == "house") BuildDoor(go.transform, min, max);
+        }
+
+        /// <summary>
+        /// A village ring wall as the Saxons built them: tall rubble-stone walls under a little tiled roof that
+        /// sheltered the defenders' walkway, with buttresses stepping out on the field side. Built in short pieces
+        /// so the ones between the camera and the hunter can sink away.
+        /// </summary>
+        void BuildRingWall(Block b)
+        {
+            Vector2 p = b.transform.position;
+            float w = b.footprint.x * S, d = b.footprint.y * S, H = 2.9f;
+            bool alongX = w >= d;
+            float len = alongX ? w : d, thick = alongX ? d : w;
+            var start = new Vector3(p.x * S - w / 2f, 0f, p.y * S);
+            var axis = alongX ? Vector3.right : Vector3.forward;
+            var across = alongX ? Vector3.forward : Vector3.right;
+            // which side faces the fields: away from the middle of the level
+            var lvlMid = To3D(built.size * new Vector2(0.5f, -0.5f));
+            var wallMid = start + axis * len / 2f + across * thick / 2f;
+            float outSign = Vector3.Dot(wallMid - lvlMid, across) > 0f ? 1f : -1f;
+            var stoneMat = Mat("castle_wall_slates", 2.4f, new Color(0.72f, 0.69f, 0.64f));
+            int n = Mathf.Max(1, Mathf.RoundToInt(len / 3f));
+            float seg = len / n;
+            for (int i = 0; i < n; i++)
+            {
+                var a = start + axis * (i * seg) + across * (thick / 2f);
+                var bEnd = a + axis * seg;
+                var mid = (a + bEnd) / 2f;
+                var go = new GameObject("RingWall");
+                go.transform.SetParent(root, false);
+                go.transform.position = mid;
+                var mb = new MeshBuilder();
+                mb.OrientedBox(a - mid - axis * 0.02f, bEnd - mid + axis * 0.02f, thick, H);
+                Finish(go, mb, stoneMat);
+                var rgo = new GameObject("Walkway roof");
+                rgo.transform.SetParent(go.transform, false);
+                var rm = new MeshBuilder();
+                rm.OrientedGable(a - mid - axis * 0.02f, bEnd - mid + axis * 0.02f, thick + 0.5f, H, 0.5f);
+                Finish(rgo, rm, Roof);
+                if (i % 2 == 0)
+                {
+                    // a buttress leaning on the field side
+                    var bm = new MeshBuilder();
+                    var c = across * outSign * (thick / 2f + 0.3f);
+                    bm.OrientedBox(c - axis * 0.3f, c + axis * 0.3f, 0.6f, H * 0.7f);
+                    var bgo = new GameObject("Buttress");
+                    bgo.transform.SetParent(go.transform, false);
+                    Finish(bgo, bm, stoneMat);
+                }
+                cutaways.Add(go.transform);
+            }
         }
 
         // ------------------------------------------------------------ Biertan's curved walls
@@ -557,6 +681,28 @@ namespace Biertan.Visual3D
             Vector2 p2 = p.transform.position;
             foreach (var (roof, area) in coveredRoofs)
                 if (roof != null) roof.SetActive(!area.Contains(p2));
+        }
+
+        /// <summary>A stone footing and dark arrow slits on every face of a defence tower.</summary>
+        void BuildSlits(Transform parent, Vector3 min, Vector3 max)
+        {
+            var plinth = new GameObject("Plinth");
+            plinth.transform.SetParent(parent, false);
+            var pm = new MeshBuilder();
+            pm.Box(min - new Vector3(0.08f, 0f, 0.08f), new Vector3(max.x + 0.08f, 0.7f, max.z + 0.08f), true);
+            Finish(plinth, pm, Mat("castle_wall_slates", 2.4f, new Color(0.62f, 0.6f, 0.56f)));
+            var slit = Plain(new Color(0.03f, 0.025f, 0.02f), 0f);
+            var c = (min + max) / 2f;
+            foreach (var (dir, half) in new[] { (Vector3.forward, (max.z - min.z) / 2f), (Vector3.back, (max.z - min.z) / 2f), (Vector3.right, (max.x - min.x) / 2f), (Vector3.left, (max.x - min.x) / 2f) })
+                foreach (float y in new[] { 0.55f, 0.8f })
+                {
+                    var q = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                    Destroy(q.GetComponent<Collider>());
+                    q.transform.SetParent(parent, false);
+                    q.transform.position = new Vector3(c.x, min.y + (max.y - min.y) * y, c.z) + dir * (half + 0.01f);
+                    q.transform.localScale = dir.x != 0f ? new Vector3(0.04f, 0.5f, 0.12f) : new Vector3(0.12f, 0.5f, 0.04f);
+                    q.GetComponent<Renderer>().sharedMaterial = slit;
+                }
         }
 
         void BuildWindows(Transform parent, Vector3 min, Vector3 max, bool church)
