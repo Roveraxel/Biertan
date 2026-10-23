@@ -39,7 +39,7 @@ namespace Biertan.Visual3D
         readonly Dictionary<Transform, Actor> mirrored = new();
         readonly Dictionary<string, Material> mats = new();
 
-        class Actor { public EntityId id; public Transform board, shadow; public CharacterBody body; public FolkFigures.Art? folk; public PixelFigure pix; public float lastStrike; public float seed, dir = 1f; public Vector3 last; public Vector2 vel; public bool hasLast; public List<(SpriteRenderer src, SpriteRenderer dst)> parts = new(); public (TextMesh src, TextMesh dst) text; }
+        class Actor { public EntityId id; public float riseT; public Transform board, shadow; public CharacterBody body; public FolkFigures.Art? folk; public PixelFigure pix; public float lastStrike; public float seed, dir = 1f; public Vector3 last; public Vector2 vel; public bool hasLast; public List<(SpriteRenderer src, SpriteRenderer dst)> parts = new(); public (TextMesh src, TextMesh dst) text; }
 
         public static Vector3 To3D(Vector2 p, float h = 0f) => new(p.x * S, h, p.y * S);
 
@@ -753,7 +753,7 @@ namespace Biertan.Visual3D
                         // a monster's strike leaves three red claw rakes in front of it
                         if (t.GetComponent<EnemyBase>() is EnemyBase ce)
                         {
-                            if (ce.strikeT > a.lastStrike + 0.05f) ClawSlash.Spawn(root, pos, new Vector3(ce.face.x, 0f, ce.face.y));
+                            if (ce.strikeT > a.lastStrike + 0.05f && ce.kind != "iele") ClawSlash.Spawn(root, pos, new Vector3(ce.face.x, 0f, ce.face.y));
                             a.lastStrike = ce.strikeT;
                         }
                         // a frame-animated pixel figure, upright to the camera so it isn't foreshortened
@@ -769,7 +769,26 @@ namespace Biertan.Visual3D
                                    : t.GetComponent<PlayerController>() is PlayerController hp ? Mathf.Clamp01((hp.hurtFlash - 0.15f) / 0.15f) : 0f;
                         if (hurt > 0f) dst.color = Color.Lerp(dst.color, new Color(1f, 0.25f, 0.2f, pc.a), hurt * 0.75f);
                         a.dir = a.pix.Flip ? -1f : 1f;
-                        dst.transform.localPosition = new Vector3(0f, -still.bounds.min.y * k - still.bounds.size.y * 0.06f * k, -0.001f * src.sortingOrder);
+                        // a buried moroi shows only its head above the earth, then shoves itself up out of the ground
+                        float sink = 0f;
+                        if (t.GetComponent<EnemyBase>() is EnemyBase ge && ge.kind == "moroi")
+                        {
+                            if (ge.state == "dormant") { sink = 0.82f; a.riseT = 0f; }
+                            else if (ge.state == "rise")
+                            {
+                                a.riseT += Time.deltaTime;
+                                float u = Mathf.Clamp01(a.riseT / 0.8f);
+                                sink = 0.82f * (1f - u * u * (3f - 2f * u)) + Mathf.Sin(a.riseT * 60f) * 0.02f * (1f - u);
+                            }
+                        }
+                        // the iele never quite touch the ground: they hover and bob, faintly see-through
+                        float hover = 0f;
+                        if (t.GetComponent<EnemyBase>() is EnemyBase fe && fe.kind == "iele")
+                        {
+                            hover = 0.18f + Mathf.Sin(Time.time * 2.3f + a.seed * 9f) * 0.06f;
+                            var fc2 = dst.color; dst.color = new Color(fc2.r * 0.85f, fc2.g * 0.9f, fc2.b, fc2.a * 0.8f);
+                        }
+                        dst.transform.localPosition = new Vector3(0f, -still.bounds.min.y * k - still.bounds.size.y * 0.06f * k - sink * a.pix.height * 1.25f + hover, -0.001f * src.sortingOrder);
                         dst.transform.localRotation = Quaternion.Euler(pitch * 0.45f, 0f, 0f); // board leans part-way; this finishes facing the camera
                         dst.transform.localScale = new Vector3(k * (1f + 0.08f * hurt), k * (1f - 0.06f * hurt), 1f);
                         continue;

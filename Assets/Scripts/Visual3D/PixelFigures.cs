@@ -58,6 +58,8 @@ namespace Biertan.Visual3D
                     case "strigoi": return Get("strigoi", 1.35f)?.Clone();
                     case "pricolici": return Get("pricolici", 1.5f)?.Clone();
                     case "wolf": return Get("wolf", 1.0f)?.Clone();
+                    case "moroi": return Get("moroi", 1.35f)?.Clone();
+                    case "iele": return Get("iele", 1.12f)?.Clone();
                 }
             return null;
         }
@@ -90,6 +92,8 @@ namespace Biertan.Visual3D
             if (t.GetComponent<EnemyBase>() is EnemyBase e)
             {
                 if (e.hp <= 0f) return "death";
+                // the moroi lies in the earth until it claws its way up
+                if (e.state is "dormant" or "rise" && clips.ContainsKey("rise_south")) return e.state;
                 if (e.strikeT > 0f || e.state is "windup" or "lunge" or "leap" or "crouch") return "attack";
                 if (e.flash > 0.08f) return "hurt";
                 return speed > 0.3f ? "walk" : "idle";
@@ -123,6 +127,8 @@ namespace Biertan.Visual3D
             // a figure drawn without a strike (the wolf) springs at its prey with a quick burst of its run
             string anim = cur == "attack" && !clips.ContainsKey("attack_south") && !clips.ContainsKey("attack_east") ? "walk" : cur;
             if (anim != cur) fps = 18f;
+            if (cur == "dormant") { anim = "rise"; fps = 0f; }
+            else if (cur == "rise") fps = 11f;
             if (!clips.TryGetValue(anim + "_" + dir, out var frames))
             {
                 // a missing side borrows its mirror (west from east and so on), else the camera-facing clip
@@ -133,7 +139,7 @@ namespace Biertan.Visual3D
             if (frames != null && frames.Length > 0)
             {
                 int i = (int)(t0 * fps);
-                i = anim is "death" or "attack" ? Mathf.Min(i, frames.Length - 1) : i % frames.Length;
+                i = anim is "death" or "attack" or "rise" ? Mathf.Min(i, frames.Length - 1) : i % frames.Length;
                 return frames[i];
             }
             return stills.TryGetValue(dir, out var s) ? s : (stills.TryGetValue("south", out var s2) ? s2 : null);
