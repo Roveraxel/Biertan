@@ -109,6 +109,7 @@ namespace Biertan.Visual3D
             SyncActors(gm.player);
             SyncLines();
             UpdateCutaway(gm.player);
+            UpdateDecor();
             FollowCamera(gm.player);
         }
 
@@ -348,6 +349,8 @@ namespace Biertan.Visual3D
                 if (t.name is "Tree" or "Pine") BuildTree(t, t.name == "Pine");
             foreach (var br in level.GetComponentsInChildren<Brazier>()) BuildBrazier(br);
             BuildWilds(level);
+            decor.Clear();
+            foreach (var dc in level.GetComponentsInChildren<Decor>()) BuildDecor(dc);
         }
 
         /// <summary>
@@ -540,8 +543,16 @@ namespace Biertan.Visual3D
                     break;
                 case "clocktower":
                 {
-                    // Sighișoara's Clock Tower: a tall shaft, a steep spire and four corner turrets
-                    wallMat = Plaster;
+                    // Sighișoara's Clock Tower: a tall stone shaft, a timber gallery, a steep spire and four corner turrets
+                    wallMat = Px ? Mat("px_stone2", 1.6f, new Color(0.7f, 0.68f, 0.65f), 0.2f) : Plaster;
+                    if (Px) roofMat = Mat("px_roof2", 1.2f, new Color(0.9f, 0.82f, 0.7f), 0.35f);
+                    {
+                        var gal = new MeshBuilder();
+                        gal.Box(new Vector3(min.x - 0.35f, max.y - 1.1f, min.z - 0.35f), new Vector3(max.x + 0.35f, max.y - 0.2f, max.z + 0.35f), true);
+                        var ggo = new GameObject("Gallery");
+                        ggo.transform.SetParent(go.transform, false);
+                        Finish(ggo, gal, Px ? Mat("px_planks", 1.2f, new Color(0.6f, 0.55f, 0.5f)) : Wood);
+                    }
                     walls.Box(min, max, top: false);
                     float sp = Mathf.Max(w, d);
                     roof.Pyramid(min, max, sp * 2.6f, 0.25f);
@@ -747,6 +758,43 @@ namespace Biertan.Visual3D
             rm.OrientedGable(a, b, way.width * S + 0.3f, H, 0.8f);
             Finish(roofGo, rm, Roof);
             coveredLines.Add((roofGo, way.a, way.b, way.width / 2f));
+        }
+
+        readonly List<(SpriteRenderer r, Vector3 at)> decor = new();
+        int decorTick;
+
+        /// <summary>Street clutter: a pixel-art sprite standing upright, leaning back toward the camera as the
+        /// villagers do, its feet on the ground.</summary>
+        void BuildDecor(Decor d)
+        {
+            var sp = Resources.Load<Sprite>("Sprites/Props/" + d.sprite);
+            if (sp == null) return;
+            var go = new GameObject("Decor " + d.sprite);
+            go.transform.SetParent(root, false);
+            var at = To3D(d.transform.position);
+            go.transform.SetPositionAndRotation(at, Quaternion.Euler(pitch * 0.55f, 0f, 0f));
+            go.transform.localScale = Vector3.one * d.scale;
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = sp; sr.flipX = d.flip;
+            sr.shadowCastingMode = ShadowCastingMode.Off;
+            sr.color = LightAt(at);
+            decor.Add((sr, at));
+            // a faint shadow where it stands
+            var sh = new GameObject("DecorShadow");
+            sh.transform.SetParent(go.transform.parent, false);
+            sh.transform.SetPositionAndRotation(at + new Vector3(0, 0.012f, 0), Quaternion.Euler(90f, 0f, 0f));
+            float wdt = sp.bounds.size.x * d.scale;
+            sh.transform.localScale = new Vector3(wdt * 0.9f, wdt * 0.4f, 1f);
+            var ssr = sh.AddComponent<SpriteRenderer>();
+            ssr.sprite = Resources.Load<Sprite>("Sprites/circle");
+            ssr.color = new Color(0, 0, 0, 0.4f);
+        }
+
+        /// <summary>Clutter takes the light of the torches near it, a few times a second.</summary>
+        void UpdateDecor()
+        {
+            if (decor.Count == 0 || ++decorTick % 12 != 0) return;
+            foreach (var (r, at) in decor) if (r != null) r.color = LightAt(at);
         }
 
         /// <summary>Diablo's trick: walls between the camera and the hunter sink so he stays visible, and the

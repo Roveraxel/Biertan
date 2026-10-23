@@ -76,6 +76,23 @@ namespace Biertan.EditorTools
                 pi.spritePixelsPerUnit = 64;
                 return;
             }
+            if (assetPath.Contains("Resources/Sprites/Props/"))
+            {
+                // PixelLab street clutter: crisp, standing on its bottom edge, at the villagers' pixel scale
+                var pi = (TextureImporter)assetImporter;
+                pi.textureType = TextureImporterType.Sprite;
+                pi.spriteImportMode = SpriteImportMode.Single;
+                pi.filterMode = FilterMode.Point;
+                pi.textureCompression = TextureImporterCompression.Uncompressed;
+                pi.mipmapEnabled = false;
+                pi.alphaIsTransparency = true;
+                var st = new TextureImporterSettings();
+                pi.ReadTextureSettings(st);
+                st.spriteAlignment = (int)SpriteAlignment.BottomCenter;
+                st.spritePixelsPerUnit = 42;
+                pi.SetTextureSettings(st);
+                return;
+            }
             if (!assetPath.StartsWith(MixTex)) return;
             var ti = (TextureImporter)assetImporter;
             string n = Path.GetFileNameWithoutExtension(assetPath).ToLowerInvariant();

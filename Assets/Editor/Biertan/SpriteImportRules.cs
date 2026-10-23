@@ -35,7 +35,7 @@ namespace Biertan.EditorTools
         void OnPreprocessTexture()
         {
             string p = assetPath.Replace('\\', '/');
-            if (p.Contains("/Resources/Sprites/Pixel/")) return; // PixelLab frames: ModelImportRules sets them up (one fixed scale)
+            if (p.Contains("/Resources/Sprites/Pixel/") || p.Contains("/Resources/Sprites/Props/")) return; // PixelLab frames: ModelImportRules sets them up (one fixed scale)
             if (p.Contains("/Resources/Textures3D/"))
             {
                 // Poly Haven PBR maps for the 3D view: colour in sRGB, normal maps as normal maps, all tiling

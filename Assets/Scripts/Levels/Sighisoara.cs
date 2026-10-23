@@ -66,6 +66,7 @@ namespace Biertan.Levels
 
             AddGraves();
             AddTrees();
+            AddClutter();
 
             // lights: the Clock Tower gate, the Tailors' gate, the citadel square
             foreach (var g in gates)
@@ -220,6 +221,67 @@ namespace Biertan.Levels
             var end = axis.x < 0 ? b.c + axis * len / 2f : b.c - axis * len / 2f;   // the western end
             float ts = wid * 0.5f;
             AddBlockRotated(end + (b.c - end).normalized * ts * 0.5f, new Vector2(ts, ts), b.angle, "tower", 200f);
+        }
+
+        // ---------------------------------------------------------------- street clutter
+
+        static readonly (string name, float radius, float weight)[] Clutter =
+        {
+            ("barrel", 18f, 3f), ("barrels", 30f, 2f), ("crate", 20f, 2f), ("sacks", 24f, 2f), ("firewood", 34f, 3f),
+            ("handcart", 40f, 1f), ("haycart", 55f, 0.7f), ("bench", 20f, 1f), ("trough", 30f, 0.8f), ("cauldron", 22f, 0.5f),
+            ("wheel", 0f, 1f), ("laundry", 0f, 1f), ("crow", 0f, 1.5f), ("lantern", 8f, 1f),
+        };
+
+        public Decor AddDecor(Vector2 godotPos, string sprite, float radius, bool flip = false)
+        {
+            var go = new GameObject("Decor " + sprite);
+            go.transform.SetParent(transform, false);
+            go.transform.position = P(godotPos);
+            var d = go.AddComponent<Decor>();
+            d.sprite = sprite; d.flip = flip; d.scale = Decor.SizeOf(sprite);
+            d.radius = radius * d.scale;
+            d.Build();
+            return d;
+        }
+
+        /// <summary>Barrels, firewood, carts and crows against the house fronts, off the cobbles; market stalls and
+        /// a well on the citadel square.</summary>
+        void AddClutter()
+        {
+            AddDecor(SighisoaraMap.At(66f, 40f), "well", 45f);
+            AddDecor(SighisoaraMap.At(88f, 18f), "stall", 55f);
+            AddDecor(SighisoaraMap.At(62f, 22f), "stall", 55f, true);
+            AddDecor(SighisoaraMap.At(92f, 40f), "stall", 55f);
+            float total = 0f; foreach (var c in Clutter) total += c.weight;
+            var spawnG = new Vector2(spawn.x, -spawn.y);
+            int n = 0;
+            for (int i = 0; i < SighisoaraMap.Roads.Length && n < 420; i++)
+            {
+                float width = SighisoaraMap.RoadWidth[i];
+                if (width < 100f) continue;
+                var road = SighisoaraMap.Roads[i];
+                float next = 200f + (float)rng.NextDouble() * 400f;
+                for (int k = 0; k < road.Length - 1 && n < 420; k++)
+                {
+                    Vector2 a = road[k], b = road[k + 1];
+                    float len = Vector2.Distance(a, b);
+                    if (len < 1f) continue;
+                    var dir = (b - a) / len; var nrm = new Vector2(-dir.y, dir.x);
+                    for (float s = next; s < len; s += 260f + (float)rng.NextDouble() * 320f)
+                    {
+                        float side = rng.NextDouble() < 0.5 ? -1f : 1f;
+                        var p = a + dir * s + nrm * side * (width / 2f + 28f);
+                        next = s;
+                        if (Vector2.Distance(p, spawnG) < 200f || p.x < 60f || p.y < 60f || p.x > size.x - 60f || p.y > size.y - 60f) continue;
+                        if (NearRoad(p, -10f) || NearBuilding(p, 4f) || NearWall(p, 40f)) continue;
+                        float pick = (float)rng.NextDouble() * total; var c = Clutter[0];
+                        foreach (var cc in Clutter) { pick -= cc.weight; if (pick <= 0f) { c = cc; break; } }
+                        AddDecor(p, c.name, c.radius, rng.NextDouble() < 0.5);
+                        n++;
+                    }
+                    next = Mathf.Max(0f, next - len);
+                }
+            }
         }
 
         void AddGraves()
