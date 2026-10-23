@@ -168,6 +168,7 @@ namespace Biertan.Visual3D
             m.SetColor("_BaseColor", tint);
             m.SetFloat("_Smoothness", smooth);
             m.SetTextureScale("_BaseMap", Vector2.one / tileMetres);
+            if (set.StartsWith("px_") && diff != null) { diff.filterMode = FilterMode.Point; diff.wrapMode = TextureWrapMode.Repeat; }
             mats[key] = m;
             return m;
         }
@@ -183,13 +184,28 @@ namespace Biertan.Visual3D
             return m;
         }
 
-        Material Ground => Mat("grass_path_2", 5f, new Color(0.62f, 0.66f, 0.55f));
-        Material Cobble => Mat("cobblestone_floor_08", 2.4f, new Color(0.78f, 0.76f, 0.72f), 0.2f);
+        // Sighișoara wears PixelLab's gritty pixel-art surfaces: dirty plaster, mossy tiles, wet stone
+        static bool Px => GameManager.I != null && GameManager.I.current == "sighisoara";
+        Material Ground => Px ? Mat("px_mud", 2f, new Color(0.8f, 0.82f, 0.78f), 0.15f) : Mat("grass_path_2", 5f, new Color(0.62f, 0.66f, 0.55f));
+        Material Cobble => Px ? Mat("px_cobble", 1.4f, new Color(0.85f, 0.85f, 0.88f), 0.5f) : Mat("cobblestone_floor_08", 2.4f, new Color(0.78f, 0.76f, 0.72f), 0.2f);
         Material Road => Mat("forest_leaves_02", 3f, new Color(0.7f, 0.62f, 0.52f));
-        Material Roof => Mat("clay_roof_tiles_02", 1.6f, new Color(0.85f, 0.8f, 0.78f), 0.18f);
-        Material Plaster => Mat("clay_plaster", 2.5f, new Color(0.92f, 0.88f, 0.8f));
-        Material Stone => Mat("castle_wall_slates", 2.4f, new Color(0.8f, 0.78f, 0.74f));
-        Material Wood => Mat("brown_planks_05", 1.6f, new Color(0.75f, 0.68f, 0.6f));
+        Material Roof => Px ? Mat("px_roof", 1.5f, new Color(1f, 0.96f, 0.94f), 0.32f) : Mat("clay_roof_tiles_02", 1.6f, new Color(0.85f, 0.8f, 0.78f), 0.18f);
+        Material Plaster => Px ? Mat("px_plaster0", 1.8f, Color.white) : Mat("clay_plaster", 2.5f, new Color(0.92f, 0.88f, 0.8f));
+        Material Stone => Px ? Mat("px_stone", 1.5f, new Color(0.85f, 0.85f, 0.85f), 0.25f) : Mat("castle_wall_slates", 2.4f, new Color(0.8f, 0.78f, 0.74f));
+        Material Wood => Px ? Mat("px_shingle", 1.4f, new Color(0.85f, 0.85f, 0.85f)) : Mat("brown_planks_05", 1.6f, new Color(0.75f, 0.68f, 0.6f));
+
+        /// <summary>Each Sighișoara house its own dirty plaster (and the odd roof of older tiles).</summary>
+        Material PlasterAt(Vector2 p)
+        {
+            if (!Px) return Plaster;
+            int k = Mathf.Abs((int)(p.x * 0.37f) * 31 + (int)(p.y * 0.53f) * 17) % 7;
+            return Mat("px_plaster" + k, 1.8f, new Color(0.82f, 0.8f, 0.78f));
+        }
+        Material RoofAt(Vector2 p)
+        {
+            if (!Px) return Roof;
+            return (Mathf.Abs((int)(p.x * 0.29f) + (int)(p.y * 0.41f)) % 3 == 0) ? Mat("px_roof2", 1.5f, new Color(0.95f, 0.9f, 0.88f), 0.32f) : Roof;
+        }
 
         /// <summary>A soft, large-scale patchwork of lighter and darker earth laid over a tiled ground texture,
         /// so its repeats don't line up into visible stripes.</summary>
@@ -262,6 +278,17 @@ namespace Biertan.Visual3D
             RenderSettings.ambientEquatorColor = new Color(0.3f, 0.29f, 0.34f) * k;
             RenderSettings.ambientGroundColor = new Color(0.16f, 0.14f, 0.12f) * k;
             ambientK = k;
+            RenderSettings.fogDensity = 0.012f; RenderSettings.fogColor = new Color(0.05f, 0.06f, 0.09f);
+            if (Px)
+            {
+                // Sighișoara: a raw, overcast autumn dusk; cold grey light, the town sunk in damp haze
+                moon.color = new Color(0.66f, 0.7f, 0.78f); moon.intensity = 1.9f * k; moon.shadowStrength = 0.45f;
+                RenderSettings.ambientSkyColor = new Color(0.5f, 0.53f, 0.6f) * k;
+                RenderSettings.ambientEquatorColor = new Color(0.36f, 0.37f, 0.4f) * k;
+                RenderSettings.ambientGroundColor = new Color(0.13f, 0.13f, 0.12f) * k;
+                RenderSettings.fogDensity = 0.026f; RenderSettings.fogColor = new Color(0.16f, 0.18f, 0.2f);
+            }
+            else { moon.color = new Color(0.55f, 0.62f, 0.9f); moon.shadowStrength = 0.75f; }
         }
 
         float ambientK = 1f;
@@ -494,7 +521,7 @@ namespace Biertan.Visual3D
             switch (b.style)
             {
                 case "house":
-                    wallMat = Plaster;
+                    wallMat = PlasterAt(p); roofMat = RoofAt(p);
                     walls.Box(min, max, top: false);
                     roof.Gable(min, max, Mathf.Min(Mathf.Min(w, d) * 0.55f, 2.4f), 0.18f);
                     BuildBeams(go.transform, min, max);
@@ -634,7 +661,7 @@ namespace Biertan.Visual3D
             bool gallery = cw.style == "gallery";
             float H = gallery ? 1.1f : cw.h * S * HK * 1.6f;
             float t = cw.thick * S;
-            var wallMat = gallery ? Wood : Mat("clay_plaster", 2.5f, new Color(0.8f, 0.78f, 0.72f));
+            var wallMat = gallery ? Wood : Px ? Stone : Mat("clay_plaster", 2.5f, new Color(0.8f, 0.78f, 0.72f));
             var centroid = Vector2.zero;
             foreach (var p in cw.pts) centroid += p;
             centroid /= Mathf.Max(1, cw.pts.Count);

@@ -183,18 +183,25 @@ namespace Biertan.Levels
         {
             bool longX = b.size.x >= b.size.y;
             float len = longX ? b.size.x : b.size.y, depth = longX ? b.size.y : b.size.x;
-            depth = Mathf.Min(depth, 480f);
+            // a deep block is two rows back to back: a house on the street, another on the yard behind
+            int rows = depth > 520f ? 2 : 1;
+            float rowDepth = Mathf.Min(depth / rows - (rows > 1 ? 40f : 0f), 480f);
             float r = b.angle * Mathf.Deg2Rad;
             var axis = longX ? new Vector2(Mathf.Cos(r), -Mathf.Sin(r)) : new Vector2(Mathf.Sin(r), Mathf.Cos(r)); // Godot space
             int n = Mathf.Max(1, Mathf.RoundToInt(len / (260f + (float)rng.NextDouble() * 120f)));
             float seg = len / n;
-            for (int i = 0; i < n; i++)
+            var across = new Vector2(-axis.y, axis.x);
+            for (int row = 0; row < rows; row++)
             {
-                var c = b.c + axis * (-len / 2f + seg * (i + 0.5f));
-                float w = seg - 6f;
-                float h = 44f + (float)rng.NextDouble() * 18f;
-                var size = longX ? new Vector2(w, depth) : new Vector2(depth, w);
-                AddBlockRotated(c, size, b.angle, "house", h);
+                var off = rows == 1 ? Vector2.zero : across * (row == 0 ? -1f : 1f) * (depth / 4f);
+                for (int i = 0; i < n; i++)
+                {
+                    var c = b.c + off + axis * (-len / 2f + seg * (i + 0.5f));
+                    float w = seg - 6f;
+                    float h = 44f + (float)rng.NextDouble() * 18f;
+                    var size = longX ? new Vector2(w, rowDepth) : new Vector2(rowDepth, w);
+                    AddBlockRotated(c, size, b.angle, "house", h);
+                }
             }
         }
 
