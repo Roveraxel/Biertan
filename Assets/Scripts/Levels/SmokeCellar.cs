@@ -70,6 +70,14 @@ namespace Biertan.Levels
                 AddTorch(new Vector2(x, x == 1900f ? 320f : 880f), 220f, new Color(1f, 0.45f, 0.18f), 0.9f); // smoking fires
             AddTorch(new Vector2(2540, 600), 260f, new Color(1f, 0.55f, 0.25f), 0.8f);
 
+            // the smokehouse: hams on chains swinging across the way through
+            foreach (var (x, y, ph, ax) in new[] { (1800f, 600f, 0f, false), (1940f, 460f, 0.6f, true), (1940f, 760f, 1.3f, true), (2090f, 600f, 0.9f, false) })
+            {
+                var hk = new GameObject("SwingingHook").AddComponent<SwingingHook>();
+                hk.transform.SetParent(transform, false);
+                hk.anchor = P(x, y); hk.transform.position = hk.anchor; hk.phase = ph; hk.alongX = ax; hk.reach = ax ? 160f : 140f;
+            }
+
             // the thieves: two in the cold store you can slip past, then the fights
             foreach (var p in new[] { new Vector2(560, 470), new Vector2(820, 760) })
             {

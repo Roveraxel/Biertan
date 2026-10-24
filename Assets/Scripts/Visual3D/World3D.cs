@@ -1174,7 +1174,7 @@ namespace Biertan.Visual3D
         static readonly HashSet<string> ActorTypes = new()
         {
             "FloatingText", "SaltRing", "FirePatch", "SaltCrystal", "RootSpike", "Lurker", "Cameo",
-            "BloodBolt", "BloodGeyser", "Gate", "Balaur",
+            "BloodBolt", "BloodGeyser", "Gate", "Balaur", "SwingingHook",
         };
 
         static bool IsActorType(MonoBehaviour mb) => ActorTypes.Contains(mb.GetType().Name);
