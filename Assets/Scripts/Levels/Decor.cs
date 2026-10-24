@@ -20,6 +20,9 @@ namespace Biertan.Levels
             "bench" => 0.6f, "crate" => 0.75f, "sacks" => 0.7f, "barrel" => 0.72f, "barrels" => 0.95f,
             "firewood" => 0.8f, "handcart" => 1.2f, "haycart" => 1.6f, "well" => 1.4f, "stall" => 1.8f,
             "trough" => 0.9f, "lantern" => 1.45f, "cauldron" => 0.75f, "wheel" => 0.7f, "laundry" => 1.1f,
+            "hams_beam" => 1.4f, "sausage_rack" => 1.2f, "salt_barrel" => 0.75f, "chopping_block" => 0.7f, "ham_pile" => 0.8f,
+            "smoke_pit" => 1.2f, "spiridus_lantern" => 0.45f, "red_cap" => 0.35f, "ladder" => 1.6f, "fish_crate" => 0.75f,
+            "potlid" => 0.5f, "shelf" => 1.2f, "hook_empty" => 0.9f,
             _ => 1f,
         };
 

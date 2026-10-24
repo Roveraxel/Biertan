@@ -57,8 +57,14 @@ namespace Biertan.Levels
                 (new(400, 340), "barrels"), (new(520, 330), "sacks"), (new(640, 340), "barrels"), (new(780, 330), "crate"), (new(930, 350), "sacks"),
                 (new(400, 860), "crate"), (new(560, 870), "barrel"), (new(700, 860), "sacks"), (new(940, 850), "barrels"),
                 (new(1120, 390), "crate"), (new(1560, 400), "barrel"), (new(1130, 820), "sacks"), (new(1560, 810), "crate"),
-                (new(1740, 300), "firewood"), (new(1900, 290), "cauldron"), (new(2080, 300), "firewood"), (new(2200, 330), "barrels"),
-                (new(1730, 900), "cauldron"), (new(1960, 910), "firewood"), (new(2190, 900), "cauldron"),
+                (new(1740, 300), "firewood"), (new(1900, 290), "smoke_pit"), (new(2080, 300), "firewood"), (new(2200, 330), "barrels"),
+                (new(1730, 900), "smoke_pit"), (new(1960, 910), "firewood"), (new(2190, 900), "smoke_pit"),
+                // the cold store: what the spiriduși were after
+                (new(450, 420), "hams_beam"), (new(600, 410), "sausage_rack"), (new(760, 420), "hams_beam"), (new(900, 440), "salt_barrel"),
+                (new(470, 780), "ham_pile"), (new(640, 800), "chopping_block"), (new(820, 790), "shelf"), (new(960, 760), "fish_crate"),
+                (new(120, 540), "ladder"), (new(1200, 420), "hook_empty"), (new(1480, 760), "spiridus_lantern"),
+                // the captain's den
+                (new(2420, 560), "ham_pile"), (new(2650, 520), "potlid"), (new(2700, 680), "red_cap"), (new(2470, 700), "spiridus_lantern"),
                 (new(2380, 400), "sacks"), (new(2700, 420), "barrels"), (new(2690, 800), "crate"), (new(2390, 800), "barrel"),
             })
                 AddDecor(p, s);
@@ -76,6 +82,7 @@ namespace Biertan.Levels
                 var hk = new GameObject("SwingingHook").AddComponent<SwingingHook>();
                 hk.transform.SetParent(transform, false);
                 hk.anchor = P(x, y); hk.transform.position = hk.anchor; hk.phase = ph; hk.alongX = ax; hk.reach = ax ? 160f : 140f;
+                hk.sprite = ph switch { 0f => "ham_hook", 0.6f => "bacon_hook", 1.3f => "sausage_hook", _ => "ham_hook" };
             }
 
             // the thieves: two in the cold store you can slip past, then the fights

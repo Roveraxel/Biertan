@@ -1018,6 +1018,7 @@ namespace Biertan.Visual3D
             var live = new List<Transform>();
             if (player != null) live.Add(player.transform);
             foreach (var e in EnemyBase.All) if (e != null) live.Add(e.transform);
+            foreach (var e in EnemyBase.Fainted) if (e != null) live.Add(e.transform);
             foreach (var pr in built.GetComponentsInChildren<Prop>()) if (pr.kind != "spring") live.Add(pr.transform);
             foreach (var mb in FindObjectsByType<MonoBehaviour>())
                 if (mb != null && mb.isActiveAndEnabled && IsActorType(mb)) live.Add(mb.transform);
@@ -1070,6 +1071,7 @@ namespace Biertan.Visual3D
                 a.last = pos; a.hasLast = true;
                 bool flat = IsFlat(t);
                 a.board.SetPositionAndRotation(pos + (flat ? new Vector3(0, 0.03f, 0) : Vector3.zero), flat ? flatRot : camRot);
+                if (t.GetComponent<EnemyBase>() is EnemyBase fz && fz.fainted) a.board.rotation = camRot * Quaternion.Euler(0f, 0f, 78f); // out cold on his side
                 a.shadow.gameObject.SetActive(!flat && a.body == null && t.GetComponent<FloatingText>() == null && t.GetComponent<BloodBolt>() == null);
                 a.shadow.position = pos + new Vector3(0, 0.015f, 0);
                 var tint = LightAt(pos);

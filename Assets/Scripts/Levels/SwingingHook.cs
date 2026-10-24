@@ -16,6 +16,7 @@ namespace Biertan.Levels
         public float period = 2.4f;
         public float phase;
         public bool alongX = true;
+        public string sprite = "ham_hook";
 
         PlayerController player;
         float hitCd, t;
@@ -23,6 +24,12 @@ namespace Biertan.Levels
         void Start()
         {
             player = FindAnyObjectByType<PlayerController>();
+            if (Resources.Load<Sprite>("Sprites/Props/" + sprite) != null)
+            {
+                // PixelLab art (42 px a unit in 2D): scaled so it hangs about a man's height in the 3D view
+                Part("Ham", "Props/" + sprite, Vector2.zero, new Vector2(39f, 39f), Color.white, 1);
+                return;
+            }
             Part("Chain", "white", new Vector2(0, 46), new Vector2(3, 54), new Color32(0x3a, 0x34, 0x30, 0xff), 0);
             Part("Ham", "circle", new Vector2(0, 16), new Vector2(26, 34), new Color32(0x8a, 0x3a, 0x2a, 0xff), 1);
             Part("Rind", "circle", new Vector2(-4, 20), new Vector2(12, 16), new Color32(0xc8, 0x9a, 0x7a, 0xff), 2);

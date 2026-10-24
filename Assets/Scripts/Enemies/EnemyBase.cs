@@ -79,7 +79,7 @@ namespace Biertan.Enemies
         }
 
         protected virtual void OnEnable() => All.Add(this);
-        protected virtual void OnDisable() => All.Remove(this);
+        protected virtual void OnDisable() { All.Remove(this); Fainted.Remove(this); }
 
         // ------------------------------------------------------------ frame
 
@@ -89,6 +89,7 @@ namespace Biertan.Enemies
             if (fainted)
             {
                 rb.linearVelocity = Vector2.zero;
+                flash = Mathf.Max(0f, flash - dt);
                 starT += dt;
                 if (starT > 1.3f) { starT = 0f; FxUtil.Text(Pos + new Vector2(0, 34), "* * *", FxUtil.Amber); }
                 return;
@@ -392,6 +393,7 @@ namespace Biertan.Enemies
         }
 
         public bool fainted;    // spiriduși never die: they keel over with stars round their heads
+        public static readonly List<EnemyBase> Fainted = new();
         float starT;
 
         protected virtual void Die()
@@ -404,6 +406,7 @@ namespace Biertan.Enemies
                 foreach (var c in GetComponents<Collider2D>()) c.enabled = false;
                 rb.linearVelocity = Vector2.zero;
                 All.Remove(this);
+                Fainted.Add(this);
                 AudioManager.I?.SfxAt("blip", Pos, -8f, 1.6f);
                 if (coin > 0 && player != null) { player.coins += coin; FxUtil.Text(Pos + new Vector2(0, 16), $"+{coin}", FxUtil.Amber); }
                 FxUtil.Text(Pos + new Vector2(0, 34), "* * *", FxUtil.Amber);
