@@ -24,7 +24,7 @@ namespace Biertan.Levels
             ground = new Color32(0x2c, 0x33, 0x26, 0xff);
             tile = "tile_grass_village";
             rng = new System.Random(1521);
-            spawn = P(SighisoaraMap.At(150f, -100f));
+            spawn = P(Free(SighisoaraMap.At(104f, -42f)));     // just inside the Clock Tower gate
 
             DrawGround();
             Scatter(new Rect(0, 0, size.x, size.y), 300, new Color[] { new Color32(0x3a, 0x40, 0x2c, 0xff), new Color32(0x2a, 0x2e, 0x22, 0xff), new Color32(0x46, 0x44, 0x36, 0xff) });
@@ -203,6 +203,9 @@ namespace Biertan.Levels
                     float w = seg - 6f;
                     float h = 44f + (float)rng.NextDouble() * 18f;
                     var size = longX ? new Vector2(w, rowDepth) : new Vector2(rowDepth, w);
+                    // OSM outlines fitted with boxes poke into the street: shrink a house until every street stays open
+                    for (int tries = 0; tries < 3 && BlocksStreet(c, size, b.angle); tries++) size *= 0.78f;
+                    if (BlocksStreet(c, size, b.angle)) continue;
                     AddBlockRotated(c, size, b.angle, "house", h);
                 }
             }
@@ -230,14 +233,15 @@ namespace Biertan.Levels
         /// <summary>The bacon thieves: the butcher on the square, the clues and the cellar at the Butchers' Tower.</summary>
         void AddTutorial()
         {
+            SighisoaraTutorial.Spots.Clear();
             Vector2 At(float x, float y) => Free(SighisoaraMap.At(x, y));
             // the lower town: the inn where Azorel waits, the notice board, Vlad's cart for the road east
-            AddProp("npc", "azorel", "Azorel", At(158f, -112f), "E   Speak to Azorel", new Color32(0xd8, 0xd0, 0xc0, 0xff));
-            var nb = At(140f, -80f);
+            AddProp("npc", "azorel", "Azorel", At(96f, -50f), "E   Speak to Azorel", new Color32(0xd8, 0xd0, 0xc0, 0xff));
+            var nb = At(112f, -52f);
             AddDecor(nb + new Vector2(0f, -16f), "notice_board", 20f);
             AddProp("task", "notice", "Notice board", nb, "E   Read the notice board");
-            AddProp("npc", "vlad", "Vlad Laurențiu · Merchant", At(215f, -95f), "E   Speak with Vlad Laurențiu", new Color32(0x4a, 0x5a, 0x6a, 0xff));
-            AddDecor(At(225f, -105f), "handcart", 40f);
+            AddProp("npc", "vlad", "Vlad Laurențiu · Merchant", At(150f, -62f), "E   Speak with Vlad Laurențiu", new Color32(0x4a, 0x5a, 0x6a, 0xff));
+            AddDecor(At(160f, -70f), "haycart", 55f);
             // the citadel square: the guild master's stall, Mihai by the well
             AddProp("npc", "butcher", "Meister Thomas · Guild master", At(86f, 12f), "E   Speak with Meister Thomas", new Color32(0x6a, 0x3a, 0x30, 0xff));
             AddProp("npc", "child", "Mihai", At(72f, 46f), "E   Speak with Mihai", new Color32(0x6a, 0x5a, 0x40, 0xff));
@@ -274,6 +278,13 @@ namespace Biertan.Levels
             var gs = At(-113f, -104f);
             AddDecor(gs + new Vector2(0f, -10f), "guild_sign", 0f);
             AddProp("task", "sign", "Guild sign", gs, "E   Look at the guild sign");
+        }
+
+        public new Prop AddProp(string kind, string id, string display, Vector2 godotPos, string prompt = "", Color? col = null)
+        {
+            var pr = base.AddProp(kind, id, display, godotPos, prompt, col);
+            SighisoaraTutorial.Spots[id] = P(godotPos);
+            return pr;
         }
 
         /// <summary>A Godot-space spot nudged out of any house or the wall, so people and clues stand in the open.</summary>
@@ -325,7 +336,7 @@ namespace Biertan.Levels
             for (int i = 0; i < SighisoaraMap.Roads.Length && n < 420; i++)
             {
                 float width = SighisoaraMap.RoadWidth[i];
-                if (width < 100f) continue;
+                if (width < 140f) continue;
                 var road = SighisoaraMap.Roads[i];
                 float next = 200f + (float)rng.NextDouble() * 400f;
                 for (int k = 0; k < road.Length - 1 && n < 420; k++)
@@ -337,7 +348,7 @@ namespace Biertan.Levels
                     for (float s = next; s < len; s += 260f + (float)rng.NextDouble() * 320f)
                     {
                         float side = rng.NextDouble() < 0.5 ? -1f : 1f;
-                        var p = a + dir * s + nrm * side * (width / 2f + 28f);
+                        var p = a + dir * s + nrm * side * (width / 2f + 40f);
                         next = s;
                         if (Vector2.Distance(p, spawnG) < 200f || p.x < 60f || p.y < 60f || p.x > size.x - 60f || p.y > size.y - 60f) continue;
                         if (NearRoad(p, -10f) || NearBuilding(p, 4f) || NearWall(p, 40f)) continue;
@@ -387,6 +398,36 @@ namespace Biertan.Levels
                     AddTree(P(p), rng.NextDouble() < 0.2);
                     n++;
                 }
+        }
+
+        static List<(Vector2 p, float half)> streetSamples;
+
+        /// <summary>True when a house box (Godot space) would stand on a street: points every 30 units along each
+        /// street, padded by most of the street's half-width, must stay outside it.</summary>
+        static bool BlocksStreet(Vector2 c, Vector2 size, float angle)
+        {
+            if (streetSamples == null)
+            {
+                streetSamples = new List<(Vector2, float)>();
+                for (int i = 0; i < SighisoaraMap.Roads.Length; i++)
+                {
+                    var r = SighisoaraMap.Roads[i]; float half = SighisoaraMap.RoadWidth[i] / 2f;
+                    if (half < 30f) continue;    // footpaths and steps may squeeze between houses
+                    for (int k = 0; k < r.Length - 1; k++)
+                    {
+                        int n = Mathf.Max(1, Mathf.CeilToInt(Vector2.Distance(r[k], r[k + 1]) / 30f));
+                        for (int j = 0; j <= n; j++) streetSamples.Add((Vector2.Lerp(r[k], r[k + 1], j / (float)n), half));
+                    }
+                }
+            }
+            var box = new SighisoaraMap.B { c = c, size = size, angle = angle };
+            float reach = Mathf.Max(size.x, size.y);
+            foreach (var (p, half) in streetSamples)
+            {
+                if (Mathf.Abs(p.x - c.x) > reach || Mathf.Abs(p.y - c.y) > reach) continue;
+                if (InBox(p, box, half * 0.85f)) return true;
+            }
+            return false;
         }
 
         static bool NearRoad(Vector2 p, float pad)

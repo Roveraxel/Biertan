@@ -248,6 +248,33 @@ namespace Biertan.UI
             GUI.Label(r, s, st);
         }
 
+        Camera cam3d;
+
+        /// <summary>The quest pointer: an arrow beside the hunter turning toward where the job sends him next,
+        /// with the place's name and how far it is.</summary>
+        void DrawPointer(PlayerController p, Vector2 at, string label, float k)
+        {
+            Vector2 pp = p.transform.position;
+            var d = at - pp;
+            float metres = d.magnitude * 0.02f;
+            if (metres < 2.5f) return;
+            if (cam3d == null) cam3d = GameObject.Find("Camera3D")?.GetComponent<Camera>();
+            var c = new Vector2(Screen.width / 2f, Screen.height / 2f);
+            if (cam3d != null)
+            {
+                var sp = cam3d.WorldToScreenPoint(new Vector3(pp.x * 0.02f, 0.7f, pp.y * 0.02f));
+                if (sp.z > 0f) c = new Vector2(sp.x, Screen.height - sp.y);
+            }
+            var dir = new Vector2(d.x, -d.y).normalized;   // north (2D +y) is up the screen
+            var pos = c + dir * 92f * k;
+            var m = GUI.matrix;
+            GUIUtility.RotateAroundPivot(Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg, pos);
+            Txt(new Rect(pos.x - 16f * k, pos.y - 16f * k, 32f * k, 32f * k), "►", 26f * k, Amber, TextAnchor.MiddleCenter);
+            GUI.matrix = m;
+            float ty = dir.y > 0.3f ? 18f : -38f;
+            Txt(new Rect(pos.x - 160f * k, pos.y + ty * k, 320f * k, 20f * k), $"{label} · {metres:0} m", 13f * k, Amber, TextAnchor.MiddleCenter);
+        }
+
         void Box(Rect r, Color c) { var old = GUI.color; GUI.color = L(c); GUI.DrawTexture(r, px); GUI.color = old; }
         void Frame(Rect r, Color c, float w)
         {
@@ -433,6 +460,7 @@ namespace Biertan.UI
             if (p.saltUnlocked) inv += $"      Salt {p.salt}  (R)";
             Txt(R(24, 74, 800, 20), inv, 14 * k, Amber);
             Txt(R(24, 96, 900, 20), QuestLine(gm), 14 * k, Muted);
+            if (Biertan.Levels.SighisoaraTutorial.Target() is { } tgt) DrawPointer(p, tgt.at, tgt.label, k);
 
             for (int i = 0; i < toasts.Count; i++)
                 Txt(new Rect(W - 784 * k, (28 + i * 26) * k, 760 * k, 24 * k), toasts[i].text, 15 * k, new Color(TextC.r, TextC.g, TextC.b, Mathf.Min(1f, toasts[i].t)), TextAnchor.UpperRight);

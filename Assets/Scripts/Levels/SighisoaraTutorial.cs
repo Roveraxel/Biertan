@@ -25,6 +25,41 @@ namespace Biertan.Levels
         static int clockStep;
         public static int CluesFound() { int n = 0; foreach (var c in Clues) if (Has("sig_c_" + c)) n++; return n; }
 
+        /// <summary>Where the props of the job stand (Unity 2D), filled in as Sighișoara is built.</summary>
+        public static readonly Dictionary<string, Vector2> Spots = new();
+
+        /// <summary>Where the quest pointer aims, and what it calls the place; null when there is nowhere to send him.</summary>
+        public static (Vector2 at, string label)? Target()
+        {
+            var gm = GM;
+            if (gm == null) return null;
+            if (gm.current == "cellar")
+            {
+                if (!Has("sig_cellar")) return (LevelBase.P(2560f, 600f), "The bacon thieves");
+                return (LevelBase.P(60f, 600f), "Stairs up");
+            }
+            if (gm.current != "sighisoara") return null;
+            (Vector2, string)? To(string id, string label) => Spots.TryGetValue(id, out var v) ? (v, label) : null;
+            if (!Has("sig_notice")) return To("notice", "Notice board");
+            if (!Has("sig_job")) return To("butcher", "Meister Thomas");
+            if (CluesFound() < Clues.Length)
+            {
+                var pl = (Vector2)gm.player.transform.position;
+                (Vector2, string)? best = null; float bd = float.MaxValue;
+                foreach (var c in Clues)
+                    if (!Has("sig_c_" + c) && Spots.TryGetValue(c, out var v) && Vector2.Distance(pl, v) < bd) { bd = Vector2.Distance(pl, v); best = (v, "Butchers' Tower"); }
+                return best;
+            }
+            if (!Has("sig_wife")) return To("butcherwife", "Frau Gertrud");
+            if (!Has("sig_child")) return To("child", "Mihai");
+            if (!Has("sig_crate")) return To("crate", "The crate");
+            if (!Has("sig_flame")) return To("hearth", "Gertrud's hearth");
+            if (!Has("sig_lever")) return To("sign", "Guild sign");
+            if (!Has("sig_cellar")) return To("cellar", "Cellar door");
+            if (!Has("sig_deal")) return To("butcher", "Meister Thomas");
+            return To("vlad", "Vlad's cart");
+        }
+
         public static string Objective()
         {
             if (!Has("sig_notice")) return "Find work.";
