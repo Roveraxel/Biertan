@@ -263,6 +263,7 @@ namespace Biertan.Visual3D
             "hub" or "richis" or "mosna" or "biertan" or "sighisoara" => Ground,
             "forest" or "hills" or "vineyard" or "walls" => Mat("forest_leaves_02", 3f, new Color(0.6f, 0.58f, 0.52f)),
             "arena" or "hollow" => Mat("forest_leaves_02", 3f, new Color(0.42f, 0.44f, 0.38f)),
+            "cellar" => Mat("px_slab", 1.6f, new Color(0.62f, 0.58f, 0.54f), 0.35f),
             "caves" or "gorge" => Mat("castle_wall_slates", 3f, new Color(0.36f, 0.34f, 0.32f)),
             "church" => Mat("cobblestone_floor_08", 1.6f, new Color(0.55f, 0.53f, 0.5f), 0.3f),
             _ => string.IsNullOrEmpty(level.tile) ? Plain(level.ground * 0.9f) : Ground,
@@ -362,7 +363,7 @@ namespace Biertan.Visual3D
         void BuildWilds(LevelBase level)
         {
             string id = GameManager.I != null ? GameManager.I.current : "";
-            if (id is "" or "caves" or "gorge" or "church") return;
+            if (id is "" or "caves" or "cellar" or "gorge" or "church") return;
             bool village = id is "hub" or "richis" or "mosna" or "biertan" or "sighisoara";
             Vector2 mapM = level.size * S;
             const float margin = 15f;
@@ -1049,6 +1050,13 @@ namespace Biertan.Visual3D
             foreach (var t in live)
             {
                 if (!mirrored.TryGetValue(t, out var a)) mirrored[t] = a = MakeActor(t);
+                else if (a.parts.Count == 0 && a.body == null && HasParts(t))
+                {
+                    // mirrored before its 2D body was drawn (a prop placed while the level was being built): redo it
+                    if (a.board != null) Destroy(a.board.gameObject);
+                    if (a.shadow != null) Destroy(a.shadow.gameObject);
+                    mirrored[t] = a = MakeActor(t);
+                }
                 var pos = To3D(t.position);
                 float dtv = Time.deltaTime;
                 if (a.hasLast && dtv > 0f)
@@ -1233,6 +1241,13 @@ namespace Biertan.Visual3D
                 if (col != null) col.radius = Mathf.Max(col.radius, e.radius * 0.95f);
             }
             else if (col != null) col.radius = Mathf.Max(col.radius, 16f);
+        }
+
+        static bool HasParts(Transform t)
+        {
+            foreach (var sr in t.GetComponentsInChildren<SpriteRenderer>(true))
+                if (!(sr.name is "Shadow" or "Label") && sr.GetComponent<TextMesh>() == null) return true;
+            return false;
         }
 
         Actor MakeActor(Transform t)

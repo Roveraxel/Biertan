@@ -25,6 +25,7 @@ namespace Biertan.Levels
         {
             "hub" => go.AddComponent<Saschiz>(),
             "sighisoara" => go.AddComponent<Sighisoara>(),
+            "cellar" => go.AddComponent<SmokeCellar>(),
             "forest" => go.AddComponent<WolfForest>(),
             "arena" => go.AddComponent<MoonClearing>(),
             "richis" => go.AddComponent<Richis>(),
@@ -40,7 +41,7 @@ namespace Biertan.Levels
             _ => null,
         };
 
-        public static bool IsPorted(string id) => id is "hub" or "sighisoara" or "forest" or "arena" or "richis" or "hills" or "caves" or "hollow" or "mosna" or "vineyard" or "gorge" or "biertan" or "walls" or "church";
+        public static bool IsPorted(string id) => id is "hub" or "sighisoara" or "cellar" or "forest" or "arena" or "richis" or "hills" or "caves" or "hollow" or "mosna" or "vineyard" or "gorge" or "biertan" or "walls" or "church";
 
         void Start()
         {
@@ -102,7 +103,7 @@ namespace Biertan.Levels
                 "forest" or "walls" => "music_forest",
                 "arena" => "music_boss",
                 "hills" => "music_hills",
-                "caves" => "music_cave",
+                "caves" or "cellar" => "music_cave",
                 "hollow" => "music_muma",
                 "vineyard" => "music_vineyard",
                 "gorge" => "music_balaur",

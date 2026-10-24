@@ -14,6 +14,7 @@ namespace Biertan.Levels
     {
         static readonly Color CobbleCol = new Color32(0x4a, 0x46, 0x40, 0xff);
         const float Gap = 110f;     // gate passage width (Godot units)
+        public static Vector2 CellarDoor;   // Godot space; the hunter climbs back out here
 
         public override void Build()
         {
@@ -230,22 +231,29 @@ namespace Biertan.Levels
         void AddTutorial()
         {
             Vector2 At(float x, float y) => Free(SighisoaraMap.At(x, y));
-            AddProp("task", "notice", "Notice", At(140f, -80f), "E   Read the notice");
-            AddProp("npc", "butcher", "Meister Thomas · Butcher", At(86f, 12f), "E   Speak with Meister Thomas", new Color32(0x6a, 0x3a, 0x30, 0xff));
+            // the lower town: the inn where Azorel waits, the notice board, Vlad's cart for the road east
+            AddProp("npc", "azorel", "Azorel", At(158f, -112f), "E   Speak to Azorel", new Color32(0xd8, 0xd0, 0xc0, 0xff));
+            AddProp("task", "notice", "Notice board", At(140f, -80f), "E   Read the notice board");
+            AddProp("npc", "vlad", "Vlad Laurențiu · Merchant", At(215f, -95f), "E   Speak with Vlad Laurențiu", new Color32(0x4a, 0x5a, 0x6a, 0xff));
+            AddDecor(At(225f, -105f), "handcart", 40f);
+            // the citadel square: the guild master's stall, Mihai by the well
+            AddProp("npc", "butcher", "Meister Thomas · Guild master", At(86f, 12f), "E   Speak with Meister Thomas", new Color32(0x6a, 0x3a, 0x30, 0xff));
             AddProp("npc", "child", "Mihai", At(72f, 46f), "E   Speak with Mihai", new Color32(0x6a, 0x5a, 0x40, 0xff));
+            AddProp("task", "portrait", "Casa Vlad Dracul", At(86f, -8f), "E   Look into Casa Vlad Dracul");
+            // the butchers' quarter by the tower
             var wife = At(-100f, -80f);
             AddProp("npc", "butcherwife", "Frau Gertrud", wife, "E   Speak with Frau Gertrud", new Color32(0x5a, 0x4a, 0x5a, 0xff));
             AddProp("task", "hearth", "Hearth", Free(wife + new Vector2(-60f, -40f)), "E   Look at the hearth");
             AddTorch(wife + new Vector2(-60f, -40f), 160f, new Color(1f, 0.55f, 0.25f), 0.6f);
-            AddProp("clue", "dogs", "", At(-112f, -116f), "E   Examine");
-            AddProp("clue", "grating", "", At(-107f, -91f), "E   Examine");
             AddProp("clue", "flour", "", At(-97f, -86f), "E   Examine");
+            AddProp("clue", "grating", "", At(-107f, -91f), "E   Examine");
             AddProp("clue", "hook", "", At(-91f, -97f), "E   Examine");
-            AddProp("clue", "storks", "", At(-87f, -110f), "E   Examine");
-            var wood = At(-115f, -89f);
-            AddDecor(wood + new Vector2(0f, -14f), "firewood", 30f);
-            AddProp("task", "firewood", "Firewood", wood, "E   Look at the firewood");
-            AddProp("task", "cellar", "Cellar door", At(-116f, -99f), "E   Try the cellar door");
+            AddProp("clue", "smoke", "", At(-112f, -114f), "E   Examine");
+            var crate = At(-115f, -89f);
+            AddDecor(crate + new Vector2(0f, -14f), "crate", 30f);
+            AddProp("task", "crate", "Crate", crate, "E   Look at the crate");
+            CellarDoor = At(-116f, -99f);
+            AddProp("task", "cellar", "Cellar door", CellarDoor, "E   Try the cellar door");
             AddProp("task", "sign", "Guild sign", At(-113f, -104f), "E   Look at the guild sign");
         }
 

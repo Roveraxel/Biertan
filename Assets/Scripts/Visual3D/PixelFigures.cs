@@ -60,12 +60,21 @@ namespace Biertan.Visual3D
                     case "strigoi": return Get("strigoi", 1.35f)?.Clone();
                     case "pricolici": return Get("pricolici", 1.5f)?.Clone();
                     case "wolf": return Get("wolf", 1.0f)?.Clone();
+                    case "spiridus": return Get("spiridus", 0.62f)?.Clone();
+                    case "spiridus_cap": return (Get("spiridus_cap", 0.95f) ?? Get("spiridus", 0.95f))?.Clone();
                     case "moroi": return Get("moroi", 1.35f)?.Clone();
                     case "iele": return Get("iele", 1.12f)?.Clone();
                     case "shade": return Get("shade", 1.3f)?.Clone();
                 }
             // villagers: Sprites/Pixel/npc_<id>, used as soon as that villager has been drawn
-            if (t.GetComponent<Prop>() is Prop pr && pr.kind == "npc") return Get("npc_" + pr.id, 1.25f)?.Clone();
+            if (t.GetComponent<Prop>() is Prop pr && pr.kind == "npc")
+                return pr.id switch
+                {
+                    "azorel" => Get("npc_azorel", 0.8f)?.Clone(),          // a Carpathian shepherd dog
+                    "child" => Get("npc_child", 1.0f)?.Clone(),
+                    "captain" => Get("spiridus_cap", 0.95f)?.Clone(),
+                    _ => Get("npc_" + pr.id, 1.25f)?.Clone(),
+                };
             return null;
         }
 

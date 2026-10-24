@@ -129,7 +129,7 @@ namespace Biertan.Core
             stepT = 0.34f;
             string surface = gm.current switch
             {
-                "hub" or "richis" or "mosna" or "biertan" or "sighisoara" or "caves" or "gorge" or "church" => "step_concrete",
+                "hub" or "richis" or "mosna" or "biertan" or "sighisoara" or "caves" or "cellar" or "gorge" or "church" => "step_concrete",
                 _ => "step_grass",
             };
             Sfx(surface, -15f);
@@ -162,7 +162,7 @@ namespace Biertan.Core
             {
                 switch (gm.current)
                 {
-                    case "caves": case "gorge": want = "amb_cave"; db = -14f; break;
+                    case "caves": case "cellar": case "gorge": want = "amb_cave"; db = -14f; break;
                     case "church": want = "amb_cave"; db = -20f; break;
                     case "hub": case "richis": case "mosna": case "biertan": case "sighisoara": want = "amb_wind"; db = -24f; break;
                     case "forest": want = "amb_woods"; db = -12f; break;
@@ -208,7 +208,7 @@ namespace Biertan.Core
         {
             var gm = GameManager.I;
             if (gm == null || gm.player == null || gm.state != GameManager.State.Play) return;
-            if (gm.current is "" or "caves" or "gorge" or "church") return;
+            if (gm.current is "" or "caves" or "cellar" or "gorge" or "church") return;
             nightT -= Time.deltaTime;
             if (nightT > 0f) return;
             nightT = Random.Range(12f, 30f);

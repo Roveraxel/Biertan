@@ -55,6 +55,8 @@ namespace Biertan.Enemies
                 case "strigoi":   hp = 52; speed = 118; dmg = 12; radius = 14; coin = 9;  aggro = 380; break;
                 case "skull":     hp = 8;  speed = 150; dmg = 14; radius = 12; coin = 0;  aggro = 9999; state = "chase"; break;
                 case "ward":      hp = 90; speed = 0;   dmg = 0;  radius = 22; coin = 15; aggro = 520; break;
+                case "spiridus":  hp = 10; speed = 172; dmg = 5;  radius = 10; coin = 1;  aggro = 330; break;
+                case "spiridus_cap": hp = 70; speed = 92; dmg = 13; radius = 16; coin = 12; aggro = 360; break;
                 case "bat":       hp = 6;  speed = 235; dmg = 4;  radius = 8;  coin = 1;  aggro = 380; orbit = Random.value * Mathf.PI * 2f; break;
             }
             maxHp = hp;
@@ -84,6 +86,13 @@ namespace Biertan.Enemies
         protected virtual void FixedUpdate()
         {
             float dt = Time.fixedDeltaTime;
+            if (fainted)
+            {
+                rb.linearVelocity = Vector2.zero;
+                starT += dt;
+                if (starT > 1.3f) { starT = 0f; FxUtil.Text(Pos + new Vector2(0, 34), "* * *", FxUtil.Amber); }
+                return;
+            }
             t += dt;
             flash = Mathf.Max(0f, flash - dt);
             atkCd = Mathf.Max(0f, atkCd - dt);
@@ -122,7 +131,7 @@ namespace Biertan.Enemies
                 {
                     Vector2 dir = to.normalized;
                     face = dir;
-                    if (kind == "pricolici" && d < 200f && atkCd <= 0f) { state = "windup"; t = 0f; }
+                    if (kind is "pricolici" or "spiridus_cap" && d < 200f && atkCd <= 0f) { state = "windup"; t = 0f; }
                     else
                     {
                         velocity = dir * speed * mult + knock + Separation();
@@ -360,6 +369,7 @@ namespace Biertan.Enemies
 
         public virtual void Hurt(float amount, Vector2 dir)
         {
+            if (fainted) return;
             hp -= amount;
             flash = 0.12f;
             knock = dir * 280f;
@@ -373,8 +383,24 @@ namespace Biertan.Enemies
             if (hp <= 0f) Die();
         }
 
+        public bool fainted;    // spiriduși never die: they keel over with stars round their heads
+        float starT;
+
         protected virtual void Die()
         {
+            if (kind.StartsWith("spiridus"))
+            {
+                if (fainted) return;
+                fainted = true; state = "fainted"; hp = 0f;
+                Died?.Invoke(this);
+                foreach (var c in GetComponents<Collider2D>()) c.enabled = false;
+                rb.linearVelocity = Vector2.zero;
+                All.Remove(this);
+                AudioManager.I?.SfxAt("blip", Pos, -8f, 1.6f);
+                if (coin > 0 && player != null) { player.coins += coin; FxUtil.Text(Pos + new Vector2(0, 16), $"+{coin}", FxUtil.Amber); }
+                FxUtil.Text(Pos + new Vector2(0, 34), "* * *", FxUtil.Amber);
+                return;
+            }
             Died?.Invoke(this);
             Slain.Add(transform.GetEntityId());
             switch (kind)
