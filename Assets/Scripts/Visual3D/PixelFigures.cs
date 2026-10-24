@@ -73,6 +73,7 @@ namespace Biertan.Visual3D
                     "azorel" => Get("npc_azorel", 1.1f)?.Clone(),          // a Carpathian shepherd dog
                     "child" => Get("npc_child", 1.0f)?.Clone(),
                     "captain" => Get("spiridus_cap", 0.95f)?.Clone(),
+                    "clockkeeper" => Get("npc_andreas", 1.25f)?.Clone(),
                     _ => Get("npc_" + pr.id, 1.25f)?.Clone(),
                 };
             return null;

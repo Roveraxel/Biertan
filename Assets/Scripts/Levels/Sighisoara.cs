@@ -233,28 +233,47 @@ namespace Biertan.Levels
             Vector2 At(float x, float y) => Free(SighisoaraMap.At(x, y));
             // the lower town: the inn where Azorel waits, the notice board, Vlad's cart for the road east
             AddProp("npc", "azorel", "Azorel", At(158f, -112f), "E   Speak to Azorel", new Color32(0xd8, 0xd0, 0xc0, 0xff));
-            AddProp("task", "notice", "Notice board", At(140f, -80f), "E   Read the notice board");
+            var nb = At(140f, -80f);
+            AddDecor(nb + new Vector2(0f, -16f), "notice_board", 20f);
+            AddProp("task", "notice", "Notice board", nb, "E   Read the notice board");
             AddProp("npc", "vlad", "Vlad Laurențiu · Merchant", At(215f, -95f), "E   Speak with Vlad Laurențiu", new Color32(0x4a, 0x5a, 0x6a, 0xff));
             AddDecor(At(225f, -105f), "handcart", 40f);
             // the citadel square: the guild master's stall, Mihai by the well
             AddProp("npc", "butcher", "Meister Thomas · Guild master", At(86f, 12f), "E   Speak with Meister Thomas", new Color32(0x6a, 0x3a, 0x30, 0xff));
             AddProp("npc", "child", "Mihai", At(72f, 46f), "E   Speak with Mihai", new Color32(0x6a, 0x5a, 0x40, 0xff));
-            AddProp("task", "portrait", "Casa Vlad Dracul", At(86f, -8f), "E   Look into Casa Vlad Dracul");
+            var pt = At(86f, -8f);
+            AddDecor(pt + new Vector2(0f, -12f), "portrait", 0f);
+            AddProp("task", "portrait", "Casa Vlad Dracul", pt, "E   Look into Casa Vlad Dracul");
+            // the Clock Tower's keeper and the seven weekday figures thrown out over the cobbles, shuffled
+            AddProp("npc", "clockkeeper", "Andreas · Clock keeper", At(110f, -26f), "E   Speak with Andreas", new Color32(0x4a, 0x4a, 0x5a, 0xff));
+            var spots = new[] { (98f, -30f), (104f, -48f), (118f, -14f), (92f, -18f), (122f, -32f), (100f, -6f), (112f, -44f) };
+            var order = new[] { "fig_thu", "fig_mon", "fig_sat", "fig_wed", "fig_sun", "fig_tue", "fig_fri" };
+            for (int i = 0; i < order.Length; i++)
+            {
+                var fp = At(spots[i].Item1, spots[i].Item2);
+                AddDecor(fp + new Vector2(0f, -6f), order[i], 0f, i % 2 == 1);
+                AddProp("task", order[i], "Painted figure", fp, "E   Pick up the figure");
+            }
             // the butchers' quarter by the tower
             var wife = At(-100f, -80f);
             AddProp("npc", "butcherwife", "Frau Gertrud", wife, "E   Speak with Frau Gertrud", new Color32(0x5a, 0x4a, 0x5a, 0xff));
             AddProp("task", "hearth", "Hearth", Free(wife + new Vector2(-60f, -40f)), "E   Look at the hearth");
             AddTorch(wife + new Vector2(-60f, -40f), 160f, new Color(1f, 0.55f, 0.25f), 0.6f);
-            AddProp("clue", "flour", "", At(-97f, -86f), "E   Examine");
-            AddProp("clue", "grating", "", At(-107f, -91f), "E   Examine");
-            AddProp("clue", "hook", "", At(-91f, -97f), "E   Examine");
+            foreach (var (id, x, y, art) in new[] { ("flour", -97f, -86f, "flour"), ("grating", -107f, -91f, "grating"), ("hook", -91f, -97f, "hook_wall") })
+            {
+                var cp = At(x, y);
+                AddDecor(cp + new Vector2(0f, -8f), art, 0f);
+                AddProp("clue", id, "", cp, "E   Examine");
+            }
             AddProp("clue", "smoke", "", At(-112f, -114f), "E   Examine");
             var crate = At(-115f, -89f);
             AddDecor(crate + new Vector2(0f, -14f), "crate", 30f);
             AddProp("task", "crate", "Crate", crate, "E   Look at the crate");
             CellarDoor = At(-116f, -99f);
             AddProp("task", "cellar", "Cellar door", CellarDoor, "E   Try the cellar door");
-            AddProp("task", "sign", "Guild sign", At(-113f, -104f), "E   Look at the guild sign");
+            var gs = At(-113f, -104f);
+            AddDecor(gs + new Vector2(0f, -10f), "guild_sign", 0f);
+            AddProp("task", "sign", "Guild sign", gs, "E   Look at the guild sign");
         }
 
         /// <summary>A Godot-space spot nudged out of any house or the wall, so people and clues stand in the open.</summary>

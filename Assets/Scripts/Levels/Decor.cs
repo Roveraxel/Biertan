@@ -23,6 +23,8 @@ namespace Biertan.Levels
             "hams_beam" => 1.4f, "sausage_rack" => 1.2f, "salt_barrel" => 0.75f, "chopping_block" => 0.7f, "ham_pile" => 0.8f,
             "smoke_pit" => 1.2f, "spiridus_lantern" => 0.45f, "red_cap" => 0.35f, "ladder" => 1.6f, "fish_crate" => 0.75f,
             "potlid" => 0.5f, "shelf" => 1.2f, "hook_empty" => 0.9f,
+            "fig_mon" or "fig_tue" or "fig_wed" or "fig_thu" or "fig_fri" or "fig_sat" or "fig_sun" => 0.6f,
+            "notice_board" => 1.4f, "guild_sign" => 0.9f, "portrait" => 0.9f, "grating" => 0.8f, "flour" => 0.8f, "hook_wall" => 0.9f,
             _ => 1f,
         };
 
