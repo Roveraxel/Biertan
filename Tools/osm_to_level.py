@@ -3,7 +3,7 @@
 import xml.etree.ElementTree as ET, math, random, sys
 SRC, OUT = sys.argv[1], sys.argv[2]
 K = 0.5                      # game metres per real metre
-XMIN, XMAX, YMIN, YMAX = -175, 235, -290, 215
+XMIN, XMAX, YMIN, YMAX = -150, 190, -265, 200   # the citadel inside its walls, and a strip outside the Clock Tower gate
 root = ET.parse(SRC).getroot()
 lat0 = 46.2196; ck = math.cos(math.radians(lat0))
 N = {n.get('id'): ((float(n.get('lon')) - 24.7917) * 111320 * ck, (float(n.get('lat')) - lat0) * 110540) for n in root.iter('node')}
@@ -73,7 +73,7 @@ for t, pts in ways:
     name = t.get('name', '')
     A = area(pts)
     inner = pip(c, ring_poly)
-    lower = c[0] > 135 and -175 < c[1] < 60 and not inner     # the lower town under the Clock Tower
+    lower = False                                            # the lower town is left out: the level is the citadel
     named = any(k in name for k in ('Turnul', 'Biserica', 'Capela', 'Școala'))
     if not (inner or lower or named): continue
     if not named and (A > 900 or t.get('building') in ('apartments', 'garage', 'garages', 'roof', 'shed')): continue
@@ -95,7 +95,7 @@ for t, pts in ways:
     if not any(inside_box(p, -2) for p in pts): continue
     keep = [p for p in pts]
     mid = keep[len(keep) // 2]
-    if not (pip(mid, ring_poly) or (mid[0] > 120 and -175 < mid[1] < 60) or any(pip(p, ring_poly) for p in keep)): continue
+    if not (pip(mid, ring_poly) or any(pip(p, ring_poly) for p in keep) or (mid[0] > 120 and -90 < mid[1] < -20)): continue
     roads.append((WID[hw], keep))
 
 # --- green areas: woods on the church hill, the hillside cemetery

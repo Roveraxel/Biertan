@@ -20,9 +20,6 @@ namespace Biertan.Levels
 
         public static readonly string[] Clues = { "flour", "grating", "hook", "smoke" };
 
-        // "The Turning Figures": the Clock Tower's seven weekday figures, to be set back in order from Monday
-        public static readonly string[] Week = { "fig_mon", "fig_tue", "fig_wed", "fig_thu", "fig_fri", "fig_sat", "fig_sun" };
-        static int clockStep;
         public static int CluesFound() { int n = 0; foreach (var c in Clues) if (Has("sig_c_" + c)) n++; return n; }
 
         /// <summary>Where the props of the job stand (Unity 2D), filled in as Sighișoara is built.</summary>
@@ -80,7 +77,6 @@ namespace Biertan.Levels
             "child" => Has("sig_wife") && !Has("sig_child"),
             "captain" => !Has("sig_cellar"),
             "vlad" => Has("sig_deal"),
-            "clockkeeper" => Has("sig_notice") && !Has("sig_clock_done"),
             "azorel" => !Has("sig_azorel"),
             _ => false,
         };
@@ -97,7 +93,6 @@ namespace Biertan.Levels
                 "sign" => Has("sig_flame") && !Has("sig_lever"),
                 "cellar" => Has("sig_child") && !Has("sig_cellar"),
                 "portrait" => !Has("sig_portrait"),
-                _ when p.id.StartsWith("fig_") => Has("sig_clock_started") && !Has("sig_clock_done") && System.Array.IndexOf(Week, p.id) >= clockStep,
                 _ => false,
             },
             _ => false,
@@ -175,19 +170,6 @@ namespace Biertan.Levels
                     else
                         gm.StartDialogue("Spiriduș-căpitan", new[] { Has("sig_deal") ? "Food every night and honest work! The best deal a spiriduș ever had." : "Will they feed us, big man? Ask them. Please." });
                     return true;
-                case "clockkeeper":
-                    if (Has("sig_clock_done")) { gm.StartDialogue("Andreas, clock keeper", new[] { "Hear her? Tick, tock, and every midnight the next one steps out. You put the week back together, shepherd." }); return true; }
-                    gm.StartDialogue("Andreas, clock keeper", Has("sig_clock_started") ? new[]
-                    {
-                        "Start with Monday and go round the week. Luni is the Moon's day, Marți is Mars', and so on: the old gods hide in the names of the days.",
-                        "Sâmbătă and Duminică are the odd ones. Saturday is the old man with the child; Sunday is the Sun herself.",
-                    } : new[]
-                    {
-                        "The platform jammed last night and threw the week out of the window. Seven figures, scattered over the cobbles. A clock without its days!",
-                        "Each night one of them turns into the window for the next morning. They must go back in order, starting with Monday, or the platform throws them out again.",
-                        "Luni is the Moon's day, Marți is Mars', and so on: the old gods hide in the names of the days. Sâmbătă and Duminică are the odd ones: the old man with the child, then the Sun.",
-                    }, () => { if (!Has("sig_clock_started")) { Set("sig_clock_started"); clockStep = 0; HudEvents.Toast("Side quest: The Turning Figures"); } });
-                    return true;
                 case "vlad":
                     if (!Has("sig_deal")) { gm.StartDialogue("Vlad Laurențiu, merchant", new[] { "Cloth, salt and needles, friend, all the way to the villages. Not today, though. Today I wait for my wheel to be mended." }); return true; }
                     gm.StartDialogue("Vlad Laurențiu, merchant", new[]
@@ -218,7 +200,6 @@ namespace Biertan.Levels
                 });
                 return;
             }
-            if (p.id.StartsWith("fig_")) { UseFigure(p); return; }
             switch (p.id)
             {
                 case "notice":
@@ -274,49 +255,6 @@ namespace Biertan.Levels
                     });
                     break;
             }
-        }
-
-        static readonly Dictionary<string, (string name, string look)> Figures = new()
-        {
-            ["fig_mon"] = ("Diana", "A woman in a blue dress with a bow, a silver crescent moon on her brow."),
-            ["fig_tue"] = ("Mars", "A soldier in a helmet, red shirt and blue waistcoat, his spear chipped."),
-            ["fig_wed"] = ("Mercury", "A man in a red coat with a winged helmet, a staff of snakes and a money bag."),
-            ["fig_thu"] = ("Jupiter", "A crowned king in ermine, one foot on a globe, lightning in his fist."),
-            ["fig_fri"] = ("Venus", "A winged woman looking into a hand mirror, her green skirt lined red."),
-            ["fig_sat"] = ("Saturn", "An old man, bare to the waist, on a wooden leg, holding a child."),
-            ["fig_sun"] = ("Sol", "A woman in a red skirt with a golden halo of rays."),
-        };
-
-        static void UseFigure(Prop p)
-        {
-            var gm = GM;
-            var (name, look) = Figures[p.id];
-            if (!Has("sig_clock_started") || Has("sig_clock_done"))
-            {
-                gm.StartDialogue("A painted figure", new[] { Has("sig_clock_done") ? "The figure stands back on the platform in the tower window." : look + " A wooden figure from the clock, lying in the street." });
-                return;
-            }
-            int idx = System.Array.IndexOf(Week, p.id);
-            if (idx < clockStep) { gm.StartDialogue(name, new[] { name + " is already back on the platform." }); return; }
-            if (idx == clockStep)
-            {
-                clockStep++;
-                AudioManager.I?.Sfx("blip", -6f, 0.8f + clockStep * 0.08f);
-                if (clockStep < Week.Length) { HudEvents.Toast($"{name} back on the platform ({clockStep}/7)"); return; }
-                Set("sig_clock_done");
-                gm.player.maxHp += 10f; gm.player.hp = Mathf.Min(gm.player.hp + 10f, gm.player.maxHp);
-                AudioManager.I?.Sfx("bell", -10f, 1f);
-                gm.StartDialogue("The Clock Tower", new[]
-                {
-                    "Sol clicks into her place. Somewhere inside the tower a wheel bites, the platform shudders round, and the bell strikes the hour.",
-                    "Andreas leans out of the window and drops something into your hand: a little silver sun on a cord. 'For Sunday,' he says. 'She will keep you on your feet.'",
-                    "(The Sun Charm: +10 health.)",
-                });
-                return;
-            }
-            clockStep = 0;
-            AudioManager.I?.SfxAt("blip", p.transform.position, -4f, 0.4f);
-            gm.StartDialogue(name, new[] { look, "You set " + name + " on the platform, and it lurches: every figure on it slides back off onto the cobbles. That was not the right day. Start again from Monday." });
         }
 
         static string ClueTitle(string id) => id switch

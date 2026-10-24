@@ -36,7 +36,7 @@ namespace Biertan.Levels
             // the two gate towers are vaulted over a passage; the wall stops at their sides
             var gates = new List<SighisoaraMap.B>();
             foreach (var t in SighisoaraMap.Towers)
-                if (t.name is "Turnul cu Ceas" or "Turnul Croitorilor") gates.Add(Fixed(t));
+                if (t.name is "Turnul cu Ceas") gates.Add(Fixed(t));   // the only way in or out of the citadel
 
             foreach (var w in SighisoaraMap.Walls)
                 foreach (var run in CutAtGates(w, gates))
@@ -45,7 +45,7 @@ namespace Biertan.Levels
             foreach (var t0 in SighisoaraMap.Towers)
             {
                 var t = Fixed(t0);
-                bool gate = t.name is "Turnul cu Ceas" or "Turnul Croitorilor";
+                bool gate = t.name is "Turnul cu Ceas";
                 float h = t.style == "clocktower" ? 269f : t.name == "Turnul Croitorilor" ? 150f : 125f;
                 AddBlockRotated(t.c, t.size, t.angle, t.style, h, solid: !gate);
                 if (gate) AddGateFlanks(t);
@@ -89,8 +89,12 @@ namespace Biertan.Levels
             AddWall(P(-20f, sz.y / 2f), new Vector2(40f, sz.y));
             AddWall(P(sz.x + 20f, sz.y / 2f), new Vector2(40f, sz.y));
 
-            // the road east out of the lower town (to Viscri, later); Saschiz for now
-            Vector2 e0 = SighisoaraMap.At(0f, -40f), e1 = SighisoaraMap.At(0f, -150f);
+            // outside the Clock Tower gate only a small yard is open, where Vlad's cart waits; the road east leaves from it
+            Vector2 ya = SighisoaraMap.At(80f, -92f), yb = SighisoaraMap.At(195f, -92f);
+            AddBlock(new Rect(ya.x, ya.y, yb.x - ya.x, 40f), "hidden", 0f);
+            Vector2 yc = SighisoaraMap.At(156f, -20f), yd = SighisoaraMap.At(195f, -20f);
+            AddBlock(new Rect(yc.x, yc.y - 40f, yd.x - yc.x, 40f), "hidden", 0f);
+            Vector2 e0 = SighisoaraMap.At(0f, -22f), e1 = SighisoaraMap.At(0f, -90f);
             AddTrigger(new Rect(sz.x - 60f, e0.y, 60f, e1.y - e0.y), () => { if (Ready()) LevelLoader.Goto("hub"); });
         }
 
@@ -248,16 +252,6 @@ namespace Biertan.Levels
             var pt = At(86f, -8f);
             AddDecor(pt + new Vector2(0f, -12f), "portrait", 0f);
             AddProp("task", "portrait", "Casa Vlad Dracul", pt, "E   Look into Casa Vlad Dracul");
-            // the Clock Tower's keeper and the seven weekday figures thrown out over the cobbles, shuffled
-            AddProp("npc", "clockkeeper", "Andreas · Clock keeper", At(110f, -26f), "E   Speak with Andreas", new Color32(0x4a, 0x4a, 0x5a, 0xff));
-            var spots = new[] { (98f, -30f), (104f, -48f), (118f, -14f), (92f, -18f), (122f, -32f), (100f, -6f), (112f, -44f) };
-            var order = new[] { "fig_thu", "fig_mon", "fig_sat", "fig_wed", "fig_sun", "fig_tue", "fig_fri" };
-            for (int i = 0; i < order.Length; i++)
-            {
-                var fp = At(spots[i].Item1, spots[i].Item2);
-                AddDecor(fp + new Vector2(0f, -6f), order[i], 0f, i % 2 == 1);
-                AddProp("task", order[i], "Painted figure", fp, "E   Pick up the figure");
-            }
             // the butchers' quarter by the tower
             var wife = At(-100f, -80f);
             AddProp("npc", "butcherwife", "Frau Gertrud", wife, "E   Speak with Frau Gertrud", new Color32(0x5a, 0x4a, 0x5a, 0xff));
