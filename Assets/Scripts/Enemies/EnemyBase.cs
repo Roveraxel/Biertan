@@ -370,6 +370,14 @@ namespace Biertan.Enemies
         public virtual void Hurt(float amount, Vector2 dir)
         {
             if (fainted) return;
+            // the Spiriduș-căpitan's pot-lid: blows from the front clang off unless he is still recovering from his own swing
+            if (kind == "spiridus_cap" && player != null && state is "chase" or "idle" && atkCd <= 0.4f
+                && Vector2.Dot(face, ((Vector2)player.transform.position - Pos).normalized) > 0.35f)
+            {
+                amount *= 0.15f;
+                AudioManager.I?.SfxAt("blip", Pos, -6f, 0.45f);
+                FxUtil.Text(Pos + new Vector2(0, 40), "CLANG", new Color(0.8f, 0.8f, 0.85f));
+            }
             hp -= amount;
             flash = 0.12f;
             knock = dir * 280f;

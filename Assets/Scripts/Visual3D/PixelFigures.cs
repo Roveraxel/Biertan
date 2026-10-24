@@ -53,7 +53,7 @@ namespace Biertan.Visual3D
         /// <summary>The figure for this actor, or null when it has none.</summary>
         public static PixelFigure For(Transform t)
         {
-            if (t.GetComponent<PlayerController>() != null) return Get("hunter", 1.3f)?.Clone();
+            if (t.GetComponent<PlayerController>() != null) return (Get(PlayerFigure(), 1.3f) ?? Get("hunter", 1.3f))?.Clone();
             if (t.GetComponent<EnemyBase>() is EnemyBase e)
                 switch (e.kind)
                 {
@@ -70,12 +70,19 @@ namespace Biertan.Visual3D
             if (t.GetComponent<Prop>() is Prop pr && pr.kind == "npc")
                 return pr.id switch
                 {
-                    "azorel" => Get("npc_azorel", 0.8f)?.Clone(),          // a Carpathian shepherd dog
+                    "azorel" => Get("npc_azorel", 1.1f)?.Clone(),          // a Carpathian shepherd dog
                     "child" => Get("npc_child", 1.0f)?.Clone(),
                     "captain" => Get("spiridus_cap", 0.95f)?.Clone(),
                     _ => Get("npc_" + pr.id, 1.25f)?.Clone(),
                 };
             return null;
+        }
+
+        /// <summary>The hunter loses his hat to a spiriduș in the smoke-cellar and fights bareheaded until it is returned.</summary>
+        public static string PlayerFigure()
+        {
+            var gm = Biertan.Core.GameManager.I;
+            return gm != null && gm.SideHas("sig_hat_lost") && !gm.SideHas("sig_hat_back") ? "hunter_nohat" : "hunter";
         }
 
         PixelFigure Clone()

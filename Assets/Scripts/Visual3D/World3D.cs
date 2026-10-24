@@ -1050,6 +1050,8 @@ namespace Biertan.Visual3D
             foreach (var t in live)
             {
                 if (!mirrored.TryGetValue(t, out var a)) mirrored[t] = a = MakeActor(t);
+                else if (a.pix != null && t.GetComponent<PlayerController>() != null && a.pix.name != PixelFigure.PlayerFigure()
+                         && PixelFigure.For(t) is PixelFigure swapped && swapped.name != a.pix.name) a.pix = swapped; // hat lost or found
                 else if (a.parts.Count == 0 && a.body == null && HasParts(t))
                 {
                     // mirrored before its 2D body was drawn (a prop placed while the level was being built): redo it
