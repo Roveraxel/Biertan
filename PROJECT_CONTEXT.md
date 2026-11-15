@@ -70,7 +70,7 @@ The creator uses the following tools alongside Godot and GitHub:
 
 - **Claude** — implementation partner / coding agent. Use the repository as shared context; ask Claude to read this file first and keep it updated.
 - **ChatGPT** — product direction, game design, architecture review, code review, QA planning, prioritisation, commercial strategy, and task/spec drafting.
-- **Mesh / Meshy** — 3D asset creation tool (confirm exact product name and role before documenting specific pipeline steps).
+- **Meshy** — AI 3D asset creation for game models, props, environment assets, image-to-3D, texturing, rigging and animation. Use it for 3D elements that complement the 2D gameplay and pixel-art direction; validate topology, scale, texture budget, rigging and performance in Godot before accepting assets.
 - **PixelLab** — pixel-art and sprite creation.
 - **Fish Audio** — voice/audio generation.
 
@@ -130,7 +130,6 @@ Known:
 - The creator uses Claude, a mesh/3D asset tool, PixelLab, and Fish Audio.
 
 To confirm and update:
-- Whether “Mesh” means Meshy, and the exact product/version.
 - Which tool owns each asset category (3D models, pixel sprites, portraits, voice, SFX, music).
 - Current end-to-end playtime and how much content is fully playable.
 - Current known bugs, unfinished systems, and performance targets.
