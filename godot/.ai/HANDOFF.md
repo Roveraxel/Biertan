@@ -33,6 +33,7 @@ Narration and story polish for the web playtest; next big item is the final figh
 Claude (Claude Code session), 2026-11-16 03:00.
 
 ## Recent Changes
+- 2026-11-16 21:40: T15 (tools/render_sprite.py, .ai/proposals/blender_sprite_render.md, Gemini) written but NOT run: Blender is not installed here, only a Python syntax check was done. T4 (all 83 .gd files have a codemap file, checked by script) and T12 (covered by T10b, rejected as already applied) set to done, by Gemini. T3 left to Claude (needs .gd edits).
 - 2026-11-16 10:00: all villages checked with the meadow ground (Criș, Criț, Saschiz, Richiș, Mălâncrav, Viscri, Biertan): no clashes. Spruces and wilds/forest broadleaf crowns now use the green palette (`Trees.SPRUCE_A/B`, `Trees.leaf_color` in `_wilds`). Typing cleanup applied: `-> Variant` on `Village.cross`, `alpha_pos`, `_occupied`; `signal died/hurted/fled/call_thralls(e: Enemy)`. Church interior renders correctly; the fight phases could not be run in the slow headless browser and stay unverified. Dog bark added. Web build republished.
 - 2026-11-16 09:55: T14 (.ai/DRAFT_backlog.md, Gemini) done: delivered backlog designs for village recaps in Lorena's voice, lamp shades, 10 Limousin cow jokes, footprint multi-mesh ring buffer, stână hay ground texture, Surorile Osoianu music allocations, and privacy-safe playtest analytics.
 - 2026-11-16 09:50: T7 (.ai/DRAFT_quests.md, Gemini) done: delivered 5 story drafts for backlog (2 Criț subquests on distaff in millrace & red thread on well, Saschiz children sun-chant scene, Sfânta Vineri in-story explanation of Friday taboos, peppery milkcap mushrooms & Ottoman raiders side story, and Saschiz market piglet dispute).
@@ -96,7 +97,7 @@ Output: `.ai/REVIEW_narration.md` with suggested rewrites that sound more spoken
 Files: `scripts/levels/hillchurch.gd`, sexton boss, a new church interior level, story card after the sexton falls. Other AIs: do not edit these.
 
 
-### T4: Code map (owner: Gemini, status: open; 9 files still missing, rerun)
+### T4: Code map (owner: Gemini, status: done, by Gemini; all 83 .gd files have a codemap file)
 Read every `.gd` file under `scripts/`, one at a time. For each file write ONE small file `.ai/codemap/<path with / replaced by _>.md`, for example `.ai/codemap/scripts_world_trees.gd.md`, containing exactly one line: `path: what it is, key public functions, which levels or quests use it`. Never write to `.ai/CODEMAP.md` yourself (Write overwrites the file and loses earlier lines); Claude merges the small files. Skip files that already have a file in `.ai/codemap/`. Do NOT modify any `.gd` file. When every `.gd` file has a codemap file, set T4 to done.
 
 ### T5: Consistency and anachronism review (owner: Gemini, status: done, by Gemini)
@@ -132,7 +133,7 @@ Write proposals only, into `.ai/proposals/` as `NAME.md` (plan in plain words an
 ### T11: Village ground and tree check by code (owner: Gemini, status: done, by Gemini)
 Gemini cannot see the game, so this is a code review. For every village level (`Mats.is_village`), list in `.ai/REVIEW_villages.md`: which ground material is used (`Mats.ground()` now uses `textures/px_meadow_diff_1k.png`), any `add_patch` or ground colour set in the level that would clash with a green meadow (dark tints, `ground = Color(...)`), roads or cobbles with tints that look wrong on green, and any tree or decor placed through `add_tree` / `add_decor` with a name that is not in `scripts/actors/decor.gd`. Read-only. Claude then screenshots the flagged villages.
 
-### T12: Forest tree palette (owner: Gemini, status: open; same file as T10b)
+### T12: Forest tree palette (owner: Gemini, status: done, by Gemini; covered by T10b, rejected as already applied)
 Combined with T10(b). Output only the proposal file; do not edit `.gd`.
 
 ### T13: Verify by reading (owner: Gemini, status: done, by Gemini)
@@ -150,7 +151,7 @@ Read-only.
 Write one short design per item into `.ai/DRAFT_backlog.md` (location, what the player sees and does, what Claude must build, in a few lines each): other village recaps (the `recap_*` story cards for villages that have none, in Lorena's voice), shades at lamps (what is meant and a cheap way to do it), Limousin cow jokes (10 short lines), footprints in the snow or mud (a cheap approach for the web build), the stână hay ground texture (describe the texture), more music and boss music (list which levels need which mood, folk, no medieval sound, in the style of Surorile Osoianu), analytics (what to measure for a 2-hour playtest and a privacy-safe way to log it). Keep it short; no code.
 
 
-### T15: Blender sprite render test (owner: Gemini, status: open)
+### T15: Blender sprite render test (owner: Gemini, status: script written, not run; needs Blender, see .ai/proposals/blender_sprite_render.md)
 Write a Blender script. Test before wider use:
 - Deliver `tools/render_sprite.py` (Blender Python, run by Alex on the Mac). Input: a GLB path (Meshy model). Output: 8 directions as PNG, 128x128, transparent background, fixed top-down camera, same lighting for every prop, named `rot_<dir>.png` like sprites/Pixel/<name>/.
 - Test prop: the church bell (or one pew) for `scripts/levels/hillchurch.gd`.
