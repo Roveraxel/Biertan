@@ -15,29 +15,30 @@ ENV_PATH = os.path.join(REPO, ".env.local")
 VOICE_ID = "pFZP5JQG7iQjIQuC4Bku"
 
 
-def load_missing():
+def load_lines(overwrite: bool = False):
     txt = open(NARRATION_GD).read()
     m = re.search(r"const LINES := \{(.*?)\n\}", txt, re.S)
     keys = re.findall(r'"([^"]+)":\s*(\[.*?\])', m.group(1), re.S)
     existing = set(os.listdir(VOICE_DIR))
-    missing = []
+    out = []
     for k, arr_s in keys:
         lines = re.findall(r'"((?:\\.|[^"])*)"', arr_s)
         for i, line in enumerate(lines):
             fn = f"{k}_{i}.mp3"
-            if fn not in existing:
-                missing.append((fn, line.replace('\\"', '"')))
-    return missing
+            if overwrite or fn not in existing:
+                out.append((fn, line.replace('\\"', '"')))
+    return out
 
 
 def main():
     client = get_client(ENV_PATH)
-    missing = load_missing()
-    if not missing:
-        print("No missing voice files.")
+    overwrite = "--all" in sys.argv
+    todo = load_lines(overwrite=overwrite)
+    if not todo:
+        print("No voice files to generate.")
         return
 
-    for fn, text in missing:
+    for fn, text in todo:
         out_path = os.path.join(VOICE_DIR, fn)
         audio = client.text_to_speech.convert(
             voice_id=VOICE_ID,
