@@ -125,6 +125,7 @@ func _process(dt: float) -> void:
 	var pp: Vector2 = G.player.pos
 	if step == 0:
 		G.player.frozen = true   # asleep until Azorel gets to him
+		if is_instance_valid(_hay): G.player.visible = false
 		zzz_t -= dt
 		if zzz_t <= 0.0 and G.state == G.State.PLAY:
 			zzz_t = 1.6
@@ -207,7 +208,7 @@ func _wake() -> void:
 		"(Something warm and wet across your face. You push the hat off your eyes: Azorel, licking you awake, very pleased with himself.)",
 		"(The sun is already behind the ridge. Down the slope the cows have wandered all over the pasture.)"])
 	if is_instance_valid(_hay): remove_decor(_hay)   # up out of the hay, hat back on his head
-	add_decor(G.player.pos + Vector2(-10, 10), "haystack_plain", 0.0).scale = Vector3.ONE * 0.35
+	add_decor(HILL + Vector2(-36, -10), "hay", 0.0)
 	G.player.visible = true
 	await G.say("You", ["You're right, Azorel. Let's take them back to the stână. It's getting dark."])
 	G.player.frozen = false
