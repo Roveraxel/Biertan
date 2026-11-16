@@ -33,7 +33,16 @@ Narration and story polish for the web playtest; next big item is the final figh
 Claude (Claude Code session), 2026-11-16 03:00.
 
 ## Recent Changes
-- 2026-11-16 09:15: dog bark sound added (`audio/bark.ogg`, `audio/bark_2.ogg`, takes picked at random): fills the missing `bark` in malancrav.gd and tunnel.gd. Web build republished.
+- 2026-11-16 10:00: all villages checked with the meadow ground (Criș, Criț, Saschiz, Richiș, Mălâncrav, Viscri, Biertan): no clashes. Spruces and wilds/forest broadleaf crowns now use the green palette (`Trees.SPRUCE_A/B`, `Trees.leaf_color` in `_wilds`). Typing cleanup applied: `-> Variant` on `Village.cross`, `alpha_pos`, `_occupied`; `signal died/hurted/fled/call_thralls(e: Enemy)`. Church interior renders correctly; the fight phases could not be run in the slow headless browser and stay unverified. Dog bark added. Web build republished.
+- 2026-11-16 09:55: T14 (.ai/DRAFT_backlog.md, Gemini) done: delivered backlog designs for village recaps in Lorena's voice, lamp shades, 10 Limousin cow jokes, footprint multi-mesh ring buffer, stână hay ground texture, Surorile Osoianu music allocations, and privacy-safe playtest analytics.
+- 2026-11-16 09:50: T7 (.ai/DRAFT_quests.md, Gemini) done: delivered 5 story drafts for backlog (2 Criț subquests on distaff in millrace & red thread on well, Saschiz children sun-chant scene, Sfânta Vineri in-story explanation of Friday taboos, peppery milkcap mushrooms & Ottoman raiders side story, and Saschiz market piglet dispute).
+- 2026-11-16 09:48: T2 (.ai/REVIEW_narration.md, Gemini) done: rewrote all 29 spoken narration lines in Lorena's dry, fond Transylvanian storyteller voice; verified every line is strictly under original byte length (saving 798 bytes total for Fish Audio credits).
+- 2026-11-16 09:45: T10 (.ai/proposals/villager_names.md, .ai/proposals/forest_tree_palette.md, Gemini) done: delivered proposals for (a) regional names for unnamed NPCs across Apold, Biertan, Criș, Criț, and Mălâncrav; and (b) zero-node Batch-surface crown family palette for forest edge trees in _wilds().
+- 2026-11-16 09:42: T13 (.ai/REVIEW_features.md, Gemini) done: verified all 7 features by reading code paths (act cards in level_loader.gd, balaur_rise film and serpent shader, 48 walk frames across 8 directions for all 6 PixelFigures, non-destructive Village.compact/trim, sequential Biertan night gates, Sighișoara postern gate access, and church fight progression phases 0-4).
+- 2026-11-16 09:38: T11 (.ai/REVIEW_villages.md, Gemini) done: verified all 9 village levels using Mats.ground() (px_meadow at 2.6 m tile); checked ground tints (flagged dark Color("2c3326") / Color("2a3224") and 360-count scatter mud decals); confirmed all decor names across all villages match decor.gd.
+- 2026-11-16 09:35: T6 (.ai/QA_CHECKLIST.md, Gemini) done: mapped full level-by-level QA walkthrough (all 18 levels/stages from Stână to Church on the Hill), flags set, audio/visual cues, and discovered critical potential softlock at Biertan Sacristy Door if 9 tokens are missing during bt_night.
+- 2026-11-16 09:30: T8 (.ai/REVIEW_folklore.md, Gemini) done: fact-checked bosses, dialogue, and stories against Pamfile, Coman, and Cosma; flagged pop-culture vampire naming/bat swarms in vampire_boss.gd, Limousin bull parody, and garlic-throat tropes; verified authentic Marțolea, Solomonar, Cățelul pământului, funeral-wedding, Iele, and Uriaș motifs.
+- 2026-11-16 09:25: T5 (.ai/REVIEW_consistency.md, Gemini) done: audited STORY.md, quests, levels, and STORIES for canon dates (1521/1321/1515), character names (Father Bálint vs Father Imre), Saschiz card mismatch, historical anachronisms (Saxon emigration to Germany, tobacco, New World corn), and modern phrasing.
 - 2026-11-16 09:15: T1 (typing) and T9 (missing assets) done by exact scripts instead of a model: `.ai/REVIEW_typing_script.md` (11 risky `:=`, 3 missing return types, 8 untyped params, 29 untyped vars, 4 signals) and `.ai/REVIEW_assets.md` (one real gap: sound `bark` missing; 4 sprite gaps have fallbacks). The earlier local model's raw T1 output is kept as `REVIEW_typing.raw_nemotron_UNRELIABLE.md`. Remaining tasks go to Gemini (Antigravity).
 - 2026-11-16 07:00 review: T4 code map 74 of 83 files mapped (9 empty: tunnel, sx_quest, interact, hillchurch, mats, varcolac, vineyard, swinging_hook, rc_quest), lines checked and accurate. T1 typing review rejected, see `.ai/REVIEW_typing.review.md` (wrong line numbers, one harmful suggestion). No .gd file was changed by the local model (checksums equal). Runner now strips thinking text and numbers lines.
 - Ground: village ground is now a seamless pixel-art meadow (`textures/px_meadow_diff_1k.png`), macro veil on villages; cobbles warmer. Trees: each crown one colour family (mostly green, a few ochre/rust). Sexton-defeat film: `sprites/Story/sexton_1.png`, STORIES `sexton_end`, shown before the judgement; narration line `sexton_end` not recorded yet.
@@ -47,7 +56,6 @@ Claude (Claude Code session), 2026-11-16 03:00.
 - Earlier this week: act cards, balaur film and ripple animation, Casa Vlad Dracul interior, compact villages, Biertan gates, walking Azorel / earth dog / vârcolac, Lorena narration hooks (`scripts/core/narration.gd`).
 
 ## Known Issues
-- Ground/trees changed but only checked in Viscri and Mălâncrav screenshots; other villages unchecked. Forest and wilds trees still use the old palette.
 - Sprite style differences between NPCs (cast consistency) are unresolved; scales are already uniform.
 - 17 narration lines still unrecorded (Fish free-plan credits ran out; they refill on the next cycle): recap_cris_1-2, supper_biertan 0-1, act_3, balaur_rise 0-1, act_4, and the 9 `lvl_*` lines. Missing lines are skipped silently. Voice: "Romania" `6d76b9c0a0c54f6a97a1c1748270cee1`, model drama-3 with [bracket] directions.
 - Final fight in the church: bell placement and fight start are poor; no film after the sexton is defeated.
@@ -80,7 +88,7 @@ Output: `.ai/REVIEW_typing.md` containing, per file, a list of `line: problem: s
 - signals declared without parameter types.
 Do NOT modify any `.gd` file. Claude applies the fixes afterwards.
 
-### T2: Narration copy review (owner: Gemini, status: open)
+### T2: Narration copy review (owner: Gemini, status: done, by Gemini)
 Scope: read `scripts/core/narration.gd` (the LINES dictionary).
 Output: `.ai/REVIEW_narration.md` with suggested rewrites that sound more spoken and more Transylvanian-storyteller (short sentences, dry humour, Lorena fondly mocking the hunter, English with a light Romanian flavour). Keep each line under the original byte length so recording credits are not exceeded. Do NOT edit the .gd file.
 
@@ -91,13 +99,13 @@ Files: `scripts/levels/hillchurch.gd`, sexton boss, a new church interior level,
 ### T4: Code map (owner: Gemini, status: open; 9 files still missing, rerun)
 Read every `.gd` file under `scripts/`, one at a time. For each file write ONE small file `.ai/codemap/<path with / replaced by _>.md`, for example `.ai/codemap/scripts_world_trees.gd.md`, containing exactly one line: `path: what it is, key public functions, which levels or quests use it`. Never write to `.ai/CODEMAP.md` yourself (Write overwrites the file and loses earlier lines); Claude merges the small files. Skip files that already have a file in `.ai/codemap/`. Do NOT modify any `.gd` file. When every `.gd` file has a codemap file, set T4 to done.
 
-### T5: Consistency and anachronism review (owner: Gemini, status: open)
+### T5: Consistency and anachronism review (owner: Gemini, status: done, by Gemini)
 Read `STORY.md`, `scripts/quests/*.gd`, `scripts/levels/*.gd` dialogue strings and `scripts/core/game_manager.gd` (STORIES). Output `.ai/REVIEW_consistency.md` listing contradictions as `file:line: problem: suggested fix`. Canon: game year 1521; the baron died unmarried in 1321 ("two hundred years"); sacristy door 1515; Biertan; character names and roles must match across files. Also flag any dialogue that sounds modern. Do NOT edit the files.
 
-### T6: QA checklist (owner: Gemini, status: open)
+### T6: QA checklist (owner: Gemini, status: done, by Gemini)
 From the quest scripts, write `.ai/QA_CHECKLIST.md`: per level, the steps a playtester should do in order, the flags set (`G.side_add(...)`), and what must visibly happen. Mark steps that look impossible to complete from the code. Read-only.
 
-### T7: Story drafts for the backlog (owner: Gemini, status: open)
+### T7: Story drafts for the backlog (owner: Gemini, status: done, by Gemini)
 Write drafts (not code) to `.ai/DRAFT_quests.md`, grounded in `STORY.md`, in Romanian folklore (use Tudor Pamfile, Mihai Coman, Aurel Cosma Jr.; no pop-culture versions), and in the game's tone (dry, warm, Lorena mocking the hunter):
 1. The Criț subquests (two short ones).
 2. A scene where village children sing.
@@ -112,22 +120,22 @@ Each draft: location, NPCs, steps (what the player sees and does), reward, 6 to 
 - ChatGPT: reserve only, because the monthly quota is almost used. Use it for a second opinion on a hard design question, nothing routine.
 - After a Gemini task: change its status to `done` here and add one line to Recent Changes in HANDOFF.md.
 
-### T8: Folklore fact-check (owner: Gemini, status: open)
+### T8: Folklore fact-check (owner: Gemini, status: done, by Gemini)
 Read all dialogue, STORIES and `scripts/bosses/*.gd` text. Output `.ai/REVIEW_folklore.md`: every place where a creature, rite or custom differs from the Romanian sources (Tudor Pamfile "Mitologia poporului român", Mihai Coman "Mitologie populară românească", Aurel Cosma Jr. "Cosmogonia poporului român", the Solomonar and Cățelul pământului references in memory), as `file:line: what the game says: what the source says: suggested fix`. Also list anything that comes from pop culture and not from folklore. Do not use Adevărul as a source. Read-only.
 
 ### T9: Missing asset scan (owner: Gemini, status: done, by script: see REVIEW_assets.md)
 Find every `res://` path and every sprite or sound name used in `scripts/` (`add_decor("name")`, `Audio.sfx("name")`, `FIGURES`, texture names in `Mats`). Output `.ai/REVIEW_assets.md`: names that have no matching file under `sprites/`, `audio/` or `textures/`, with the file and line that uses each. Read-only.
 
-### T10: Proposals for the open issues (owner: Gemini, status: open)
+### T10: Proposals for the open issues (owner: Gemini, status: done, by Gemini)
 Write proposals only, into `.ai/proposals/` as `NAME.md` (plan in plain words and the exact code you suggest in a fenced block, nothing applied): (a) a gentle regional name list for the villagers who currently have none (check `scripts/levels/*.gd`); (b) a small, cheap way to make the forest edge trees (`_wilds()` in `world_builder.gd`) follow the new one-colour-family palette in `Trees.leaf_color` without extra nodes. Claude reviews, compiles and applies.
 
-### T11: Village ground and tree check by code (owner: Gemini, status: open)
+### T11: Village ground and tree check by code (owner: Gemini, status: done, by Gemini)
 Gemini cannot see the game, so this is a code review. For every village level (`Mats.is_village`), list in `.ai/REVIEW_villages.md`: which ground material is used (`Mats.ground()` now uses `textures/px_meadow_diff_1k.png`), any `add_patch` or ground colour set in the level that would clash with a green meadow (dark tints, `ground = Color(...)`), roads or cobbles with tints that look wrong on green, and any tree or decor placed through `add_tree` / `add_decor` with a name that is not in `scripts/actors/decor.gd`. Read-only. Claude then screenshots the flagged villages.
 
 ### T12: Forest tree palette (owner: Gemini, status: open; same file as T10b)
 Combined with T10(b). Output only the proposal file; do not edit `.gd`.
 
-### T13: Verify by reading (owner: Gemini, status: open)
+### T13: Verify by reading (owner: Gemini, status: done, by Gemini)
 For each feature below, trace the code path and write `.ai/REVIEW_features.md` saying "reachable" or "broken: <why>" with `file:line`:
 1. Act cards: `_act_card()` in `level_loader.gd` (act_2, act_3, act_4 conditions).
 2. Balaur film `balaur_rise` and the balaur animation in `storm_balaur.gd`.
@@ -138,7 +146,7 @@ For each feature below, trace the code path and write `.ai/REVIEW_features.md` s
 7. The new church fight in `hillchurch.gd`: every phase (0 to 4) can be reached, `_cold_feet()` fires once, the bell cooldown works, `_judgement()` always runs after the sexton's death (check `died` is connected once).
 Read-only.
 
-### T14: Backlog designs (owner: Gemini, status: open)
+### T14: Backlog designs (owner: Gemini, status: done, by Gemini)
 Write one short design per item into `.ai/DRAFT_backlog.md` (location, what the player sees and does, what Claude must build, in a few lines each): other village recaps (the `recap_*` story cards for villages that have none, in Lorena's voice), shades at lamps (what is meant and a cheap way to do it), Limousin cow jokes (10 short lines), footprints in the snow or mud (a cheap approach for the web build), the stână hay ground texture (describe the texture), more music and boss music (list which levels need which mood, folk, no medieval sound, in the style of Surorile Osoianu), analytics (what to measure for a 2-hour playtest and a privacy-safe way to log it). Keep it short; no code.
 
 

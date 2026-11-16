@@ -513,7 +513,7 @@ static func _curtain(cw: Dictionary) -> void:
 		_cut(bt.commit(root, "Curtain"))
 
 ## The building (other than walls) whose footprint covers a point on the ground, if any.
-static func _occupied(pt: Vector3):
+static func _occupied(pt: Vector3) -> Variant:
 	for b in L.blocks:
 		if b.style in ["wall", "hidden", "vine", "pew"]: continue
 		var w: float = b.size.x * S; var d: float = b.size.y * S; var m := 0.3
@@ -659,7 +659,7 @@ static func _trees() -> void:
 		var dead: bool = not t.pine and deep and rnd.f() < 0.14
 		var bark := Color(0.27, 0.26, 0.24) if dead else Color(0.2, 0.15, 0.11)
 		if t.pine:
-			Trees.spruce(_tree_parts(bt, bark, Color(0.07, 0.15, 0.12), Color(0.09, 0.19, 0.14)), Vector3.ZERO, t.sc, rnd)
+			Trees.spruce(_tree_parts(bt, bark, Trees.SPRUCE_A, Trees.SPRUCE_B), Vector3.ZERO, t.sc, rnd)
 		else:
 			Trees.broadleaf(_tree_parts(bt, bark, Trees.leaf_color(seed_v, 0), Trees.leaf_color(seed_v, 1)), Vector3.ZERO, t.sc, rnd, dead)
 		if not village: Trees.undergrowth(_tree_parts(bt, bark, Color.BLACK, Color.BLACK), Vector3.ZERO, t.sc, rnd)
@@ -682,8 +682,7 @@ static func _wilds() -> void:
 		var best := minf(minf(dl, dr), minf(dt, db))
 		if best > 4.0: continue
 		lanes.append([m, Vector2.LEFT if best == dl else (Vector2.RIGHT if best == dr else (Vector2.UP if best == dt else Vector2.DOWN))])
-	var bark := Color(0.13, 0.1, 0.08); var dark := Color(0.07, 0.12, 0.09)
-	var rust := Color(0.2, 0.12, 0.07) if deep else Color(0.15, 0.17, 0.09)
+	var bark := Color(0.13, 0.1, 0.08)
 	var chunks := {}
 	var rnd := NetRandom.new(hash(L.id) & 0x7fffffff)
 	var x := -margin
@@ -707,10 +706,15 @@ static func _wilds() -> void:
 			if in_lane: continue
 			var at := Vector3(px, 0, -pz)
 			var bt := _chunk(chunks, at)
-			var parts := _tree_parts(bt, bark, dark, rust)
 			var sc := 0.85 + rnd.f() * 0.5
-			if rnd.f() < (0.5 if deep else 0.3): Trees.spruce(parts, at, sc, rnd, true)
-			else: Trees.broadleaf(parts, at, sc, rnd, false, true)
+			if rnd.f() < (0.5 if deep else 0.3):
+				Trees.spruce(_tree_parts(bt, bark, Trees.SPRUCE_A, Trees.SPRUCE_B), at, sc, rnd, true)
+			else:
+				var seed_w: int = int(absf(px) * 97.0 + absf(pz) * 31.0)
+				var ca: Color = Trees.leaf_color(seed_w, 0) * (0.8 if deep else 1.0)
+				var cb: Color = Trees.leaf_color(seed_w, 1) * (0.8 if deep else 1.0)
+				ca.a = 1.0; cb.a = 1.0
+				Trees.broadleaf(_tree_parts(bt, bark, ca, cb), at, sc, rnd, false, true)
 		x += spacing
 	var _t0 := Time.get_ticks_msec()
 	for k in chunks: chunks[k].commit(root, "Wilds")

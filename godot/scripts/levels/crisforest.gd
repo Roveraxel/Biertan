@@ -234,7 +234,7 @@ func _hunt_fled() -> void:
 	Hud.banner("THE MARK IS BROKEN", "The alpha shakes itself like a wet dog, looks at you, and trots off. The rest follow.")
 
 ## Where the marked alpha is, or null once it has run.
-func alpha_pos():
+func alpha_pos() -> Variant:
 	for w in hunt:
 		if is_instance_valid(w) and not w.fleeing and w.rot_mark: return w.pos
 	return null

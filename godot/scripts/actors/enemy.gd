@@ -3,10 +3,10 @@
 class_name Enemy
 extends Actor
 
-signal died(e)
-signal hurted(e)       # after every blow that lands
-signal fled(e)
-signal call_thralls(e)
+signal died(e: Enemy)
+signal hurted(e: Enemy)       # after every blow that lands
+signal fled(e: Enemy)
+signal call_thralls(e: Enemy)
 
 static var all: Array[Enemy] = []
 static var fainted_ones: Array[Enemy] = []

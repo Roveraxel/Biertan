@@ -14,6 +14,9 @@ static var _ico_t: Array[int] = []
 ## One tree, one family of colours: the second clump colour is a near shade of the first, so a crown reads as a
 ## single tree and not as two patches. Most are green; a few turn ochre or rust for the autumn.
 const CROWNS := [Color(0.2, 0.31, 0.14), Color(0.24, 0.36, 0.16), Color(0.27, 0.38, 0.17), Color(0.22, 0.33, 0.15), Color(0.3, 0.37, 0.15), Color(0.25, 0.35, 0.18), Color(0.5, 0.36, 0.13), Color(0.46, 0.22, 0.11)]
+## Spruce needles: a dark green with a near shade, no longer blue-green.
+const SPRUCE_A := Color(0.08, 0.17, 0.09)
+const SPRUCE_B := Color(0.1, 0.2, 0.11)
 static func leaf_color(seed_value: int, k: int) -> Color:
 	var i := absi(seed_value) % 11   # eight crowns, the first six twice as likely as the autumn two
 	var base: Color = CROWNS[mini(i, 7) if i < 8 else i - 8] * 0.6

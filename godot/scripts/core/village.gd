@@ -305,7 +305,7 @@ func add_church(b: Dictionary, h: float, with_tower: bool, tower_k := 0.5, tower
 
 # ------------------------------------------------------------------ walls opened where roads run through them
 
-static func cross(a: Vector2, b: Vector2, c: Vector2, d: Vector2):
+static func cross(a: Vector2, b: Vector2, c: Vector2, d: Vector2) -> Variant:
 	var r := b - a; var s := d - c
 	var den := r.x * s.y - r.y * s.x
 	if absf(den) < 1e-4: return null
