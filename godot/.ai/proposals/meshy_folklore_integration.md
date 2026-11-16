@@ -16,6 +16,8 @@ Rendered from textured Meshy GLBs in Blender 5.3.0 (`tools/render_sprite.py`, 64
 Add to `Decor.SIZES` (`scripts/actors/decor.gd:41`):
 ```gdscript
 	"hanging_charms": 0.95, "witch_effigy": 1.0, "bone_totem": 1.15, "forest_offerings": 0.75,
+	"pig": 0.75, "anvil": 0.8, "donkey": 1.15, "goat": 0.85, "watermill": 2.1, "footbridge": 1.6,
+	"milestone": 0.9, "grindstone": 0.95, "plough": 1.1, "dead_tree": 2.0, "tree_stump": 0.85, "stepping_stones": 1.2,
 ```
 
 Place deterministically off-trail (no collision/trigger/NPC changes):
