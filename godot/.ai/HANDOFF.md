@@ -63,16 +63,14 @@ Code changes go through the proposal and review loop described in `.ai/ARCHITECT
 
 
 ### Model routing (who runs which task; Claude reviews every result)
-Models: Qwen 3.8 and Nemotron, both local (Ollama), started with `ollama launch claude --model <name>` (agent session with file access) or `tools/run_task.sh <task> <model>` (one file per call). Kimi and OpenRouter are not used.
-| Task | Model |
+Model: Nemotron, local (Ollama name `nemotron-3.5-bolt:e4b-nvfp4`, 7.2 GB). Start an agent session with `ollama launch claude --model nemotron-3.5-bolt:e4b-nvfp4`, or run a single-file task with `tools/run_task.sh <task> nemotron-3.5-bolt:e4b-nvfp4`. Qwen 3.8 is 18 GB and too big for the 16 GB laptop; use it only if a smaller Qwen is installed. Kimi and OpenRouter are not used.
+| Task | How |
 |---|---|
-| T1 typing audit, T4 code map, T6 QA checklist, T2 narration copy | Qwen 3.8 (`tools/run_task.sh T4 qwen3.8`) |
-| T9, T11, T13 (read the whole project) | Qwen 3.8 agent session |
-| T5, T7, T8, T14 (story, folklore, designs) | Nemotron agent session |
-| T10 proposals, T15 Blender script | Qwen 3.8 agent session (proposal loop above) |
+| T1, T2, T4, T6 (one file at a time) | `tools/run_task.sh T4 nemotron-3.5-bolt:e4b-nvfp4` |
+| T5, T7, T8, T9, T10, T11, T13, T14, T15 | agent session, one task per session |
 | Anything that edits `.gd` | Claude only (compiles, tests, publishes) |
 Agent session prompt: "Read .ai/HANDOFF.md and follow its rules. No edits to .gd, scene or asset files. Task: <id>."
-Local models have about 16k context on a 16 GB laptop: one file or one function per request. If one model fails or is too slow, give the task to the other.
+Local models have about 16k context on a 16 GB laptop: one file or one function per request. Suggested order: T4, T9, T1, T6, then the rest.
 
 ### T1: GDScript static-typing audit (owner: Nemotron via Cherry Studio, status: open)
 Scope: read-only review of `scripts/ui/`, `scripts/quests/` and `scripts/actors/`.
@@ -145,11 +143,11 @@ Read-only.
 Write one short design per item into `.ai/DRAFT_backlog.md` (location, what the player sees and does, what Claude must build, in a few lines each): other village recaps (the `recap_*` story cards for villages that have none, in Lorena's voice), shades at lamps (what is meant and a cheap way to do it), Limousin cow jokes (10 short lines), footprints in the snow or mud (a cheap approach for the web build), the stână hay ground texture (describe the texture), more music and boss music (list which levels need which mood, folk, no medieval sound, in the style of Surorile Osoianu), analytics (what to measure for a 2-hour playtest and a privacy-safe way to log it). Keep it short; no code.
 
 
-### T15: Blender sprite render test (owner: Qwen 3.8 local, status: open)
+### T15: Blender sprite render test (owner: Nemotron local, status: open)
 Write a Blender script. Test before wider use:
 - Deliver `tools/render_sprite.py` (Blender Python, run by Alex on the Mac). Input: a GLB path (Meshy model). Output: 8 directions as PNG, 128x128, transparent background, fixed top-down camera, same lighting for every prop, named `rot_<dir>.png` like sprites/Pixel/<name>/.
 - Test prop: the church bell (or one pew) for `scripts/levels/hillchurch.gd`.
 - Output files only as PNG. No 3D model goes into the game build (web export is about 80 MB).
 - Reduce colors to match the pixel-art palette. Claude checks the result in a level screenshot before it ships.
 - If it works, extend to the other props and to cast-size consistency (open item 4).
-- Qwen writes the script and notes to `.ai/proposals/`; Claude reviews at the next check.
+- Nemotron writes the script and notes to `.ai/proposals/`; Claude reviews at the next check.

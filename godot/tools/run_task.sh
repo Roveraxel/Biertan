@@ -3,7 +3,7 @@
 # Usage: tools/run_task.sh T4 qwen3.8        (run from the godot folder)
 # Output is appended to the .ai/ file named below. Never edits any .gd file.
 set -u
-TASK="${1:?task id, e.g. T4}"; MODEL="${2:-qwen3.8}"
+TASK="${1:?task id, e.g. T4}"; MODEL="${2:-nemotron-3.5-bolt:e4b-nvfp4}"
 cd "$(dirname "$0")/.." || exit 1
 H=.ai/HANDOFF.md
 case "$TASK" in
