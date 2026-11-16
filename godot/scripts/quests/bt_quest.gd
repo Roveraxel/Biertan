@@ -147,7 +147,7 @@ func talk(id: String) -> bool:
 			else: G.start_dialogue("Vlad and Magda", ["Magda: We are sleeping on the cart tonight, with the horse in the shafts.", "Vlad: She is right. Don't tell her I said so.", "Magda: I HEARD that."])
 		"market1": G.start_dialogue("A woman with a basket", ["Welcome, welcome. His lordship said a hunter was coming. He hears everything, his lordship. (She smiles. It takes a while to arrive.)"])
 		"market2": G.start_dialogue("The chestnut seller", ["Dogs? No. No dogs. They... don't settle here. (He looks up at the church, and then at his chestnuts.)"])
-		"market3": G.start_dialogue("An old man", ["Forty years since I heard that bell. The sexton says the rope is rotten. Forty years is a long time for a rope."])
+		"market3": G.start_dialogue("An old man", ["Thirty years since I heard that bell. The sexton says the rope is rotten. Thirty years is a long time for a rope."])
 		_: return id in ["ally_fox", "ally_deer", "ally_owl", "mbear"]
 	return true
 
@@ -257,7 +257,7 @@ func use(p: Prop) -> void:
 				], func():
 					if first: Hud.toast("Biertan: %d/%d" % [proofs(), PROOFS.size()]))
 		"church":
-			if has("bt_fled"): G.start_dialogue("The church door", ["Open. Somebody has already been up the tower: the bell is ringing properly, for the first time in forty years."])
+			if has("bt_fled"): G.start_dialogue("The church door", ["Open. Somebody has already been up the tower: the bell is ringing properly, for the first time in thirty years."])
 			elif not has("bt_night"): G.start_dialogue("The church door", ["Locked. \"Repairs,\" says a card in the sexton's neat hand. The card has gone yellow."])
 			elif bolts() < 3: G.start_dialogue("The church door", ["The way to the church goes through all three walls. Gates open: %d/3." % bolts()])
 			else: Loader.goto_level("sacristy")

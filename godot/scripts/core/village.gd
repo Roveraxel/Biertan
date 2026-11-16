@@ -370,7 +370,7 @@ func add_graves(limit := 120, dx := 70.0, dy := 90.0, mind_walls := true) -> voi
 const GARDENS := [
 	[["garden_bed", 0], ["pumpkins", 0], ["cabbages", 0], ["wattle_fence", 0]],
 	[["garden_bed", 0], ["tomatoes_stakes", 0], ["cabbages", 0], ["apple_basket", 0]],
-	[["corn_shock", 14], ["corn_shock", 14], ["haystack_plain", 26], ["scarecrow", 10]],
+	[["wheat_shock", 14], ["wheat_shock", 14], ["haystack_plain", 26], ["scarecrow", 10]],
 	[["apple_tree_autumn", 22], ["beehives", 16], ["apple_basket", 0]],
 	[["pepper_rack", 14], ["wheelbarrow_pumpkins", 12], ["garden_shed", 30]],
 	[["pumpkins", 0], ["sunflowers_dry", 0], ["sunflowers_dry", 0], ["wattle_fence", 0]],

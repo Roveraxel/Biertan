@@ -126,7 +126,7 @@ func _road_stops() -> void:
 	# 3. the hay meadow
 	var hay: Vector2 = beside.call(0.7, 260.0)
 	add_decor(hay, "haystack_plain", 26.0); add_decor(hay + Vector2(170, 40), "haystack_plain", 26.0, true); add_decor(hay + Vector2(-150, 70), "haystack_plain", 26.0)
-	add_decor(hay + Vector2(40, 120), "haycart", 22.0); add_decor(hay + Vector2(-60, -90), "corn_shock", 14.0); add_decor(hay + Vector2(110, -80), "corn_shock", 14.0)
+	add_decor(hay + Vector2(40, 120), "haycart", 22.0); add_decor(hay + Vector2(-60, -90), "wheat_shock", 14.0); add_decor(hay + Vector2(110, -80), "wheat_shock", 14.0)
 	# 4. the crossroads before the graveyard
 	var cross_at: Vector2 = beside.call(0.88, -170.0)
 	add_decor(cross_at, "shrine", 20.0); add_decor(cross_at + Vector2(34, 26), "candle"); add_decor(cross_at + Vector2(-40, 30), "petals")

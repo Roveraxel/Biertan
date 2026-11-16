@@ -7,7 +7,7 @@ extends Node3D
 const PPU := 42.0
 ## How big each prop really stands, relative to its drawing.
 const SIZES := {
-	"pumpkins": 0.85, "cabbages": 0.85, "corn_shock": 0.95, "tomatoes_stakes": 0.9, "garden_bed": 1.05,
+	"pumpkins": 0.85, "cabbages": 0.85, "wheat_shock": 0.95, "tomatoes_stakes": 0.9, "garden_bed": 1.05,
 	"wattle_fence": 0.95, "beehives": 0.85, "apple_tree_autumn": 1.9, "pepper_rack": 0.9,
 	"wheelbarrow_pumpkins": 0.75, "sunflowers_dry": 0.95, "apple_basket": 0.42, "brazier_cold": 0.7, "garden_shed": 1.45,
 	"bench": 0.6, "crate": 0.75, "sacks": 0.7, "barrel": 0.72, "barrels": 0.95,
