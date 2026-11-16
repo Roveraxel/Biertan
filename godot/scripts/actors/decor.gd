@@ -46,6 +46,10 @@ const SIZES := {
 	"wagon_wheels": 0.75, "hitching_post": 0.9, "handbell_stand": 0.8, "notice_board_3d": 1.35, "grave_markers": 0.95,
 	"votive_candles": 0.5, "roadside_shrine": 1.35, "wayside_cross": 1.4, "balance_scale": 0.55, "market_pottery": 0.65,
 	"blacksmith_bellows": 0.85, "blacksmith_forge": 1.3, "laundry_tub": 0.75, "butter_churn": 0.75, "wine_press": 1.35,
+	"forest_boulder": 1.35, "fallen_log": 1.4, "woodland_mushrooms": 0.45, "forest_ferns": 0.75, "berry_bush": 0.85,
+	"wild_flowers": 0.5, "village_cow": 1.35, "village_sheep": 0.75, "geese_trio": 0.65, "cheese_wheel": 0.45,
+	"rye_bread": 0.45, "grain_sacks": 0.75, "market_produce": 1.1, "market_counter": 1.3, "market_textiles": 0.75,
+	"smith_tools": 0.9, "weapon_rack": 1.1, "ritual_stones": 1.5, "quarry_winch": 1.4, "wine_rack": 1.2,
 }
 
 var sprite_name := ""
