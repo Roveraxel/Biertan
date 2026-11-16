@@ -1,0 +1,1 @@
+scripts/world/atmosphere.gd: Defines visual atmospheric effects (mist, fireflies, leaves, indoor dust), key public function is `build()`, used by level generation logic (e.g., "forest", "church", "stana").

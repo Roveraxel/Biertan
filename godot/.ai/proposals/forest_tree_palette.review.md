@@ -1,0 +1,1 @@
+Decision: rejected (already done). Claude applied green crowns via Trees.leaf_color and SPRUCE_A/B in world_builder.gd _wilds(), with no per-family materials (the proposal's 16 surfaces per chunk would cost draw calls on web).

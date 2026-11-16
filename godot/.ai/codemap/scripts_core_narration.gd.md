@@ -1,0 +1,1 @@
+scripts/core/narration.gd: handles story card narration and level arrival lines, key functions are speak() and arrive(), used by all defined story sections (e.g., prologue, act_3) and levels (lvl_gorge, lvl_forest, lvl_uriasi).

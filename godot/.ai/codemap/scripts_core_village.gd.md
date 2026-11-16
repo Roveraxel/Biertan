@@ -1,0 +1,1 @@
+scripts/core/village.gd: Base village generation logic (layout, roads, houses, trees); load_map, standard, churches_and_houses, compact, add_troita; used by viscri, malancrav, cris, crit, richisvillage, saschiz, sighisoara quests.

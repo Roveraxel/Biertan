@@ -1,0 +1,1 @@
+scripts/world/world_builder.gd: Builds the 3D world (ground, roads, decals, houses, walls, trees), key functions include build(), _ground(), _roads(), _decals(), _prep_houses(), _block(), _trees(), _wilds(), used by all levels and map loading processes.

@@ -158,3 +158,7 @@ Write a Blender script. Test before wider use:
 - Reduce colors to match the pixel-art palette. Claude checks the result in a level screenshot before it ships.
 - If it works, extend to the other props and to cast-size consistency (open item 4).
 - Gemini writes the script and notes to `.ai/proposals/`; Claude reviews at the next check.
+- 2026-11-16 10:30: Gemini audit applied: baron year 1321, Father Bálint, no tobacco/pipe/maize/modern idioms, STRIGOI naming. Forest palette proposal rejected, villager names deferred. Open: sexton "thirty years" vs bell "forty years".
+- 2026-11-16 10:15: remaining Gemini outputs reviewed (see REVIEW_gemini_rest.review.md); bell now thirty years; wheat_shock sprite replaces corn_shock.
+- 2026-11-16 11:00: recap cards (7, illustrated), hunter voice (7 Fish clips, 107 credits left), Criț subquests: Gerda/distaff and Baba Rada/red thread (flags cr_sub_*, cr_rada_*, cr_knot1-3).
+- 2026-11-16 11:15: Saschiz kids sing (flag sx_sing, audio/kids_song.ogg from PixelLab music, take 1); Sfanta Vineri explains Friday in critforest.gd offering().

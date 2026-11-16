@@ -1,0 +1,1 @@
+scripts/actors/player.gd: The hunter's core stats and behaviors (movement, combat, curse effects); key public functions are `reset_stats`, `mouse_world`, `swing`, `drink`, `throw_salt`, `hurt`; used by all core levels/quests (madness, vampirism, etc.)

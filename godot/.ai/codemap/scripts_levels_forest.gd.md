@@ -1,0 +1,1 @@
+scripts/levels/forest.gd: Defines the Wolf Forest level (Moon Clearing, Glade), manages environment state (e.g., eclipse, snowdrops), key public functions are target(), objective(), use(), which are used by quests/dialogue systems.

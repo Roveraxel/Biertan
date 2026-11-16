@@ -1,0 +1,1 @@
+scripts/core/game_manager.gd: Manages global game state (State enum, stories, player tracking), public functions include start_dialogue, show_story, save_game, continue_game, used by all major quest lines (Vârcolac, Muma, Balaur, etc.)

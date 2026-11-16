@@ -1,0 +1,1 @@
+scripts/ui/hud_map.gd: The UI representation of the map, journal, and bestiary, open(travel: bool), open_local(), open_journal(), open_bestiary(), reached(i: int) are key functions, used by all levels (e.g., "biertanfort") and associated quests.

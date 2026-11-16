@@ -1,0 +1,1 @@
+scripts/quests/rc_quest.gd: Richiș quest "The Brothers and the Iele" (four herbs, Toader, Ilie's nai on the ridge); has, mark, herbs_have, target, objective, marker, pending, arrive, talk, use; used by richisvillage.gd and ieleridge.gd.

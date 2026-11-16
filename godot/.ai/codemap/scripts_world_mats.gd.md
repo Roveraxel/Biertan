@@ -1,0 +1,1 @@
+scripts/world/mats.gd: Shared materials and textures (pixel-art sets in villages): px, is_village, tex, mat, plain, unlit, see_through, ground, cobble, road, roof, plaster, stone, wood; used by every level and world_builder.

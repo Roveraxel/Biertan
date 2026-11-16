@@ -1,0 +1,1 @@
+scripts/quests/sx_quest.gd: Saschiz quest "The Missing Children" (clues, mob brawl, giant fortress, then the children's sun song); has, mark, target, objective, marker, pending, talk, _song, after_brawl, use; used by saschiz.gd and uriasi.gd.

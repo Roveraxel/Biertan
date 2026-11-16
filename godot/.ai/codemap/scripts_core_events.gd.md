@@ -1,0 +1,1 @@
+scripts/core/events.gd: Handles all player interactions (prop usage, dialogue, buying), key public functions are prop_used, marker_for, pay, and item purchases (buy_potion, etc.), used by various quest/item interactions.
