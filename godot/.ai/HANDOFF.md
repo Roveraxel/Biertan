@@ -33,6 +33,7 @@ Narration and story polish for the web playtest; next big item is the final figh
 Claude (Claude Code session), 2026-11-16 03:00.
 
 ## Recent Changes
+- 2026-11-16 09:15: dog bark sound added (`audio/bark.ogg`, `audio/bark_2.ogg`, PixelLab sound effect, takes picked at random): fills the missing `bark` in malancrav.gd and tunnel.gd. Web build republished.
 - 2026-11-16 09:15: T1 (typing) and T9 (missing assets) done by exact scripts instead of the model: `.ai/REVIEW_typing_script.md` (11 risky `:=`, 3 missing return types, 8 untyped params, 29 untyped vars, 4 signals) and `.ai/REVIEW_assets.md` (one real gap: sound `bark` missing; 4 sprite gaps have fallbacks). Nemotron's raw T1 output kept as `REVIEW_typing.raw_nemotron_UNRELIABLE.md`. Nemotron now only gets writing tasks (T4 rerun for 9 files, T2, T7, T14).
 - 2026-11-16 07:00 review: T4 code map 74 of 83 files mapped (9 empty: tunnel, sx_quest, interact, hillchurch, mats, varcolac, vineyard, swinging_hook, rc_quest), lines checked and accurate. T1 typing review rejected, see `.ai/REVIEW_typing.review.md` (wrong line numbers, one harmful suggestion). No .gd file was changed by Nemotron (checksums equal). Runner now strips thinking text and numbers lines.
 - Ground: village ground is now a seamless pixel-art meadow (`textures/px_meadow_diff_1k.png`), macro veil on villages; cobbles warmer. Trees: each crown one colour family (mostly green, a few ochre/rust). Sexton-defeat film: `sprites/Story/sexton_1.png`, STORIES `sexton_end`, shown before the judgement; narration line `sexton_end` not recorded yet.
