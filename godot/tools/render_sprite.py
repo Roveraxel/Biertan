@@ -53,6 +53,7 @@ def parse_args():
     opts = {
         "glb": None, "name": None, "out": None, "size": 128, "pixel": 2,
         "colors": 24, "elev": 50.0, "prefix": "rotation_", "front": "south",
+        "tint": None,
     }
     i = 0
     while i < len(argv):
@@ -237,6 +238,33 @@ def process(path_in, path_out, small, final, colors, name):
     bpy.data.images.remove(res)
 
 
+def apply_procedural_tint(objs, tint_str):
+    """Apply a procedural noise-varied matte material to untextured preview meshes."""
+    r, g, b = (float(x) for x in tint_str.split(","))
+    mat = bpy.data.materials.new("proc_tint")
+    mat.use_nodes = True
+    nt = mat.node_tree
+    nt.nodes.clear()
+    out = nt.nodes.new("ShaderNodeOutputMaterial")
+    bsdf = nt.nodes.new("ShaderNodeBsdfPrincipled")
+    bsdf.inputs["Roughness"].default_value = 0.88
+    noise = nt.nodes.new("ShaderNodeTexNoise")
+    noise.inputs["Scale"].default_value = 14.0
+    noise.inputs["Detail"].default_value = 4.0
+    ramp = nt.nodes.new("ShaderNodeValToRGB")
+    ramp.color_ramp.elements[0].position = 0.25
+    ramp.color_ramp.elements[0].color = (r * 0.65, g * 0.65, b * 0.65, 1.0)
+    ramp.color_ramp.elements[1].position = 0.78
+    ramp.color_ramp.elements[1].color = (min(1.0, r * 1.15), min(1.0, g * 1.15), min(1.0, b * 1.15), 1.0)
+    nt.links.new(noise.outputs["Fac"], ramp.inputs["Fac"])
+    nt.links.new(ramp.outputs["Color"], bsdf.inputs["Base Color"])
+    nt.links.new(bsdf.outputs["BSDF"], out.inputs["Surface"])
+    for o in objs:
+        if o.type == "MESH":
+            o.data.materials.clear()
+            o.data.materials.append(mat)
+
+
 def main():
     o = parse_args()
     repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -250,6 +278,8 @@ def main():
 
     reset_scene()
     objs = import_model(glb)
+    if o["tint"]:
+        apply_procedural_tint(objs, o["tint"])
     pivot, radius, height = build_pivot(objs, o["front"])
     setup_camera(radius, height, o["elev"])
     setup_lights()
