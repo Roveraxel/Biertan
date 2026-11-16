@@ -95,6 +95,7 @@ func build() -> void:
 		var p := Vector2(rand(40, size.x - 40), rand(40, size.y - 40))
 		var dx := (p.x - C.x) / (RX[0] + 70.0); var dy := (p.y - C.y) / (RY[0] + 70.0)
 		if dx * dx + dy * dy < 1.0 or _road_dist(p, road) < 110.0: continue
+		if p.y > 2420.0 * K and absf(p.x - C.x) < 760.0 * K: continue   # keep market, stalls, and baron clearing open
 		add_tree(p, true)
 	add_prop("task", "down", "Back down the hill", Vector2(1300, 2860) * K, "E   Go back down to the road")
 	# the marriage prison: a little tower against the outer wall, west of the gate

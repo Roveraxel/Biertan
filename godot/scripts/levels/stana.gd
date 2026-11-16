@@ -53,7 +53,6 @@ func build() -> void:
 	add_decor(FOLD.position + Vector2(280, 70), "livestock_trough", 20.0)
 	add_decor(FOLD.position + Vector2(190, 140), "butter_churn", 12.0)
 	add_decor(FOLD.position + Vector2(240, 145), "cheese_wheel", 10.0)
-	add_decor(FOLD.position + Vector2(85, 220), "village_sheep", 14.0)
 	add_decor(FOLD.end + Vector2(-60, -60), "firewood", 20.0)
 	add_decor(HILL + Vector2(-70, 20), "stubs")
 	for c in [Vector2(1050, 480), Vector2(1450, 360), Vector2(480, 1320), Vector2(1100, 1520), Vector2(1550, 1820), Vector2(2350, 1880)]:
@@ -86,12 +85,14 @@ func _intro() -> void:
 func _fence(shut: bool) -> void:
 	var side := func(a: Vector2, b: Vector2, west: bool):
 		var length := a.distance_to(b)
+		var vert := absf(a.x - b.x) < 1.0
 		var d := 0.0
 		while d <= length:
 			var q := a.lerp(b, d / length)
 			var in_gap := west and absf(q.y - GATE.y) < GATE_HALF
 			if in_gap == shut:
 				var dd := add_decor(q, "wattle_fence", 30.0, int(d / 58.0) % 2 == 0)
+				if vert: dd.rotation.y = PI / 2.0
 				if in_gap: _gap.append(dd)
 			d += 58.0
 	var tl := FOLD.position; var br := FOLD.end

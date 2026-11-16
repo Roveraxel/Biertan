@@ -668,7 +668,7 @@ static func _trees() -> void:
 ## The world doesn't stop at the map's edge: beyond it grows thick, dark forest (thinning to a meadow strip
 ## around the villages). Roads that leave the map keep a clear lane through it. Scenery only.
 static func _wilds() -> void:
-	if L.id in ["", "caves", "cellar", "crypt", "malcrypt", "tunnel", "gorge", "church", "sacristy"]: return
+	if L.id in ["", "caves", "cellar", "crypt", "malcrypt", "tunnel", "gorge", "church", "sacristy", "draculhouse", "hillchurch"]: return
 	var village := Mats.is_village(L.id)
 	var deep := L.id in Mats.WOODS
 	var map_m := L.size * S

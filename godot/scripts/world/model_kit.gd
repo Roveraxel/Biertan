@@ -56,9 +56,16 @@ static func shape(name: String) -> Dictionary:
 		n = n.normalized()
 		# Meshy's winding is not consistent: turn every face outward (walls away from the middle, roofs up)
 		var mid: Vector3 = (pts[0] + pts[1] + pts[2]) / 3.0
+		var flip_w := false
 		if absf(n.y) < 0.3:
-			if n.dot(Vector3(mid.x, 0, mid.z)) < 0.0: n = -n
-		elif n.y < 0.0: n = -n
+			if n.dot(Vector3(mid.x, 0, mid.z)) < 0.0:
+				n = -n
+				flip_w = true
+		elif n.y < 0.0:
+			n = -n
+			flip_w = true
+		if flip_w:
+			var tmp := pts[1]; pts[1] = pts[2]; pts[2] = tmp
 		var hi := maxf(pts[0].y, maxf(pts[1].y, pts[2].y))
 		var st := roof if (n.y > 0.3 or (n.y > 0.08 and hi > H * 0.55)) else wall
 		var an := n.abs()

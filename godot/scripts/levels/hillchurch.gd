@@ -7,7 +7,7 @@ extends Level
 const ALTAR := Vector2(1200, 560)
 const BELL_AT := Vector2(760, 1320)
 const DOOR_AT := Vector2(1200, 1700)
-const SLABS: Array[Vector2] = [Vector2(480, 1000), Vector2(880, 1250), Vector2(1520, 1250), Vector2(1920, 1000), Vector2(700, 1560), Vector2(1700, 1560)]
+const SLABS: Array[Vector2] = [Vector2(400, 1140), Vector2(880, 1250), Vector2(1520, 1250), Vector2(2000, 1140), Vector2(920, 1560), Vector2(1480, 1560)]
 const WAVE_TIME := [0.0, 34.0, 40.0]
 const SAY := Color(1, 0.88, 0.6)
 
