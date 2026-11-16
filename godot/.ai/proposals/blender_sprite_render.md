@@ -1,14 +1,14 @@
-Status: proposed
+Status: tested (Blender 5.3.0)
 
 # T15: Blender sprite render script
 
 **Deliverable:** `tools/render_sprite.py` (Blender Python). No `.gd`, scene or asset file is touched, and no 3D model goes into the game build. Only PNG files come out.
 
-## Not tested
-Blender is not installed on the machine where this was written (`/Applications` has no Blender). The file passes a Python syntax check (`py_compile`), but it has **never run inside Blender**. Treat the first run as the test. Expected trouble spots, most likely first:
-1. The render engine name. It tries `BLENDER_EEVEE_NEXT` (Blender 4.2+), then `BLENDER_EEVEE`, then `BLENDER_WORKBENCH`.
-2. `bpy.ops.import_scene.gltf` and the model's facing. glTF front is +Z, which becomes -Y in Blender, so I assume the front looks south. If a Meshy model comes out facing another way, pass `--front east` (or whichever) instead of editing the code.
-3. The sun-light energies (3.2 and 1.0) may look too bright or too flat.
+## Test Result (2026-11-16)
+Tested in **Blender 5.3.0** (`/Applications/Blender.app/Contents/MacOS/Blender`, run outside sandbox for Metal GPU access) on `models/chapel.glb`:
+- Generated all 8 `rotation_<dir>.png` files in `tools/render_out/test_chapel/`.
+- Verified `128x128` RGBA output, crisp nearest-neighbor pixel edges, transparent background, and consistent lighting/scale across views.
+- Note: `models/chapel.glb` is untextured clay; Meshy GLBs with embedded textures (or a future bell/pew GLB) will render with their full textures.
 
 ## Run it
 ```

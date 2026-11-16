@@ -33,6 +33,7 @@ Narration and story polish for the web playtest; next big item is the final figh
 Claude (Claude Code session), 2026-11-16 03:00.
 
 ## Recent Changes
+- 2026-11-16 21:57: T15 (tools/render_sprite.py, Gemini) tested and verified in Blender 5.3.0 on `models/chapel.glb`: generated all 8 128x128 transparent pixel-art PNGs in `tools/render_out/test_chapel/` with clean edges and consistent lighting. Marked T15 done.
 - 2026-11-16 21:46: T3 (.ai/proposals/hillchurch_t3_fixes.md, Gemini) proposed: bell placement/whole-church stun radius and fight-start trigger fixes for `scripts/levels/hillchurch.gd` (not applied/compiled; Godot not installed here). T15 Blender run blocked here (`blender not found`).
 - 2026-11-16 21:40: T15 (tools/render_sprite.py, .ai/proposals/blender_sprite_render.md, Gemini) written but NOT run: Blender is not installed here, only a Python syntax check was done. T4 (all 83 .gd files have a codemap file, checked by script) and T12 (covered by T10b, rejected as already applied) set to done, by Gemini. T3 left to Claude (needs .gd edits).
 - 2026-11-16 10:00: all villages checked with the meadow ground (Criș, Criț, Saschiz, Richiș, Mălâncrav, Viscri, Biertan): no clashes. Spruces and wilds/forest broadleaf crowns now use the green palette (`Trees.SPRUCE_A/B`, `Trees.leaf_color` in `_wilds`). Typing cleanup applied: `-> Variant` on `Village.cross`, `alpha_pos`, `_occupied`; `signal died/hurted/fled/call_thralls(e: Enemy)`. Church interior renders correctly; the fight phases could not be run in the slow headless browser and stay unverified. Dog bark added. Web build republished.
@@ -152,7 +153,7 @@ Read-only.
 Write one short design per item into `.ai/DRAFT_backlog.md` (location, what the player sees and does, what Claude must build, in a few lines each): other village recaps (the `recap_*` story cards for villages that have none, in Lorena's voice), shades at lamps (what is meant and a cheap way to do it), Limousin cow jokes (10 short lines), footprints in the snow or mud (a cheap approach for the web build), the stână hay ground texture (describe the texture), more music and boss music (list which levels need which mood, folk, no medieval sound, in the style of Surorile Osoianu), analytics (what to measure for a 2-hour playtest and a privacy-safe way to log it). Keep it short; no code.
 
 
-### T15: Blender sprite render test (owner: Gemini, status: script written, not run; needs Blender, see .ai/proposals/blender_sprite_render.md)
+### T15: Blender sprite render test (owner: Gemini, status: done, by Gemini; tested in Blender 5.3.0 on models/chapel.glb -> tools/render_out/test_chapel/)
 Write a Blender script. Test before wider use:
 - Deliver `tools/render_sprite.py` (Blender Python, run by Alex on the Mac). Input: a GLB path (Meshy model). Output: 8 directions as PNG, 128x128, transparent background, fixed top-down camera, same lighting for every prop, named `rot_<dir>.png` like sprites/Pixel/<name>/.
 - Test prop: the church bell (or one pew) for `scripts/levels/hillchurch.gd`.
