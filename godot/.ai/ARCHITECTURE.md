@@ -1,6 +1,6 @@
 # ARCHITECTURE (read before modifying code)
 
-Shared by every AI tool working on this folder (Claude, and local Nemotron through Ollama + Claude Code; ChatGPT as reserve).
+Shared by every AI tool working on this folder (Claude, and Gemini in Antigravity; ChatGPT as reserve).
 Read this file and `HANDOFF.md` before changing anything. Update `HANDOFF.md` before you finish and before you push.
 
 ## Engine
