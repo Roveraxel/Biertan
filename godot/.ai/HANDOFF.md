@@ -18,6 +18,7 @@ Project: Godot 4.7.2 game "Biertan" (GDScript, web export). Project root `/Users
 8. Do not change the signature of an existing function; add a new one.
 9. Godot 4 syntax only: `@export`, `@onready`, `signal.connect(callable)`, `await`, `super()`. Every variable, parameter and return gets a type. Typed loops: `for x: float in [..]:`.
 10. Report the exact files and lines, and say what you could not check.
+12. Take line numbers from the numbered file you are given, never count yourself. 13. Check call sites (grep) before suggesting a type for a parameter (`names` takes a String or an Array).
 11. Never use Write on a shared output file (it overwrites everything). Write one small file per item, or append with Edit after reading it.
 
 **Canon:** game year 1521; the baron died unmarried in 1321 ("two hundred years"); sacristy door 1515. Romanian folklore only, from Pamfile, Coman and Cosma (not pop culture, not Adevărul). Tone: dry, warm; Lorena narrates and fondly mocks the hunter.
@@ -32,6 +33,7 @@ Narration and story polish for the web playtest; next big item is the final figh
 Claude (Claude Code session), 2026-11-16 03:00.
 
 ## Recent Changes
+- 2026-11-16 07:00 review: T4 code map 74 of 83 files mapped (9 empty: tunnel, sx_quest, interact, hillchurch, mats, varcolac, vineyard, swinging_hook, rc_quest), lines checked and accurate. T1 typing review rejected, see `.ai/REVIEW_typing.review.md` (wrong line numbers, one harmful suggestion). No .gd file was changed by Nemotron (checksums equal). Runner now strips thinking text and numbers lines.
 - Ground: village ground is now a seamless pixel-art meadow (`textures/px_meadow_diff_1k.png`), macro veil on villages; cobbles warmer. Trees: each crown one colour family (mostly green, a few ochre/rust). Sexton-defeat film: `sprites/Story/sexton_1.png`, STORIES `sexton_end`, shown before the judgement; narration line `sexton_end` not recorded yet.
 - AUDIT: another AI edited `world_builder.gd`, `trees.gd`, `mats.gd` on the Mac and broke compilation; rejected and saved to `.ai/proposals/`. Details in `.ai/AUDIT_2026-11-16.md`. New rule 0 in ARCHITECTURE.md.
 - Web build republished (5 data parts; PARTS list in index.html updated).
@@ -90,7 +92,7 @@ Output: `.ai/REVIEW_narration.md` with suggested rewrites that sound more spoken
 Files: `scripts/levels/hillchurch.gd`, sexton boss, a new church interior level, story card after the sexton falls. Other AIs: do not edit these.
 
 
-### T4: Code map (owner: Nemotron local, status: open)
+### T4: Code map (owner: Nemotron local, status: open; 9 files still missing, rerun)
 Read every `.gd` file under `scripts/`, one at a time. For each file write ONE small file `.ai/codemap/<path with / replaced by _>.md`, for example `.ai/codemap/scripts_world_trees.gd.md`, containing exactly one line: `path: what it is, key public functions, which levels or quests use it`. Never write to `.ai/CODEMAP.md` yourself (Write overwrites the file and loses earlier lines); Claude merges the small files. Skip files that already have a file in `.ai/codemap/`. Do NOT modify any `.gd` file. When every `.gd` file has a codemap file, set T4 to done.
 
 ### T5: Consistency and anachronism review (owner: Nemotron, status: open)

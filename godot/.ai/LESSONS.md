@@ -34,3 +34,7 @@ Use `@export`, `@onready`, `signal.connect(callable)`, `await`, `super()`. Never
 ## 10. Report exactly what you did
 When you finish, list the file path, the lines you changed and what you could not check. Update the Recent Changes section of `.ai/HANDOFF.md`. Never say "done" for something you did not run.
 11. Never use Write on a shared output file: it overwrites the whole file and earlier lines are lost (T4 lost 5 lines this way). Write one small file per item (for example `.ai/codemap/<name>.md`), or append with Edit after reading the file. Claude merges.
+12. Line numbers must come from the numbered file you are given (`cat -n`), never from counting yourself (T1 was off by 10 and 8 lines).
+13. Do not suggest a typed `Array[String]` for a parameter that callers also pass a String to; check the call sites with grep first.
+14. `for i in 4:` and `for k in 8:` are valid typed loops; do not report them.
+15. Do not write your reasoning ("Thinking...") into output files; output only the requested lines.

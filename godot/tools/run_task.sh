@@ -24,16 +24,16 @@ $RULES
 Task:
 $TEXT
 
-Answer only for this one file, in the output format the task describes, short. For a code map answer with exactly one line starting with the file path. Do not write code unless the task asks for it.
+Line numbers are shown at the start of each line; use them exactly. Report only real problems, no duplicates, no style opinions. Answer only for this one file, in the output format the task describes, short. For a code map answer with exactly one line starting with the file path. Do not write code unless the task asks for it.
 File: $F
 \`\`\`gdscript
-$(cat "$F")
+$(cat -n "$F")
 \`\`\`"
   if [ "$TASK" = "T4" ]; then
     CF=".ai/codemap/$(echo "$F" | tr / _).md"; [ -s "$CF" ] && continue
-    printf '%s' "$P" | ollama run "$MODEL" 2>/dev/null | grep -m1 "^$F" > "$CF"
+    printf '%s' "$P" | ollama run --hidethinking "$MODEL" 2>/dev/null | awk '/^Thinking\.\.\./{f=1} !f{print} /^\.\.\.done thinking\./{f=0}' | grep -m1 "^$F" > "$CF"
   else
-    { echo; echo "## $F"; printf '%s' "$P" | ollama run "$MODEL" 2>/dev/null; } >> "$OUT"
+    { echo; echo "## $F"; printf '%s' "$P" | ollama run --hidethinking "$MODEL" 2>/dev/null | awk '/^Thinking\.\.\./{f=1} !f{print} /^\.\.\.done thinking\./{f=0}'; } >> "$OUT"
   fi
 done
 echo "Done. Output: $OUT. Now set $TASK to done in $H and add a line to Recent Changes."
