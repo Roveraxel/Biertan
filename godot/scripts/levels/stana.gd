@@ -240,6 +240,7 @@ func _close_gate() -> void:
 
 func _morning() -> void:
 	await G.wait(1.5)
+	Audio.sfx("hunter_easy", -2.0)
 	await G.say("You", ["(The last wolf runs for the trees. Azorel trots back, tail high, and leans against your leg.)", "Good dog. Tomorrow we go down."])
 	G.side_add("prologue_done")
 	await G.show_story("descent")

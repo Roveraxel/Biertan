@@ -193,11 +193,14 @@ func gust() -> void:
 		var to: Vector2 = e.pos - pos
 		if to.length() < 340.0: e.shove(to.normalized() * 900.0)
 
+var voice_n := 0       # counts swings: the hunter grunts on every third
 var unarmed := false   # the blade stays in his belt (herding cows on the stână)
 
 func swing() -> void:
 	if unarmed: return
 	Audio.sfx("swing", -9.0)
+	voice_n += 1
+	if voice_n % 3 == 0: Audio.sfx("hunter_attack", -4.0)
 	attack_t = 0.18
 	attack_cd = 0.36
 	var reach := 82.0
@@ -261,6 +264,7 @@ func hurt(amount: float, dir: Vector2) -> void:
 	hurt_flash = 0.25
 	vel = dir * 320.0
 	Audio.sfx("hurt", -2.0)
+	Audio.sfx("hunter_down" if hp <= 0.0 else "hunter_hurt", -3.0)
 	Fx.text(pos, str(roundi(amount)), Color("ff6a5a"))
 	if hp <= 0.0:
 		hp = 0.0
