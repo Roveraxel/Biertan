@@ -1,5 +1,5 @@
 ## "Muma Pădurii and the Feast", Criș. The village has gone mad (on ergot in the rye, as Denisa says and
-## nobody believes); the forester blames the vampire's rot and sends the hunter into Muma Pădurii's wood,
+## nobody believes); the forester blames the strigoi's rot and sends the hunter into Muma Pădurii's wood,
 ## where he frees her animals from the village's snares and breaks the rot mark on a wolf pack's alpha.
 class_name CsQuest
 extends RefCounted
@@ -106,7 +106,7 @@ func talk(id: String) -> bool:
 				G.start_dialogue("Gheorghe · Forester", [
 					"You're the hunter. Good. Look around you.",
 					"Half the village has gone mad in a week. Men talking to trees. My own cousin thinks she's a hen.",
-					"It's the rot. The vampire's rot, the same that turned the wolves. It comes out of the forest, I'd bet my axe on it.",
+					"It's the rot. The strigoi's rot, the same that turned the wolves. It comes out of the forest, I'd bet my axe on it.",
 					"See for yourself. Then we'll go in after it.",
 				], func(): mark("cs_job"); Hud.toast("New quest: Muma Pădurii and the Feast"))
 			elif mad_seen() < MAD.size():
@@ -135,7 +135,7 @@ func talk(id: String) -> bool:
 			else:
 				G.start_dialogue("Denisa · Herbalist", [
 					"(Denisa tucks a dried mint stalk in her teeth and takes a long look at you, as if you were the next patient.)",
-					"A vampire's rot, Gheorghe says. Hm. Rot doesn't make a woman lay eggs in a hat.",
+					"A strigoi's rot, Gheorghe says. Hm. Rot doesn't make a woman lay eggs in a hat.",
 					"(She breaks a loaf from the baker's shelf and holds it to the lamp. In the crumb, little black spurs.)",
 					"Cornul secarei. Rye ergot. The harvest was wet, the rye went black in the ear, and everybody ate it.",
 					"Somebody in a big city will one day boil this into a medicine that makes people see God in a cupboard. Here it just makes them talk to geese.",

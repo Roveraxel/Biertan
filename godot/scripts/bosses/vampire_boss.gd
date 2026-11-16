@@ -13,7 +13,7 @@ var mort := false
 var lash_dir := Vector2.ZERO
 var lash_hit := false
 
-func hud_name() -> String: return "THE STRIGOI MORT" if mort else "THE VAMPIRE OF BIERTAN"
+func hud_name() -> String: return "THE STRIGOI MORT" if mort else "THE STRIGOI OF BIERTAN"
 func hud_hint() -> String:
 	if mort:
 		if stun_t2 > 0.0: return "The bell holds him! Strike now!"
