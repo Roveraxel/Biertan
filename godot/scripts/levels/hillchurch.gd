@@ -237,6 +237,7 @@ func _judgement() -> void:
 	phase = 4
 	G.boss = null
 	_clear()
+	await G.show_story("sexton_end")
 	WorldBuilder.apply_darkness(self)
 	Audio.set_music("music_hub", -9.0)
 	var at := sexton.pos if is_instance_valid(sexton) else ALTAR + Vector2(0, 400)

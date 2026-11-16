@@ -108,7 +108,7 @@ static func _ground() -> void:
 			b.commit(holder, "G", false)
 			z += step
 		x += step
-	if L.id in ["forest", "critforest", "crisforest", "richisforest", "ieleridge", "uriasi", "hills", "vineyard", "walls", "biertanfort", "arena", "hollow"]:
+	if Mats.is_village(L.id) or L.id in ["stana", "forest", "critforest", "crisforest", "richisforest", "ieleridge", "uriasi", "hills", "vineyard", "walls", "biertanfort", "arena", "hollow"]:
 		_macro_veil(Vector2(x1 - x0, z1 - z0), Vector3((x0 + x1) / 2.0, 0.02, (z0 + z1) / 2.0))
 
 ## A faint dark veil over the ground: shadowy hollows and paler stretches at a scale far larger than the

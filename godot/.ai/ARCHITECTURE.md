@@ -41,6 +41,7 @@ add_block, add_block_rotated, add_decor, add_prop, add_torch, add_decal, add_pat
 `?level=<id>&fast&near=<prop id>&filter=0&flags=a,b&do=story:<card>|<method>`
 
 ## Workflow rules
+0. Only an AI that can run `godot --headless --export-release Web` and read the result may edit `.gd` files. Every other AI writes patches or proposals to `.ai/proposals/` and does not touch the code. Claude audits and applies them (see `.ai/AUDIT_*.md`).
 1. Read `.ai/ARCHITECTURE.md` and `.ai/HANDOFF.md` first.
 2. Make small, reviewable changes; do not reformat files you are not changing.
 3. Update `.ai/HANDOFF.md` (all five sections) before finishing and before any push to GitHub.

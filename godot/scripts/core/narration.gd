@@ -24,6 +24,7 @@ const LINES := {
 	"flash_twig": ["The forest edge, and Muma Pădurii herself. And what does my hunter do? He kneels in the moss and tells her she is the most beautiful woman in Transylvania. I have never been so jealous of a tree."],
 	"flash_stones": ["The best plums are always at the top. The foolish hunter knew that. He did not know about the branch. Or about the wolves waiting underneath it."],
 	"flash_stones2": ["And at the end of the night, the king of Mălâncrav, ringing the church bell for the whole valley. With his trousers on a stick for a flag. That is the man I am waiting for. God help me."],
+	"sexton_end": ["And that was the end of the sexton. Soft hands, no calluses, not one honest day. The dead went back under their slabs, a little embarrassed, and Joimărița held out her hand. He gave her his."],
 	"act_2": ["Biertan. Three walls on one hill, a church on top like a ship, a busy friendly village. Not one dog. My hunter noticed that. Eventually."],
 	"supper_biertan": [
 		"The baron laid a long table under the walls. Roast meat, warm bread, wine from his own vines. Everything a man could want, except salt.",

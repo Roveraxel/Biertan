@@ -22,6 +22,9 @@ const STORIES := {
 		{"art": "supper_1", "text": "Candles down the long table, under the walls of Biertan. Roast meat, warm bread, wine from his own vines. Everything you could want on a table, except salt."},
 		{"art": "supper_2", "text": "He carves for you, he pours for you, he asks about every village on your road. His cup stays full all evening, and his plate stays clean."},
 	], "fact": ""},
+	"sexton_end": {"night": true, "title": "THE SEXTON'S HANDS", "panels": [
+		{"art": "sexton_1", "text": "The keys fall into his lap. Under the floor a small dog barks three times, and the dead sink back under their slabs like guests who have come to the wrong house. Joimărița comes down the nave with the pot of embers, and holds out her hand for his."},
+	], "fact": ""},
 	"balaur_rise": {"night": true, "title": "THE SOLOMONAR", "panels": [
 		{"art": "balaur_1", "text": "Seven years in the school under the mountain, and he rides out on the storm. He reads aloud from his book, and the cloud over the quarry turns like a millstone."},
 		{"art": "balaur_2", "text": "Out of it comes the balaur, the hail-serpent the Solomonari ride, and the lightning runs down its back looking for the tallest thing in the gorge. Stand by the old stones."},
