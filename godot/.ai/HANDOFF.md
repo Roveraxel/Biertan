@@ -132,3 +132,13 @@ Read-only.
 ### T14: Backlog designs (owner: Nemotron, status: open)
 Write one short design per item into `.ai/DRAFT_backlog.md` (location, what the player sees and does, what Claude must build, in a few lines each): other village recaps (the `recap_*` story cards for villages that have none, in Lorena's voice), shades at lamps (what is meant and a cheap way to do it), Limousin cow jokes (10 short lines), footprints in the snow or mud (a cheap approach for the web build), the stână hay ground texture (describe the texture), more music and boss music (list which levels need which mood, folk, no medieval sound, in the style of Surorile Osoianu), analytics (what to measure for a 2-hour playtest and a privacy-safe way to log it). Keep it short; no code.
 
+
+
+### T15: Blender sprite render test (owner: Kimi via GitHub, status: open)
+Kimi can read this repo on GitHub (Roveraxel/Biertan-2026-10-17_12-50-44, branch main, folder godot/) and can make things in Blender. Test before wider use:
+- Deliver `tools/render_sprite.py` (Blender Python, run by Alex on the Mac). Input: a GLB path (Meshy model). Output: 8 directions as PNG, 128x128, transparent background, fixed top-down camera, same lighting for every prop, named `rot_<dir>.png` like sprites/Pixel/<name>/.
+- Test prop: the church bell (or one pew) for `scripts/levels/hillchurch.gd`.
+- Output files only as PNG. No 3D model goes into the game build (web export is about 80 MB).
+- Reduce colors to match the pixel-art palette. Claude checks the result in a level screenshot before it ships.
+- If it works, extend to the other props and to cast-size consistency (open item 4).
+- Kimi replies with the script and notes; Alex saves them to `.ai/proposals/`; Claude reviews at the next check.
