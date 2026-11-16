@@ -50,7 +50,10 @@ func build() -> void:
 	add_block(Rect2(FOLD.end.x - 220.0, FOLD.position.y + 30.0, 180.0, 120.0), "house", 46.0)   # the shepherds' hut
 	add_brazier(Vector2(FOLD.end.x - 130.0, FOLD.position.y + 220.0))
 	add_decor(FOLD.position + Vector2(120, 80), "haystack_plain", 30.0)
-	add_decor(FOLD.position + Vector2(280, 70), "trough", 20.0)
+	add_decor(FOLD.position + Vector2(280, 70), "livestock_trough", 20.0)
+	add_decor(FOLD.position + Vector2(190, 140), "butter_churn", 12.0)
+	add_decor(FOLD.position + Vector2(240, 145), "cheese_wheel", 10.0)
+	add_decor(FOLD.position + Vector2(85, 220), "village_sheep", 14.0)
 	add_decor(FOLD.end + Vector2(-60, -60), "firewood", 20.0)
 	add_decor(HILL + Vector2(-70, 20), "stubs")
 	for c in [Vector2(1050, 480), Vector2(1450, 360), Vector2(480, 1320), Vector2(1100, 1520), Vector2(1550, 1820), Vector2(2350, 1880)]:

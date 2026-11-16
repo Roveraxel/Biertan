@@ -42,6 +42,9 @@ func build() -> void:
 	add_block(Rect2(-200, 2400, 2200, 200), "hidden", 0.0)
 	add_block(Rect2(LEDGE.x - 90, LEDGE.y - 70, 190, 150), "rock", 60.0)   # the ledge he reads from
 	for c in STONES: add_block(Rect2(c.x - 26, c.y - 20, 52, 40), "stone", 95.0)
+	add_decor(Vector2(1380, 1280), "quarry_winch", 26.0)
+	add_decor(Vector2(360, 1450), "forest_boulder", 24.0)
+	add_decor(Vector2(1420, 740), "ritual_stones", 24.0)
 	for p in [Vector2(760, 2050), Vector2(1040, 2050)]: add_brazier(p)
 	add_torch(CENTRE, 620.0, Color(0.6, 0.7, 0.9), 0.4)
 	add_prop("task", "back", "Back to Biertan", Vector2(900, 2340), "E   Go back up to Biertan")

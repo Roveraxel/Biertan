@@ -51,7 +51,8 @@ func build() -> void:
 		for y: float in [920.0, 1020.0, 1400.0, 1500.0]:
 			add_block(Rect2(1200.0 + side * 520.0 - 130.0, y, 260, 30), "pew", 26.0)
 	add_decor(Vector2(1200, 300), "altar")
-	add_decor(Vector2(980, 330), "candelabra"); add_decor(Vector2(1420, 330), "candelabra")
+	add_decor(Vector2(980, 330), "iron_candelabrum"); add_decor(Vector2(1420, 330), "iron_candelabrum")
+	add_decor(Vector2(1110, 340), "votive_candles"); add_decor(Vector2(1290, 340), "votive_candles")
 	add_torch(Vector2(1200, 420), 420.0, Color(1, 0.65, 0.35), 0.8)
 	add_torch(Vector2(1200, 1200), 520.0, Color(1, 0.78, 0.55), 0.35)
 	for sl in SLABS: add_decor(sl, "grating")   # the crypt slabs, where the dead will come up
