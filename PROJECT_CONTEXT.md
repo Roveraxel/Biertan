@@ -9,7 +9,7 @@ The hunter is a sabre-wielding drifter with his dog Azorel. Lorena, his partner,
 Canon: the game year is 1521. The baron died unmarried in 1321 ("two hundred years"). The sacristy door is dated 1515.
 
 ## Repo layout
-- `godot/` Godot project source (scripts, sprites, textures). Synced from the build workspace as `Tools/godot/` archives.
+- `godot/` the Godot project (the only engine now; the Unity version was removed and lives in git history before this commit).
 - `scripts/core` game_manager (G), level_loader, level_base (Level API), village (compact(), trim), narration, audio_manager.
 - `scripts/levels` one file per place. `scripts/quests` quest scripts (sig, cris, bt, fin, vis). `scripts/actors` prop, enemy, player, wood_gate. `scripts/bosses` giant, storm_balaur, varcolac, sexton.
 - `scripts/ui` hud, story cards. `sprites/Story` folk-illustration story pictures. `sprites/Pixel/<name>/` PixelLab rotations and walk frames.
