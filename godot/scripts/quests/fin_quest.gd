@@ -51,7 +51,7 @@ func objective() -> String:
 	if not has("fin_lorena"): return "The Tinsmiths' Tower. You have the key."
 	if not has("fin_dawn"): return "Nearly midnight. He asked you to be near him when it strikes."
 	if prep() < PREP.size(): return "A wedding of the dead: a fir tree, a priest, a table. (%d/%d)" % [prep(), PREP.size()]
-	return "Everything is ready. Up the Scholars' Stair, to the churchyard on the hill."
+	return "Everything is ready. Up the Scholars' Stair, to the church on the hill."
 
 func marker(id: String) -> bool:
 	match id:
