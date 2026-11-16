@@ -38,7 +38,7 @@ Claude (Claude Code session), 2026-11-16 03:00.
 5. Playtest and verify the unverified items above.
 
 ## Task Board
-Rules: first read `.ai/LESSONS.md` (mistakes not to repeat). One owner per task. Only edit the files named in your task. Write results to the named output file under `.ai/`. When done, change the status here to `done` and add one line to Recent Changes.
+Code changes go through the proposal and review loop described in `.ai/ARCHITECTURE.md` (Proposal and review loop). Rules: first read `.ai/LESSONS.md` (mistakes not to repeat). One owner per task. Only edit the files named in your task. Write results to the named output file under `.ai/`. When done, change the status here to `done` and add one line to Recent Changes.
 
 
 ### T1: GDScript static-typing audit (owner: Nemotron via Cherry Studio, status: open)

@@ -40,6 +40,13 @@ add_block, add_block_rotated, add_decor, add_prop, add_torch, add_decal, add_pat
 ## Test hooks (URL query on the web build)
 `?level=<id>&fast&near=<prop id>&filter=0&flags=a,b&do=story:<card>|<method>`
 
+## Proposal and review loop (code changes by AIs that cannot compile)
+1. **Propose:** the AI writes `.ai/proposals/<name>.md`: goal, files and functions touched, the exact code in fenced blocks, what it could not check. Status line at the top: `Status: proposed`.
+2. **Review:** Claude reads it, compiles it in a copy of the project, and writes `.ai/proposals/<name>.review.md` with `Verdict: approved / changes needed / rejected` and a numbered list of required changes (`file:line: problem: what to change`). Claude also adds each new mistake to `.ai/LESSONS.md`.
+3. **Revise:** the AI answers with `.ai/proposals/<name>.v2.md` (then `.v3.md`), changing only what the review lists and saying which numbered point each change answers. Three rounds at most; after that Claude writes the code itself.
+4. **Apply:** when approved, Claude applies the code, runs the export check, tests it, and sets `Status: applied` with the commit in the proposal file.
+5. Every step gets one line in Recent Changes in `.ai/HANDOFF.md`.
+
 ## Workflow rules
 (Also read `.ai/LESSONS.md` before proposing any code.)
 0. Only an AI that can run `godot --headless --export-release Web` and read the result may edit `.gd` files. Every other AI writes patches or proposals to `.ai/proposals/` and does not touch the code. Claude audits and applies them (see `.ai/AUDIT_*.md`).
