@@ -112,9 +112,27 @@ func talk(id: String) -> bool:
 				"(He taps the back of his own neck, where the swellings were, and winces.) Gone now. Sorry.",
 				"(He gathers the three children into his apron like eggs and stands up.) Take home. Gently."])
 		"kid1", "kid2", "kid3":
-			G.start_dialogue(KIDS[id], ["He's not bad. He's just big. And he was sick on his back." if has("sx_giant") else "Help! He won't let us go home!"])
+			if has("sx_done") and not has("sx_sing"): _song()
+			else: G.start_dialogue(KIDS[id], ["He's not bad. He's just big. And he was sick on his back." if has("sx_giant") else "Help! He won't let us go home!"])
 		_: return false
 	return true
+
+## The children on the church steps sing the sun-calling rhyme and make up verses about the hunter.
+func _song() -> void:
+	mark("sx_sing")
+	Audio.sfx("kids_song", -2.0)
+	G.start_dialogue("The children", [
+		"(The three of them climb the church steps with four more from the lane, and hold hands. The smallest counts them in.)",
+		"\"Ieși, soare, din închisoare, / Că te caută o căprioară, / Cu cercei de aur mare! / Vino, soare, pe pământ, / Că la noi e numai vânt!\"",
+		"Ioana (pointing at you): Look at the big shepherd! His dog has nicer manners than he does!",
+		"Paul (skipping): \"Big boots, long knife, afraid of his own wife! Came from the mountain, slept in the hay, chased all the giant's sheep away!\"",
+		"(You reach into your pack, find three dried plums, and hold them out on your palm.)",
+		"Andrei (grabs a plum, inspects it for dirt, wipes it on his knee, and bites): ...They're sweet. He's allowed to stay.",
+		"Lorena, leaning on the low wall: Don't look so offended, hunter. Children and drunkards are the only two kinds of people who speak the plain truth."],
+		func():
+			G.player.coins += 10
+			Audio.sfx("coin", -4.0)
+			Hud.toast("The children plait you a ring of sweetgrass.  +10 coins"))
 
 func after_brawl() -> void:
 	mark("sx_brawl")
