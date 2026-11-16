@@ -7,7 +7,7 @@
 MODEL="${MODEL:-nemotron-3.5-bolt:e4b-nvfp4}"
 cd "$(dirname "$0")/.." || exit 1
 mkdir -p .ai/run_logs .ai/codemap
-TASKS=("$@"); [ ${#TASKS[@]} -eq 0 ] && TASKS=(T4 T1 T6 T2 T9 T11 T13 T5 T8 T7 T14 T10)
+TASKS=("$@"); [ ${#TASKS[@]} -eq 0 ] && TASKS=(T4 T2 T7 T14)
 mark_done() { perl -pi -e "s/^(### $1:.*status: )[a-z][^)]*\)/\$1done)/" .ai/HANDOFF.md; echo "- $1 done by local $MODEL ($(date '+%F %H:%M'))" >> .ai/run_logs/done.txt; }
 for T in "${TASKS[@]}"; do
   if grep -E "^### $T:.*status: done" .ai/HANDOFF.md >/dev/null; then echo "== $T already done, skipping"; continue; fi
