@@ -50,6 +50,11 @@ const SIZES := {
 	"wild_flowers": 0.5, "village_cow": 1.35, "village_sheep": 0.75, "geese_trio": 0.65, "cheese_wheel": 0.45,
 	"rye_bread": 0.45, "grain_sacks": 0.75, "market_produce": 1.1, "market_counter": 1.3, "market_textiles": 0.75,
 	"smith_tools": 0.9, "weapon_rack": 1.1, "ritual_stones": 1.5, "quarry_winch": 1.4, "wine_rack": 1.2,
+	"cooking_hearth": 1.15, "wooden_bench_3d": 0.8, "wicker_baskets": 0.65, "coal_storage": 0.75, "carpentry_bench": 1.25,
+	"rainwater_barrel": 0.85, "laundry_rack": 1.2, "kitchen_counter": 1.15, "flour_barrel": 0.75, "leaf_litter": 1.0,
+	"dead_branches": 1.1, "herb_garden": 1.05, "pumpkin_plant": 0.75, "cabbage_plant": 0.7, "barley_patch": 1.0,
+	"rye_patch": 1.0, "wheat_patch": 1.0, "vineyard_grape": 1.1, "red_currant": 0.85, "harvest_basket": 0.6,
+	"clay_pots": 0.65, "onion_cluster": 0.55, "carrot_plant": 0.55, "iron_candelabrum": 1.2, "wooden_handcart": 1.25,
 }
 
 var sprite_name := ""
