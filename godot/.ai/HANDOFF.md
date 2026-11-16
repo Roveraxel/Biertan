@@ -62,6 +62,16 @@ Claude (Claude Code session), 2026-11-16 03:00.
 Code changes go through the proposal and review loop described in `.ai/ARCHITECTURE.md` (Proposal and review loop). Rules: first read `.ai/LESSONS.md` (mistakes not to repeat). One owner per task. Only edit the files named in your task. Write results to the named output file under `.ai/`. When done, change the status here to `done` and add one line to Recent Changes.
 
 
+### Model routing (who runs which task; Claude reviews every result)
+| Task | Model | How |
+|---|---|---|
+| T1 typing audit, T4 code map, T6 QA checklist, T2 narration copy | Qwen 3.8 (Ollama, local) | `tools/run_task.sh T4 qwen3.8` (one file per call, appends to the `.ai/` output file) |
+| T9, T11, T13 (need the whole project) | Qwen 3.8 or Nemotron in an agent session | `ollama launch claude --model qwen3.8` and paste: "Read .ai/HANDOFF.md and follow its rules. No edits to .gd, scene or asset files. Task: <id>." |
+| T5, T7, T8, T14 (story, folklore, designs) | Nemotron (OpenRouter free, or credits) or Kimi | Cherry Studio with the Filesystem MCP; Kimi via GitHub |
+| T10 proposals, T15 Blender script | Kimi via GitHub (best coder), Qwen as fallback | proposal loop above |
+| Anything that edits `.gd` | Claude only | compiles, tests, publishes |
+Local models have about 16k context on a 16 GB laptop: one file or one function per request. If a model is rate-limited, move its task to the next one in this table.
+
 ### T1: GDScript static-typing audit (owner: Nemotron via Cherry Studio, status: open)
 Scope: read-only review of `scripts/ui/`, `scripts/quests/` and `scripts/actors/`.
 Output: `.ai/REVIEW_typing.md` containing, per file, a list of `line: problem: suggested fix` for
@@ -131,7 +141,6 @@ Read-only.
 
 ### T14: Backlog designs (owner: Nemotron, status: open)
 Write one short design per item into `.ai/DRAFT_backlog.md` (location, what the player sees and does, what Claude must build, in a few lines each): other village recaps (the `recap_*` story cards for villages that have none, in Lorena's voice), shades at lamps (what is meant and a cheap way to do it), Limousin cow jokes (10 short lines), footprints in the snow or mud (a cheap approach for the web build), the stână hay ground texture (describe the texture), more music and boss music (list which levels need which mood, folk, no medieval sound, in the style of Surorile Osoianu), analytics (what to measure for a 2-hour playtest and a privacy-safe way to log it). Keep it short; no code.
-
 
 
 ### T15: Blender sprite render test (owner: Kimi via GitHub, status: open)
