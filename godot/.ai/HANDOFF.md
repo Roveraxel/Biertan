@@ -38,7 +38,7 @@ Claude (Claude Code session), 2026-11-16 03:00.
 5. Playtest and verify the unverified items above.
 
 ## Task Board
-Rules: one owner per task. Only edit the files named in your task. Write results to the named output file under `.ai/`. When done, change the status here to `done` and add one line to Recent Changes.
+Rules: first read `.ai/LESSONS.md` (mistakes not to repeat). One owner per task. Only edit the files named in your task. Write results to the named output file under `.ai/`. When done, change the status here to `done` and add one line to Recent Changes.
 
 
 ### T1: GDScript static-typing audit (owner: Nemotron via Cherry Studio, status: open)
@@ -81,3 +81,12 @@ Each draft: location, NPCs, steps (what the player sees and does), reward, 6 to 
 - Nemotron (Cherry Studio): read-only reviews, code map, QA checklist and story drafts, written to `.ai/` only.
 - ChatGPT: reserve only, because the monthly quota is almost used. Use it for a second opinion on a hard design question, nothing routine.
 - After a Nemotron task: change its status to `done` here and add one line to Recent Changes in HANDOFF.md.
+
+### T8: Folklore fact-check (owner: Nemotron, status: open)
+Read all dialogue, STORIES and `scripts/bosses/*.gd` text. Output `.ai/REVIEW_folklore.md`: every place where a creature, rite or custom differs from the Romanian sources (Tudor Pamfile "Mitologia poporului român", Mihai Coman "Mitologie populară românească", Aurel Cosma Jr. "Cosmogonia poporului român", the Solomonar and Cățelul pământului references in memory), as `file:line: what the game says: what the source says: suggested fix`. Also list anything that comes from pop culture and not from folklore. Do not use Adevărul as a source. Read-only.
+
+### T9: Missing asset scan (owner: Nemotron, status: open)
+Find every `res://` path and every sprite or sound name used in `scripts/` (`add_decor("name")`, `Audio.sfx("name")`, `FIGURES`, texture names in `Mats`). Output `.ai/REVIEW_assets.md`: names that have no matching file under `sprites/`, `audio/` or `textures/`, with the file and line that uses each. Read-only.
+
+### T10: Proposals for the open issues (owner: Nemotron, status: open)
+Write proposals only, into `.ai/proposals/` as `NAME.md` (plan in plain words and the exact code you suggest in a fenced block, nothing applied): (a) a gentle regional name list for the villagers who currently have none (check `scripts/levels/*.gd`); (b) a small, cheap way to make the forest edge trees (`_wilds()` in `world_builder.gd`) follow the new one-colour-family palette in `Trees.leaf_color` without extra nodes. Claude reviews, compiles and applies.
