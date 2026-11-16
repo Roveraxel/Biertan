@@ -90,3 +90,24 @@ Find every `res://` path and every sprite or sound name used in `scripts/` (`add
 
 ### T10: Proposals for the open issues (owner: Nemotron, status: open)
 Write proposals only, into `.ai/proposals/` as `NAME.md` (plan in plain words and the exact code you suggest in a fenced block, nothing applied): (a) a gentle regional name list for the villagers who currently have none (check `scripts/levels/*.gd`); (b) a small, cheap way to make the forest edge trees (`_wilds()` in `world_builder.gd`) follow the new one-colour-family palette in `Trees.leaf_color` without extra nodes. Claude reviews, compiles and applies.
+
+### T11: Village ground and tree check by code (owner: Nemotron, status: open)
+Nemotron cannot see the game, so this is a code review. For every village level (`Mats.is_village`), list in `.ai/REVIEW_villages.md`: which ground material is used (`Mats.ground()` now uses `textures/px_meadow_diff_1k.png`), any `add_patch` or ground colour set in the level that would clash with a green meadow (dark tints, `ground = Color(...)`), roads or cobbles with tints that look wrong on green, and any tree or decor placed through `add_tree` / `add_decor` with a name that is not in `scripts/actors/decor.gd`. Read-only. Claude then screenshots the flagged villages.
+
+### T12: Forest tree palette (owner: Nemotron, status: open; same file as T10b)
+Combined with T10(b). Output only the proposal file; do not edit `.gd`.
+
+### T13: Verify by reading (owner: Nemotron, status: open)
+For each feature below, trace the code path and write `.ai/REVIEW_features.md` saying "reachable" or "broken: <why>" with `file:line`:
+1. Act cards: `_act_card()` in `level_loader.gd` (act_2, act_3, act_4 conditions).
+2. Balaur film `balaur_rise` and the balaur animation in `storm_balaur.gd`.
+3. Walking animations: files named `walk_<dir>_<n>.png` exist for every `npc_*` and creature that uses `PixelFigure` with walking (earth dog, vârcolac, Azorel, Matei, the sexton, Meister Thomas); check the frame counts match the code.
+4. Compact villages: `Village.compact()` and `_trim_edges()` do not remove or move anything a quest needs (props listed in the quests' `target`, `spots` and `add_prop` ids).
+5. Biertan gates: the night gates open only after that ring's guards are beaten (`biertanfort.gd`, `wood_gate.gd`).
+6. The Sighișoara postern gate in `sighisoara.gd` (`WoodGate.make` after `_wall_point`) and the cellar door `cellar_door` position: is the door reachable from the town side?
+7. The new church fight in `hillchurch.gd`: every phase (0 to 4) can be reached, `_cold_feet()` fires once, the bell cooldown works, `_judgement()` always runs after the sexton's death (check `died` is connected once).
+Read-only.
+
+### T14: Backlog designs (owner: Nemotron, status: open)
+Write one short design per item into `.ai/DRAFT_backlog.md` (location, what the player sees and does, what Claude must build, in a few lines each): other village recaps (the `recap_*` story cards for villages that have none, in Lorena's voice), shades at lamps (what is meant and a cheap way to do it), Limousin cow jokes (10 short lines), footprints in the snow or mud (a cheap approach for the web build), the stână hay ground texture (describe the texture), more music and boss music (list which levels need which mood, folk, no medieval sound, in the style of Surorile Osoianu), analytics (what to measure for a 2-hour playtest and a privacy-safe way to log it). Keep it short; no code.
+
