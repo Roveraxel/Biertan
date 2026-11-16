@@ -5,7 +5,7 @@
 extends Level
 
 const ALTAR := Vector2(1200, 560)
-const BELL_AT := Vector2(300, 1150)
+const BELL_AT := Vector2(760, 1320)
 const DOOR_AT := Vector2(1200, 1700)
 const SLABS: Array[Vector2] = [Vector2(480, 1000), Vector2(880, 1250), Vector2(1520, 1250), Vector2(1920, 1000), Vector2(700, 1560), Vector2(1700, 1560)]
 const WAVE_TIME := [0.0, 34.0, 40.0]
@@ -73,7 +73,7 @@ func build() -> void:
 	add_prop("task", "joimarita", "Joimărița", ALTAR + Vector2(80, 30), "E   Speak with Joimărița")
 	follower = add_prop("npc", "azorel", "Azorel", spawn + Vector2(50, 0), "E   Azorel", Color("d8d0c0"))
 	add_prop("task", "down", "The church door", Vector2(1200, 1660), "E   Go back out")
-	add_trigger(Rect2(900, 1130, 600, 40), _cold_feet)   # walking up the nave starts the wedding
+	add_trigger(Rect2(950, 820, 500, 40), _cold_feet)   # reaching the wedding party starts the ceremony
 	spots["altar"] = ALTAR + Vector2(0, 60)
 	if has("fin_done"): phase = 4
 
@@ -305,7 +305,7 @@ func _ring() -> void:
 	Fx.shake(0.3)
 	Fx.ring(BELL_AT, Color(1, 0.85, 0.5, 0.9), 600.0, 0.7)
 	for e in Enemy.all:
-		if not is_instance_valid(e) or e.hp <= 0.0 or e.pos.distance_to(BELL_AT) > 800.0: continue
+		if not is_instance_valid(e) or e.hp <= 0.0: continue
 		if e.kind.begins_with("dead"): e.stun_t = 4.0
 		elif e == sexton: e.stun_t = 1.5
 	Hud.toast("DONG. The dead cover their ears and stand still.")

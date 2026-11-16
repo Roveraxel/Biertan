@@ -1,4 +1,4 @@
-Status: proposed
+Status: applied (sprites + Decor.SIZES + forest placements compiled & checked with Godot 4.7.2 headless; staged GLBs kept in assets/meshy/staging/ with .gdignore)
 
 # Meshy Folklore & Environment Integration (Mix: Sprites + Staged GLBs)
 

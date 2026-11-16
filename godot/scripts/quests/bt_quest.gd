@@ -263,8 +263,7 @@ func use(p: Prop) -> void:
 			else: Loader.goto_level("sacristy")
 		"down":
 			if has("bt_fled"): Loader.goto_level("gorge")
-			elif night(): G.start_dialogue("The road down", ["Not while he is still up there."])
-			elif has("bt_arrive") and not has("bt_night") and has("bt_invited"): G.start_dialogue("The road down", ["You have been asked to supper. It would be rude."])
+			elif night() and tokens_have() >= TOKENS.size(): G.start_dialogue("The road down", ["Not while he is still up there."])
 			else: Loader.goto_level("richisvillage", RcQuest.ridge_gate + Vector2(0, 200) if RcQuest.ridge_gate != Vector2.ZERO else null)
 		"trapdoor":
 			G.start_dialogue("The stair under the tomb", [

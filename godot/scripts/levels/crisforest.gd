@@ -78,6 +78,8 @@ func build() -> void:
 			add_prop("task", "bear", "Something big in a snare", BEAR_AT + Vector2(0, 170), "E   Go closer")
 	# the old oak
 	add_decor(OAK + Vector2(0, -60), "oak_twig")
+	add_decor(OAK + Vector2(-220, 160), "forest_offerings", 0.2)
+	add_decor(OAK + Vector2(210, -150), "witch_effigy", 0.25)
 	add_tree(OAK + Vector2(0, -120))
 	add_tree(OAK + Vector2(-160, -40))
 	add_torch(OAK, 340.0, Color(0.65, 0.85, 0.55), 0.35)

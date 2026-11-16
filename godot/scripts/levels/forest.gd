@@ -70,6 +70,10 @@ func build() -> void:
 		for o in [Vector2.ZERO, Vector2(60, 30), Vector2(-50, 40)]: add_decor(DROPS[i] + o, "snowdrops", 0.0, o.x < 0)
 		add_torch(DROPS[i], 160.0, Color(0.8, 1, 0.85), 0.25)
 		add_prop("clue", "drop%d" % i, "Snowdrops", DROPS[i] + Vector2(0, 60), "E   Look at the flowers")
+	add_decor(TRAIL[0] + Vector2(220, -110), "hanging_charms", 0.2)
+	add_decor(TRAIL[2] + Vector2(-140, -130), "bone_totem", 0.3)
+	add_decor(TRAIL[4] + Vector2(150, 120), "bone_totem", 0.3)
+	add_decor(GLADE + Vector2(-210, 140), "witch_effigy", 0.25)
 	# the Moon Clearing
 	add_decal(true, MOON, Vector2.ONE * (R + 5.0) * 2.0, Color("5d584f"), -998)
 	add_decal(true, MOON, Vector2.ONE * (R - 5.0) * 2.0, Color("232a1f"), -997)

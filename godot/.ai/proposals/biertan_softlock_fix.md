@@ -1,4 +1,4 @@
-Status: proposed
+Status: applied (compiled & checked with Godot 4.7.2 headless; Web export templates missing on Mac)
 
 # Fix Biertan / Sacristy Softlock (T6 Finding)
 

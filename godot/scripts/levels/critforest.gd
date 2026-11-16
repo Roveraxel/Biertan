@@ -39,6 +39,8 @@ func build() -> void:
 	add_trigger(Rect2(0, 2300, 60, 600), func():
 		Loader.goto_level("crit", CritQuest.forest_gate + Vector2(-200, 0) if CritQuest.forest_gate != Vector2.ZERO else null))
 	add_decor(Vector2(260, 2480), "ribbons")
+	add_decor(CLEARING + Vector2(-180, 140), "forest_offerings", 0.2)
+	add_decor(CLEARING + Vector2(190, -130), "hanging_charms", 0.2)
 	# wild roses, and the pack lying up among them
 	var picked := G.side_has("cr_roses")
 	for o in [Vector2(-160, -60), Vector2(120, -120), Vector2(200, 90), Vector2(-90, 130), Vector2(20, -10)]:

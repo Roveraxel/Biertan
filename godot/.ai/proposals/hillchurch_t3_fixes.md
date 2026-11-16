@@ -1,4 +1,4 @@
-Status: proposed
+Status: applied (compiled & checked with Godot 4.7.2 headless; Web export templates missing on Mac)
 
 # T3: Church on the Hill — Bell Placement, Stun Radius & Fight Start
 
