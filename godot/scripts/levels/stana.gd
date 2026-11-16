@@ -36,7 +36,8 @@ func build() -> void:
 	ground = Color("1a2416")
 	rng = NetRandom.new(77)
 	scatter(Rect2(Vector2.ZERO, size), 700, [Color("222e1c"), Color("141c12")])
-	add_path([HILL + Vector2(60, -40), Vector2(1200, 900), Vector2(1650, 1220), GATE + Vector2(-30, 0)], 70.0)
+	var road := [HILL + Vector2(60, -40), Vector2(1200, 900), Vector2(1650, 1220), GATE + Vector2(-30, 0)]
+	add_path(road, 70.0)
 	# spruce all round the high pasture, a few standing alone on the grass
 	var keep_out := FOLD.grow(180.0)
 	for i in 260:
@@ -44,6 +45,11 @@ func build() -> void:
 		var edge := p.x < 260.0 or p.x > size.x - 260.0 or p.y < 230.0 or p.y > size.y - 230.0
 		if not edge and rand(0.0, 1.0) > 0.06: continue
 		if p.distance_to(HILL) < 280.0 or keep_out.has_point(p): continue
+		var on_road := false
+		for j in road.size() - 1:
+			if Geometry2D.get_closest_point_to_segment(p, road[j], road[j + 1]).distance_to(p) < 85.0:
+				on_road = true; break
+		if on_road: continue
 		add_tree(p, true)
 	_fence(false)
 	_fence(true)   # the gate starts shut: the hunter opens it himself
