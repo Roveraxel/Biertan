@@ -33,6 +33,7 @@ Narration and story polish for the web playtest; next big item is the final figh
 Claude (Claude Code session), 2026-11-16 03:00.
 
 ## Recent Changes
+- 2026-11-16 22:02: Proposed `.ai/proposals/biertan_softlock_fix.md` (Gemini): fixes the T6 Biertan/sacristy softlock (`bt_quest.gd:264-268`) so players missing any of the 9 tokens can still return down the road to fetch them.
 - 2026-11-16 21:57: T15 (tools/render_sprite.py, Gemini) tested and verified in Blender 5.3.0 on `models/chapel.glb`: generated all 8 128x128 transparent pixel-art PNGs in `tools/render_out/test_chapel/` with clean edges and consistent lighting. Marked T15 done.
 - 2026-11-16 21:46: T3 (.ai/proposals/hillchurch_t3_fixes.md, Gemini) proposed: bell placement/whole-church stun radius and fight-start trigger fixes for `scripts/levels/hillchurch.gd` (not applied/compiled; Godot not installed here). T15 Blender run blocked here (`blender not found`).
 - 2026-11-16 21:40: T15 (tools/render_sprite.py, .ai/proposals/blender_sprite_render.md, Gemini) written but NOT run: Blender is not installed here, only a Python syntax check was done. T4 (all 83 .gd files have a codemap file, checked by script) and T12 (covered by T10b, rejected as already applied) set to done, by Gemini. T3 left to Claude (needs .gd edits).
