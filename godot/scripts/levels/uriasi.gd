@@ -63,12 +63,14 @@ func build() -> void:
 	for o in [Vector2(-700, -300), Vector2(650, -450), Vector2(-400, 520), Vector2(800, 380)]:
 		for k in 3: add_block(Rect2(MID.x + o.x - 40 + k * 6, MID.y + o.y - 40 - k * 70, 80, 70), "stone", 40.0 + k * 30.0)
 	exit_prop = add_prop("task", "exit", "Down to Saschiz", Vector2(2200, 3480), "")
-	add_trigger(Rect2(1900, 3540, 600, 60), func(): quest.use(exit_prop))
+	add_trigger(Rect2(1900, 3540, 600, 60), func(): if G.side_has("sx_giant"): quest.use(exit_prop))
 	add_torch(MID, 420.0, Color(0.75, 0.8, 1), 0.3)
 	if beaten:
 		add_prop("npc", "giant", "Uriașul", MID + Vector2(0, -60), "E   Speak with the giant", Color("6a6a60"))
 		return
-	for i in 3: kids[i] = add_prop("npc", "kid%d" % (i + 1), KIDS[i], MID + Vector2(-50 + i * 50, 40), "E   Speak", Color("6a5a40"))
+	for i in 3:
+		kids[i] = add_prop("npc", "kid%d" % (i + 1), KIDS[i], MID + Vector2(-50 + i * 50, 40), "E   Speak", Color("6a5a40"))
+		kids[i].set_solid(false)
 	giant = spawn_enemy("giant", MID, Giant)
 	spots["giant"] = MID
 	giant.child_freed.connect(_freed)

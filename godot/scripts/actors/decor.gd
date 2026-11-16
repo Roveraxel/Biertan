@@ -93,9 +93,11 @@ func setup(at: Vector2, sprite_id: String, r := 0.0, flip := false, scale_overri
 		sprite.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
 		sprite.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		sprite.rotation.x = -deg_to_rad(Fx.PITCH * 0.55)
+		if sprite_id == "flour":
+			sprite.modulate = Color(0.84, 0.8, 0.72)
 		add_child(sprite)
-		if sprite_id in ["cellar_door", "door_locks", "door_open"]:   # set into a house wall: stands upright and flush with it, no shadow of its own
-			sprite.rotation.x = 0.0
+		if sprite_id in ["cellar_door", "door_locks", "door_open", "flour", "rot_mark", "petals"]:   # flush with wall or ground: no drop shadow of its own
+			if sprite_id in ["cellar_door", "door_locks", "door_open"]: sprite.rotation.x = 0.0
 			return
 		var sh := MeshInstance3D.new()
 		var pm := PlaneMesh.new()

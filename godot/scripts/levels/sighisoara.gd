@@ -41,7 +41,12 @@ func build() -> void:
 	wall_lines = m.lines("walls")
 	scatter(Rect2(Vector2.ZERO, size), 300, [Color("3a402c"), Color("2a2e22"), Color("46443a")])
 	var roads := m.lines("roads")
-	for i in roads.size(): add_path(roads[i], m.road_width[i], Color.WHITE, -990, "Cobbles")
+	var east_gate_x: float = m.at(60, 0).x
+	for i in roads.size():
+		var pts: Array = []
+		for rp in roads[i]:
+			if rp.x >= east_gate_x or inside(rp, _citadel): pts.append(rp)
+		if pts.size() >= 2: add_path(pts, m.road_width[i], Color.WHITE, -990, "Cobbles")
 	# the Clock Tower is vaulted over a passage, the only way in or out; the wall stops at its sides
 	var gates := []
 	for t in m.boxes("towers"):
@@ -173,9 +178,13 @@ func _row(b: Dictionary) -> void:
 			var sz := Vector2(w, row_depth) if long_x else Vector2(row_depth, w)
 			# outlines fitted with boxes poke into the street: shrink a house until every street stays open
 			var tries := 0
-			while tries < 3 and blocks_street(c, sz, b.angle):
-				sz *= 0.78; tries += 1
-			if blocks_street(c, sz, b.angle) or _on_the_square(c, sz, b.angle): continue
+			var hit := func(s_sz: Vector2) -> bool:
+				var r := minf(s_sz.x, s_sz.y) * 0.44
+				var d := maxf(s_sz.x, s_sz.y) * 0.32
+				return blocks_street(c, s_sz, b.angle, 0.98) or blocked(c, r) or blocked(c + axis * d, r) or blocked(c - axis * d, r)
+			while tries < 4 and hit.call(sz):
+				sz *= 0.82; tries += 1
+			if minf(sz.x, sz.y) < 110.0 or hit.call(sz) or _on_the_square(c, sz, b.angle): continue
 			add_block_rotated(c, sz, b.angle, "house", h)
 
 ## Piața Cetății stays open: no house stands on the market stalls, the well or the middle of the square.
@@ -253,6 +262,7 @@ func _clutter() -> void:
 				var p := a + dir * s + nrm * side * (width / 2.0 + 40.0)
 				next = s
 				var skip := p.distance_to(_spawn_ref) < 200.0 or p.x < 60.0 or p.y < 60.0 or p.x > size.x - 60.0 or p.y > size.y - 60.0
+				if not skip and p.x < m.at(60, 0).x and not inside(p, _citadel): skip = true
 				if not skip: skip = near_road(p, -10.0) or near_building(p, 4.0) or near_wall(p, 40.0)
 				if not skip:
 					var pick := rng.f() * total
@@ -330,18 +340,17 @@ func _tutorial() -> void:
 	var smoke_at: Vector2 = at.call(-112, -114)
 	add_decor(smoke_at + Vector2(0, -6), "grating").smoke = true   # the cellar breathes out through the street
 	add_prop("clue", "smoke", "", smoke_at, "E   Examine")
-	var crate: Vector2 = at.call(-115, -89)
-	add_decor(crate + Vector2(0, -14), "crate", 30.0)
-	add_prop("task", "crate", "Crate", crate, "E   Look at the crate")
-	var cd0: Vector2 = at.call(-116, -99)
-	var cw := wall_door(cd0, 500.0)
-	if cw == cd0: cellar_head(cw)   # no house wall close by: a stone cellar head over the stair
+	var cd0 := free_spot(m.at(-102, -92), 45.0)
+	var cw := wall_door(cd0, 450.0, func(p): return inside(p, _citadel) and not near_wall(p, 55.0))
 	cellar_door = cw + Vector2(0, 16)
 	add_decor(cellar_door + Vector2(0, -8), "cellar_door")   # the way down, under the Butchers' Tower
 	add_prop("task", "cellar", "Cellar door", cellar_door, "E   Try the cellar door")
-	var gs: Vector2 = free_spot(cw + Vector2(-95, 45))   # the guild's sign hangs outside the wall by its cellar
+	var gs: Vector2 = cw + Vector2(-72, 6)   # the guild's sign hangs beside the cellar door
 	add_decor(gs + Vector2(0, -10), "guild_sign")
-	add_prop("task", "sign", "Guild sign", gs, "E   Look at the guild sign")
+	add_prop("task", "sign", "Guild sign", gs + Vector2(0, 14), "E   Look at the guild sign")
+	var crate: Vector2 = free_spot(cw + Vector2(85, 28), 45.0)
+	add_decor(crate + Vector2(0, -14), "crate", 16.0)
+	add_prop("task", "crate", "Crate", crate, "E   Look at the crate")
 
 ## After giving the job Meister Thomas walks down to the tower, so the rest of the quest stays there.
 func butcher_to_tower() -> void:

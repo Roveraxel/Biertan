@@ -170,8 +170,8 @@ func _setup_npc() -> void:
 		_board()
 		board.part("circle", Vector2(0, 16), Vector2(24, 30), col)
 		board.part("circle", Vector2(0, 32), Vector2(14, 14), Color("d9b48f"), 1)
-	label = _label(display, 1.75, 30, Color("e8e0cc"))
-	mark = _label("!", 2.1, 52, Fx.AMBER)
+	label = _label(display, 2.15, 30, Color("e8e0cc"))
+	mark = _label("!", 2.55, 52, Fx.AMBER)
 	mark.visible = false
 
 func _label(s: String, h: float, font_px: int, c: Color) -> Label3D:

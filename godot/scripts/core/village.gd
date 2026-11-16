@@ -58,9 +58,9 @@ func add_houses(base_h: float, barn_h: float, no_overlap := false) -> void:
 	for b in m.boxes("houses"):
 		var sz: Vector2 = b.size
 		var tries := 0
-		while tries < 3 and blocks_street(b.c, sz, b.angle):
+		while tries < 3 and blocks_street(b.c, sz, b.angle, 1.05):
 			sz *= 0.8; tries += 1
-		if blocks_street(b.c, sz, b.angle): continue
+		if blocks_street(b.c, sz, b.angle, 1.05): continue
 		if no_overlap and blocked(b.c, minf(sz.x, sz.y) * 0.45): continue   # drawn closer together than in life
 		add_block_rotated(b.c, sz, b.angle, "house", barn_h if b.style == "barn" else base_h + rng.f() * 12.0)
 
