@@ -18,6 +18,9 @@ static func clues_found() -> int:
 		if has("cr_c_" + c): n += 1
 	return n
 
+static func knots() -> int:
+	return int(has("cr_knot1")) + int(has("cr_knot2")) + int(has("cr_knot3"))
+
 static func asked() -> int:
 	var n := 0
 	for w in WOMEN:
@@ -66,6 +69,7 @@ func objective() -> String:
 		if not has("cr_roses"): need.append("wild roses from the forest trail")
 		return "Fill the offering basket: " + ", ".join(need) + "." if need.size() > 0 else "Take the basket to Sfânta Vineri's shrine, deep in the forest."
 	if not has("cr_mother"): return "Go back and talk to Floarea's mother."
+	if has("cr_sub_found") and not has("cr_sub_done"): return "Take the distaff to Nea Toma at the still."
 	return "The road north goes to Saschiz."
 
 func marker(id: String) -> bool:
@@ -73,12 +77,17 @@ func marker(id: String) -> bool:
 		"floarea": return not has("cr_job")
 		"baba_ana", "baba_safta", "baba_veta": return has("cr_job") and not has("cr_b_" + id)
 		"mother": return has("cr_shrine") and not has("cr_mother")
+		"gerda": return not has("cr_sub_job")
+		"rada": return not has("cr_rada_job") or (knots() >= 3 and not has("cr_rada_done"))
+		"distiller": return has("cr_sub_found") and not has("cr_sub_done")
 		"vineri": return not has("cr_shrine")
 	return false
 
 func pending(p: Prop) -> bool:
 	if p.kind == "clue": return has("cr_job") and not has("cr_c_" + p.id)
 	match p.id:
+		"windlass": return has("cr_rada_job") and knots() < 3
+		"distaff": return has("cr_sub_job") and not has("cr_sub_found")
 		"apples": return has("cr_basket") and not has("cr_fruit")
 		"poppies": return has("cr_basket") and not has("cr_poppy")
 		"roses": return has("cr_basket") and not has("cr_roses")
@@ -94,7 +103,12 @@ func arrive() -> void:
 
 func talk(id: String) -> bool:
 	match id:
+		"gerda": _gerda()
+		"rada": _rada()
 		"distiller":
+			if has("cr_sub_found") and not has("cr_sub_done"):
+				_distaff_home()
+				return true
 			G.start_dialogue("Nea Toma", [
 				"(An old man feeds plum mash into a copper still and watches the drip like a man watching a clock.)",
 				"First run of the year. The plums were sweet, so the țuică will be honest.",
@@ -134,6 +148,58 @@ func talk(id: String) -> bool:
 		"vineri": pass
 		_: return false
 	return true
+
+## Side quest: Gerda, the miller's apprentice, dropped her carved distaff in the millrace.
+func _gerda() -> void:
+	if has("cr_sub_done"):
+		G.start_dialogue("Gerda", ["The flax is spun and the water kept its hands to itself. Thank you, hunter. Truly."])
+	elif has("cr_sub_found"):
+		G.start_dialogue("Gerda", ["You have it! Take it to Nea Toma, quickly. He knows what to do with salt and plum steam."])
+	elif has("cr_sub_job"):
+		G.start_dialogue("Gerda", ["The wheel is right there, hunter. Don't stand and make faces at the current. A hunter will not melt."])
+	else:
+		mark("cr_sub_job")
+		G.start_dialogue("Gerda", [
+			"(A girl in a miller's apron stands crying at the sluice, wringing a wet flax bundle.)",
+			"It slipped right out of my apron into the foam! My carved walnut distaff. I was rushing before Friday and now it is down there under the wheel.",
+			"If unspun flax lies in running water on a Friday, the water-maid weaves a shroud with it before morning. Everyone knows that.",
+			"(You look at the black water under the wheel. Then at your good boots.)"],
+			func(): Hud.toast("New quest: The Distaff in the Millrace"))
+
+## Side quest: Baba Rada's well has gone cloudy; three red knots on the windlass beam clear it.
+func _rada() -> void:
+	if has("cr_rada_done"):
+		G.start_dialogue("Baba Rada", ["Clear as glass. You may drink, hunter, before you die of being proud."])
+	elif knots() >= 3:
+		mark("cr_rada_done")
+		G.start_dialogue("Baba Rada", [
+			"(She drops a pebble down the well. A deep, clear chime answers.)",
+			"There. The eye is blinded. Take this St. John's wort, and ten coins for the knots."],
+			func():
+				G.player.coins += 10; G.player.potions += 1
+				Audio.sfx("coin", -4.0)
+				Hud.toast("Quest complete: The Red Thread.  +10 coins, +1 flask"))
+	elif has("cr_rada_job"):
+		G.start_dialogue("Baba Rada", ["Three knots on the beam, left over right. Pull from the thumb side! A calf could tie better with its tail.  (%d/3)" % knots()])
+	else:
+		mark("cr_rada_job")
+		G.start_dialogue("Baba Rada", [
+			"(An old woman waves a skein of wool dyed red with madder root at the well.)",
+			"Some fool with yellow eyes stared straight down the shaft this morning. Never spat, never crossed himself. Now the bucket comes up tasting of sour silt.",
+			"Tie three red knots round the windlass beam, hunter. Left over right, and tie them tight."],
+			func(): Hud.toast("New quest: The Red Thread"))
+
+func _distaff_home() -> void:
+	mark("cr_sub_done")
+	Audio.sfx("hunter_hm", -2.0)
+	G.start_dialogue("Nea Toma", [
+		"(He takes the dripping distaff, smells the wood, and sets it on the warm copper hood of the still.)",
+		"Salt and plum steam. If any river demon had her teeth in this, she is spitting gravel by now.",
+		"Here, for the cold water: a flask of the second run. Mind your head with it. And take these for the girl's trouble."],
+		func():
+			G.player.coins += 15; G.player.potions += 1
+			Audio.sfx("coin", -4.0)
+			Hud.toast("Quest complete: The Distaff in the Millrace.  +15 coins, +1 flask"))
 
 func _mother() -> void:
 	if not has("cr_shrine"):
@@ -210,6 +276,22 @@ func use(p: Prop) -> void:
 			_: G.start_dialogue("Old path", ["A trampled path runs from the ribbons into the forest, grown over, but still there under the ferns.", "Nobody has used it in years."], after)
 		return
 	match p.id:
+		"windlass":
+			if not has("cr_rada_job"): G.start_dialogue("Well", ["The windlass beam is worn smooth by a hundred years of ropes."])
+			elif knots() < 3:
+				var k := knots() + 1
+				mark("cr_knot%d" % k)
+				Audio.sfx("blip", -4.0, 1.0 + 0.1 * k)
+				G.start_dialogue("Well", ["(You tie knot %d, and it looks like an old rope on a goat. Baba Rada squints at it from her bench and says nothing, which is worse.)" % k if k == 1 else "(Knot %d, left over right, pulled from the thumb side.)" % k],
+					func(): if k == 3: Hud.toast("Three knots. Tell Baba Rada."))
+			else: G.start_dialogue("Well", ["Three red knots on the beam. The water below is clear."])
+		"distaff":
+			if not has("cr_sub_job"): G.start_dialogue("Millrace", ["Black water churns under the mill wheel."])
+			elif not has("cr_sub_found"):
+				mark("cr_sub_found"); p.used = true
+				Audio.sfx("hunter_hm", -2.0)
+				Audio.sfx("blip", -4.0, 0.9)
+				G.start_dialogue("Millrace", ["You wade into the sluice, dodge a paddle that wants your ribs, and fish out a carved walnut distaff, slick as an eel.", "(Somewhere downstream the water laughs, once, very softly.)", "Lorena, from the bank: \"Look at you. Dripping like a drowned sheep. Quite the hero.\""])
 		"apples":
 			if not has("cr_basket"): G.start_dialogue("Garden", ["Apple and plum trees in the mother's garden, heavy with fruit."])
 			elif not has("cr_fruit"):

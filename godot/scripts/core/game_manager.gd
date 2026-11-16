@@ -243,7 +243,12 @@ func advance_dialogue() -> void:
 	if pick.is_valid(): pick.call(sel)
 
 ## Say something and wait until it has been read (for scripted scenes).
+var _hm_n := 0
+
 func say(who: String, lines: Array) -> void:
+	if who == "You":
+		_hm_n += 1
+		if _hm_n % 3 == 0: Audio.sfx("hunter_hm", -3.0)   # the hunter's thoughts: now and then he hums
 	start_dialogue(who, lines)
 	while state == State.DIALOGUE: await get_tree().process_frame
 

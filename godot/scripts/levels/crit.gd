@@ -37,6 +37,8 @@ func _quest_things() -> void:
 	add_decor(well, "well", 45.0)
 	add_decor(well + Vector2(60, 20), "lye")
 	add_decor(well + Vector2(-60, 25), "washtub", 18.0)
+	add_prop("npc", "rada", "Baba Rada", free_spot(well + Vector2(-130, 50), 30.0), "E   Speak with Baba Rada", Color("3a3430"))
+	add_prop("task", "windlass", "Well windlass", well + Vector2(0, 60), "E   Tie a red knot")
 	add_prop("clue", "lye", "Lye bucket", well + Vector2(60, 50), "E   Look at the bucket")
 	var garden := free_spot(house + Vector2(-150, -320), 50.0)
 	add_decor(garden, "apples", 25.0); add_decor(garden + Vector2(110, 20), "apples", 25.0, true)
@@ -123,6 +125,9 @@ func _road_stops() -> void:
 	add_decor(mill, "wheel", 20.0); add_decor(mill + Vector2(80, 20), "sacks", 14.0); add_decor(mill + Vector2(-70, 40), "sacks", 14.0, true)
 	add_decor(mill + Vector2(120, 70), "handcart", 18.0); add_decor(mill + Vector2(-130, 80), "washtub", 12.0); add_decor(mill + Vector2(-200, 50), "clothesline")
 	add_prop("npc", "millwife", "The miller's wife", free_spot(mill + Vector2(-110, 110), 30.0), "E   Speak with the miller's wife", Color("5a3a30"))
+	add_prop("npc", "gerda", "Gerda · Miller's apprentice", free_spot(mill + Vector2(150, 130), 30.0), "E   Speak with Gerda", Color("6a5a4a"))
+	if not G.side_has("cr_sub_found"):
+		add_prop("task", "distaff", "Millrace", free_spot(mill + Vector2(20, 110), 30.0), "E   Look into the millrace")
 	# 3. the hay meadow
 	var hay: Vector2 = beside.call(0.7, 260.0)
 	add_decor(hay, "haystack_plain", 26.0); add_decor(hay + Vector2(170, 40), "haystack_plain", 26.0, true); add_decor(hay + Vector2(-150, 70), "haystack_plain", 26.0)
