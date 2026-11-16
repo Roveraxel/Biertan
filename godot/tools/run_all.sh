@@ -14,13 +14,15 @@ for T in "${TASKS[@]}"; do
   echo "== $T started $(date '+%H:%M:%S')"
   case "$T" in
     T4|T1|T6|T2)
-      tools/run_task.sh "$T" "$MODEL" > ".ai/run_logs/$T.log" 2>&1
-      [ "$T" = "T4" ] && tools/merge_codemap.sh >> ".ai/run_logs/$T.log" 2>&1
-      mark_done "$T" ;;
+      bash tools/run_task.sh "$T" "$MODEL" > ".ai/run_logs/$T.log" 2>&1
+      if [ "$T" = "T4" ]; then
+        bash tools/merge_codemap.sh >> ".ai/run_logs/$T.log" 2>&1
+        [ "$(ls .ai/codemap/*.md 2>/dev/null | wc -l)" -ge "$(find scripts -name '*.gd' | wc -l)" ] && mark_done "$T" || echo "   T4 incomplete, left open"
+      elif grep -q "^== " ".ai/run_logs/$T.log" && ! grep -q "Permission denied\|command not found" ".ai/run_logs/$T.log"; then mark_done "$T"; else echo "   $T failed, see log; left open"; fi ;;
     *)
       PROMPT="Read .ai/HANDOFF.md and .ai/LESSONS.md and follow their rules exactly. All .gd files are read-only; do not edit .gd, scene or asset files. Write only into .ai/ and .ai/proposals/, and never use Write on a file that already has content (read it and append with Edit, or write a new file). Do task $T exactly as its Task Board section in .ai/HANDOFF.md says. Read one file at a time and keep notes short. When finished, reply with one sentence. If the task cannot be done, write one line why in .ai/BLOCKED.md."
       ollama launch claude --model "$MODEL" -- -p "$PROMPT" --permission-mode acceptEdits --allowedTools "Read,Write,Edit,Glob,Grep" > ".ai/run_logs/$T.log" 2>&1
-      mark_done "$T" ;;
+      if [ -s ".ai/run_logs/$T.log" ] && ! grep -qi "error\|Permission denied\|command not found" ".ai/run_logs/$T.log"; then mark_done "$T"; else echo "   $T failed, see log; left open"; fi ;;
   esac
   echo "== $T finished $(date '+%H:%M:%S'); log: .ai/run_logs/$T.log"
 done
