@@ -86,9 +86,14 @@ func offering() -> void:
 	G.start_dialogue("Sfânta Vineri", [
 		"(You set the basket down: apples and plums, wild roses, red poppies. The candle flame stands up straight. Then the clearing fills with a soft light, and in it, a woman in red, very old and very calm.)",
 		"It has been a long time since anyone walked my path. The young ones have forgotten me, and the old ones are too tired to come.",
+		"You call me a saint in your stone churches, and a witch when you whisper by the chimney. I am neither. I am Friday.",
+		"(You say that the girl only wanted her bridal linen finished.)",
+		"Six days the wheel may scream and the needle bite. On the seventh the earth must sleep: Friday is the breath between the seed and the leaf. Who spins or sews or hammers on my day pierces the skin of the earth, and the frost and the locusts walk in through the hole.",
+		"So I burn the fingers. If I did not, the hail would burn the whole valley.",
 		"The girl worked on my day. I do not forgive that lightly. But she worked for love, and her mother worked her for pride.",
 		"Tell that house to rest on my day, every one of them. The mother first. Then the girl's hands will heal before the wedding.",
 		"(She draws a red ribbon from the roof of the shrine and ties it round your wrist.) Take this, so they believe you.",
+		"(She turns her pale old eyes on you.) And you, hunter, who are walking toward Biertan: mind your own hours. Midnight there belongs to nobody living.",
 		"(The light goes out. The candle is still burning.)",
 	], func():
 		G.side_add("cr_shrine")
