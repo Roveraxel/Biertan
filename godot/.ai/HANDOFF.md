@@ -22,7 +22,7 @@ Project: Godot 4.7.2 game "Biertan" (GDScript, web export). Project root `/Users
 **Canon:** game year 1521; the baron died unmarried in 1321 ("two hundred years"); sacristy door 1515. Romanian folklore only, from Pamfile, Coman and Cosma (not pop culture, not Adevărul). Tone: dry, warm; Lorena narrates and fondly mocks the hunter.
 
 ## Active Feature
-Final wedding fight now runs inside the Church on the Hill (`scripts/levels/hillchurch.gd`). Task board is the last section of this file (T1, T2, T4 to T7 open for Nemotron in Cherry Studio; T3 Claude).
+Final wedding fight now runs inside the Church on the Hill (`scripts/levels/hillchurch.gd`). Task board is the last section of this file (T1, T2, T4 to T7 open for local Nemotron; T3 Claude).
 
 (previous)
 Narration and story polish for the web playtest; next big item is the final fight as a Meshy-generated level inside the Church on the Hill.
@@ -72,7 +72,7 @@ Model: Nemotron, local (Ollama name `nemotron-3.5-bolt:e4b-nvfp4`, 7.2 GB). Star
 Agent session prompt: "Read .ai/HANDOFF.md and follow its rules. No edits to .gd, scene or asset files. Task: <id>."
 Local models have about 16k context on a 16 GB laptop: one file or one function per request. Suggested order: T4, T9, T1, T6, then the rest.
 
-### T1: GDScript static-typing audit (owner: Nemotron via Cherry Studio, status: open)
+### T1: GDScript static-typing audit (owner: Nemotron local (Ollama + Claude Code), status: open)
 Scope: read-only review of `scripts/ui/`, `scripts/quests/` and `scripts/actors/`.
 Output: `.ai/REVIEW_typing.md` containing, per file, a list of `line: problem: suggested fix` for
 - variables, parameters or returns without a declared type where the type cannot be inferred,
@@ -81,7 +81,7 @@ Output: `.ai/REVIEW_typing.md` containing, per file, a list of `line: problem: s
 - signals declared without parameter types.
 Do NOT modify any `.gd` file. Claude applies the fixes afterwards.
 
-### T2: Narration copy review (owner: Nemotron via Cherry Studio, status: open)
+### T2: Narration copy review (owner: Nemotron local (Ollama + Claude Code), status: open)
 Scope: read `scripts/core/narration.gd` (the LINES dictionary).
 Output: `.ai/REVIEW_narration.md` with suggested rewrites that sound more spoken and more Transylvanian-storyteller (short sentences, dry humour, Lorena fondly mocking the hunter, English with a light Romanian flavour). Keep each line under the original byte length so recording credits are not exceeded. Do NOT edit the .gd file.
 
@@ -109,7 +109,7 @@ Each draft: location, NPCs, steps (what the player sees and does), reward, 6 to 
 
 ### Who does what
 - Claude: all code changes, builds, publishing, Meshy and PixelLab art, narration audio, the sexton-defeat film, natural ground/grass/haystacks/trees, character consistency.
-- Nemotron (Cherry Studio): read-only reviews, code map, QA checklist and story drafts, written to `.ai/` only.
+- Nemotron (local Ollama): read-only reviews, code map, QA checklist and story drafts, written to `.ai/` only.
 - ChatGPT: reserve only, because the monthly quota is almost used. Use it for a second opinion on a hard design question, nothing routine.
 - After a Nemotron task: change its status to `done` here and add one line to Recent Changes in HANDOFF.md.
 
