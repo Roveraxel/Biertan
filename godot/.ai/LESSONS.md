@@ -33,3 +33,4 @@ Use `@export`, `@onready`, `signal.connect(callable)`, `await`, `super()`. Never
 
 ## 10. Report exactly what you did
 When you finish, list the file path, the lines you changed and what you could not check. Update the Recent Changes section of `.ai/HANDOFF.md`. Never say "done" for something you did not run.
+11. Never use Write on a shared output file: it overwrites the whole file and earlier lines are lost (T4 lost 5 lines this way). Write one small file per item (for example `.ai/codemap/<name>.md`), or append with Edit after reading the file. Claude merges.

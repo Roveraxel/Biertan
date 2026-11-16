@@ -18,6 +18,7 @@ Project: Godot 4.7.2 game "Biertan" (GDScript, web export). Project root `/Users
 8. Do not change the signature of an existing function; add a new one.
 9. Godot 4 syntax only: `@export`, `@onready`, `signal.connect(callable)`, `await`, `super()`. Every variable, parameter and return gets a type. Typed loops: `for x: float in [..]:`.
 10. Report the exact files and lines, and say what you could not check.
+11. Never use Write on a shared output file (it overwrites everything). Write one small file per item, or append with Edit after reading it.
 
 **Canon:** game year 1521; the baron died unmarried in 1321 ("two hundred years"); sacristy door 1515. Romanian folklore only, from Pamfile, Coman and Cosma (not pop culture, not Adevărul). Tone: dry, warm; Lorena narrates and fondly mocks the hunter.
 
@@ -89,8 +90,8 @@ Output: `.ai/REVIEW_narration.md` with suggested rewrites that sound more spoken
 Files: `scripts/levels/hillchurch.gd`, sexton boss, a new church interior level, story card after the sexton falls. Other AIs: do not edit these.
 
 
-### T4: Code map (owner: Nemotron, status: open, do this first)
-Read every `.gd` file under `scripts/`. Output `.ai/CODEMAP.md`: one line per file (`path: what it is, key public functions, which levels or quests use it`). Do NOT modify any `.gd` file.
+### T4: Code map (owner: Nemotron local, status: open, do this first)
+Read every `.gd` file under `scripts/`, one at a time. For each file write ONE small file `.ai/codemap/<path with / replaced by _>.md`, for example `.ai/codemap/scripts_world_trees.gd.md`, containing exactly one line: `path: what it is, key public functions, which levels or quests use it`. Never write to `.ai/CODEMAP.md` yourself (Write overwrites the file and loses earlier lines); Claude merges the small files. Skip files that already have a file in `.ai/codemap/`. Do NOT modify any `.gd` file. When every `.gd` file has a codemap file, set T4 to done.
 
 ### T5: Consistency and anachronism review (owner: Nemotron, status: open)
 Read `STORY.md`, `scripts/quests/*.gd`, `scripts/levels/*.gd` dialogue strings and `scripts/core/game_manager.gd` (STORIES). Output `.ai/REVIEW_consistency.md` listing contradictions as `file:line: problem: suggested fix`. Canon: game year 1521; the baron died unmarried in 1321 ("two hundred years"); sacristy door 1515; Biertan; character names and roles must match across files. Also flag any dialogue that sounds modern. Do NOT edit the files.
