@@ -13,7 +13,7 @@ const STORIES := {
 		"title": "THE FEAST · CRIȘ",
 		"panels": [
 			{"art": "feast_1", "text": "Muma Pădurii's curse was lifted, and Criș burned the rye in the square and laid the tables. Somebody's uncle poured the țuică. Somebody else's uncle poured it again."},
-			{"art": "feast_2", "text": "Behind the barn two lads from Mălâncrav had a pipe of something that was not tobacco. The smoke curled up into little dancers. The hunter laughed until he forgot what at."},
+			{"art": "feast_2", "text": "Behind the barn two lads from Mălâncrav were burning a bundle of something that was not hay. The smoke curled up into little dancers. The hunter laughed until he forgot what at."},
 			{"art": "feast_3", "text": "Then the lanterns began to turn, and the moon, and the church tower, and the road. He set off for Mălâncrav with a cup \"for the road\". After that, nothing."},
 		],
 		"fact": "",
@@ -63,7 +63,7 @@ const STORIES := {
 	},
 	"saschiz": {
 		"title": "SASCHIZ",
-		"lore": "With the vârcolac dead, the moon kept its place in the sky. By morning the children of Saschiz were running again over the green and golden hills above the village, chasing lambs between the haystacks, and nobody called them home before dark.",
+		"lore": "The giant set the three children down in the church square, one by one, as gently as eggs. By morning the children of Saschiz were running again over the green and golden hills above the village, chasing lambs between the haystacks, and nobody called them home before dark.",
 		"fact": "Saxon settlers raised Saschiz's fortified church in the 15th century. Its tower echoes the clock tower of Sighișoara, and the village is one of Transylvania's UNESCO-listed villages with fortified churches."
 	},
 	"richis": {

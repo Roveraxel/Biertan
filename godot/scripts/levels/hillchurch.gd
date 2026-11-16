@@ -64,7 +64,7 @@ func build() -> void:
 	add_tree(ALTAR + Vector2(170, -90), true)   # the fir, in the bride's place
 	add_torch(ALTAR, 620.0, Color(1, 0.78, 0.5), 1.0)
 	for p in [ALTAR + Vector2(-330, 150), ALTAR + Vector2(330, 150)]: add_brazier(p)
-	var guests := [["baron", "The baron of Biertan", Vector2(-60, -20)], ["finpriest", "Father Imre", Vector2(40, -90)], ["lorena", "Lorena", Vector2(-230, 190)],
+	var guests := [["baron", "The baron of Biertan", Vector2(-60, -20)], ["finpriest", "Father Bálint", Vector2(40, -90)], ["lorena", "Lorena", Vector2(-230, 190)],
 		["bvlad", "Vlad Laurențiu", Vector2(250, 200)], ["bmagda", "Magda", Vector2(320, 190)], ["butcher", "Meister Thomas", Vector2(-330, 60)],
 		["captain", "The spiriduș captain", Vector2(-120, 210)], ["mbear", "The bear", Vector2(420, 40)]]
 	if has("favour_solomonar"): guests.append(["solomonar", "The Solomonar", Vector2(-440, -60)])
@@ -121,7 +121,7 @@ func _cold_feet() -> void:
 	Audio.sfx("step_wood", 0.0, 0.5)   # the great door swings shut behind you
 	G.start_dialogue("The wedding of the dead", [
 		"(The Church on the Hill, in the first sun through the high windows. The coffin is open on its trestles before the altar. The fir stands in the bride's place with Magda's ribbons on it. Thirty spiriduși are holding their hats.)",
-		"Father Imre: ...and so we lay to rest, and at the same time join in matrimony, which I grant you is unusual, the servant of God...",
+		"Father Bálint: ...and so we lay to rest, and at the same time join in matrimony, which I grant you is unusual, the servant of God...",
 		"(The baron stands by the coffin in his white shirt. He looks at the coffin. He looks at the fir tree. He looks, for rather longer, at the young woman with snowdrops in her hair who has been telling him all morning that his cuffs are wrong.)",
 		"The baron: Father. One moment. (He clears his throat.) I find I have changed my mind.",
 		"(Silence. A spiriduș drops his hat.)",
@@ -131,7 +131,7 @@ func _cold_feet() -> void:
 		"(He gives them to her. Nine fingers. She turns them over for a long time.)",
 		"Joimărița: They have not worked in two hundred years. (A pause.) They will learn. Yes.",
 		"Lorena: (to you, not quietly enough) I TOLD you.",
-		"Father Imre: Is SHE baptised? (\"I am Maundy Thursday,\" says Joimărița.) ...I am going to need a great deal of wine.",
+		"Father Bálint: Is SHE baptised? (\"I am Maundy Thursday,\" says Joimărița.) ...I am going to need a great deal of wine.",
 		"(And then, from the open crypt stair by the door, a slow clap. One pair of hands. Soft ones.)",
 	], func():
 		G.start_dialogue("The sexton", [
@@ -254,7 +254,7 @@ func _judgement() -> void:
 		"(Two spiriduși and a bear see him down the hill.)",
 	], func():
 		G.start_dialogue("The wedding", [
-			"(So Father Imre marries them after all, in a church that has seen worse mornings, in Hungarian and Latin and a little Saxon the groom has to help him with.)",
+			"(So Father Bálint marries them after all, in a church that has seen worse mornings, in Hungarian and Latin and a little Saxon the groom has to help him with.)",
 			"(You take Muma Pădurii's oak branch off your belt, the one that was meant for his heart, and push it into the crack between two flagstones by the altar. Your gift. It is all you have.)",
 			"(At \"I will\", it puts out leaves. Small, soft, April green, on the fifteenth of November.)",
 			"(They go down the hill together, the bridegroom of 1321 and the Thursday before Easter, arguing about his coat. Behind them all the way down the nave the snowdrops come up between the flagstones.)",
@@ -278,7 +278,7 @@ func talk(id: String) -> bool:
 		"captain": G.start_dialogue("The spiriduș captain", ["We do the eating at weddings. Tell the priest to hurry up."])
 		"mbear": G.start_dialogue("The bear", ["(The bear from the snare, with a ribbon round its neck that it did not agree to. It is looking at the ham.)"])
 		"solomonar": G.start_dialogue("The Solomonar", ["I brought the weather. Fine until the vows, I thought, and a little rain after, for luck."])
-		"finpriest": G.start_dialogue("Father Imre", ["Paid after. I am always paid after."])
+		"finpriest": G.start_dialogue("Father Bálint", ["Paid after. I am always paid after."])
 		"azorel": G.start_dialogue("Azorel", ["(He has been given a sausage by somebody very small. He is guarding it.)"])
 		_: return false
 	return true

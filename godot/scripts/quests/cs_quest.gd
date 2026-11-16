@@ -129,12 +129,12 @@ func talk(id: String) -> bool:
 				G.start_dialogue("Gheorghe · Forester", ["You drink like a forester. Mălâncrav is down the road, if you can find it."])
 		"denisa":
 			if mad_seen() < MAD.size():
-				G.start_dialogue("Denisa · Herbalist", ["(She puffs her clay pipe.) Look at them all first. Then come back and tell me what they ate."])
+				G.start_dialogue("Denisa · Herbalist", ["(She chews a stalk of dried mint.) Look at them all first. Then come back and tell me what they ate."])
 			elif has("cs_denisa"):
 				G.start_dialogue("Denisa · Herbalist", ["Cornul secarei. Black spurs. Burn the rye. I've said it three times; I'll say it at your funeral."])
 			else:
 				G.start_dialogue("Denisa · Herbalist", [
-					"(Denisa lights her clay pipe and takes a long look at you, as if you were the next patient.)",
+					"(Denisa tucks a dried mint stalk in her teeth and takes a long look at you, as if you were the next patient.)",
 					"A vampire's rot, Gheorghe says. Hm. Rot doesn't make a woman lay eggs in a hat.",
 					"(She breaks a loaf from the baker's shelf and holds it to the lamp. In the crumb, little black spurs.)",
 					"Cornul secarei. Rye ergot. The harvest was wet, the rye went black in the ear, and everybody ate it.",

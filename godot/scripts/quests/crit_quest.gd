@@ -103,7 +103,7 @@ func talk(id: String) -> bool:
 		"millwife":
 			G.start_dialogue("The miller's wife", [
 				"(She wrings a shirt over the brook and hangs it on the line. It is Thursday's washing, she tells you, before you can ask.)",
-				"The wheel turns for everybody: Saxon rye, Romanian corn, all one flour by evening.",
+				"The wheel turns for everybody: Saxon rye, Romanian millet, all one flour by evening.",
 				"The poppies you're after grow between the old graves, down the road. Pick them with your left hand. That's how the old women want them."])
 		"floarea":
 			if not has("cr_job"):
@@ -153,7 +153,7 @@ func _mother() -> void:
 		var reply: Array = [
 			["(Her mouth trembles.) I only wanted it to be beautiful for her. Everything I never had.", "...Fridays, then. We rest on Fridays."],
 			["(She goes white, then red, and for a moment you think she will strike you.)", "...You're right. God help me, you're right. No more washing on Fridays in this house."],
-			["(She sniffs.) Thursday. Hm. Thursday is the better drying day anyway, the wind comes from the hill.", "Fine. Fridays we sit. But I'm not sitting idle; I'll pray."],
+			["(She sniffs.) Thursday. Hm. Thursday is the better drying day anyway, the wind comes from the hill.", "So be it. Fridays we sit. But I'm not sitting idle; I'll pray."],
 		][clampi(pick, 0, 2)]
 		G.start_dialogue("Floarea's mother", reply, _wedding))
 

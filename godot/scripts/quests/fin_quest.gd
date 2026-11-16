@@ -1,5 +1,5 @@
 ## The end of the road, in Sighișoara: Lorena in the Tinsmiths' Tower, the baron who would very much like her
-## taken off his hands, the midnight he cannot help, and the wedding of the dead he was refused in 1515,
+## taken off his hands, the midnight he cannot help, and the wedding of the dead he was refused in 1321,
 ## which does not go the way anybody planned.
 class_name FinQuest
 extends RefCounted
@@ -133,7 +133,7 @@ func _baron() -> void:
 
 func _lorena() -> void:
 	if not has("fin_dawn"):
-		G.start_dialogue("Lorena", ["Stop looking at me like that, I am FINE. Go and stand near him. Somebody should, and it is not going to be me."])
+		G.start_dialogue("Lorena", ["Stop looking at me like that, I am perfectly well. Go and stand near him. Somebody should, and it is not going to be me."])
 	elif prep() < PREP.size():
 		G.start_dialogue("Lorena", ["Tree, priest, table. I'll do the candles. (She lowers her voice.) Have you seen the way that girl with the flowers looks at his coat? No. Of course you haven't."])
 	else:
@@ -170,13 +170,13 @@ func _cart() -> void:
 
 func _priest() -> void:
 	if has("fin_p_priest"):
-		G.start_dialogue("Father Imre", ["I have buried men and I have married men. Never the same man on the same morning. (He hiccups.) Is there wine after?"])
+		G.start_dialogue("Father Bálint", ["I have buried men and I have married men. Never the same man on the same morning. (He hiccups.) Is there wine after?"])
 		return
-	G.start_dialogue("Father Imre", [
+	G.start_dialogue("Father Bálint", [
 		"(The Hungarian priest from Șapartoc, asleep on a bench with his hat over his face. Radu sent him on Vlad's cart, \"for emergencies\", with a bottle.)",
 		"(You explain. A funeral. Also a wedding. The groom is dead. Has been for some time. He is over there, straightening his cuffs.)",
-		"Father Imre: (from under the hat) ...Is he baptised?",
-		"(In 1493, says the baron, from across the square. In Biertan. By Father Johannes. He can give the date.)",
+		"Father Bálint: (from under the hat) ...Is he baptised?",
+		"(In 1297, says the baron, from across the square. In Biertan. By Father Johannes. He can give the date.)",
 		"Then I don't see the difficulty. (He sits up.) I'll want paying in wine. After. I am always paid after.",
 		"(He looks past you.) Who is the young lady with the hot coals? She has just told the deceased his collar is crooked, and he is letting her fix it.",
 	], func(): mark("fin_p_priest"); Hud.toast("The priest (%d/%d)" % [prep(), PREP.size()]))

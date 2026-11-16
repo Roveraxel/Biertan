@@ -120,7 +120,7 @@ func talk(id: String) -> bool:
 					"A woman in the wall? Guarding all three? Poor soul. No wonder she bangs the doors.",
 					"Then let's take the weight off her. A church that's used doesn't fall down; a church that's empty does.",
 					"The Catholic one: a canteen. Half the valley is hungry. The Reformed one has the best echo in Transylvania: concerts. And the Orthodox one stays a church, for everybody.",
-					"We need planks and tools from the old barn, and letters to the city so families come. Horia, the mayor, has to sign. And we need a priest. Good luck with that.",
+					"We need planks and tools from the old barn, and letters to the city so families come. Horia, the mayor, has to sign. And we need a priest. May the saints give you patience.",
 				], func(): mark("sp_plan"); Hud.toast("Give the three churches new work."))
 			else:
 				G.start_dialogue("Radu, innkeeper", ["%d people! I'll need a bigger pot." % population() if has("sp_done") else "Watch the churches after dark. That's when it happens."])

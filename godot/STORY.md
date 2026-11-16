@@ -5,7 +5,7 @@ Dropped for good: hub, old Richiș, caves, hollow, Moșna, old Biertan, walls, c
 Kept and reused in act 3: gorge, vineyard, Wolf Forest, arena (Moon Clearing).
 
 ## Who is who
-- **The baron of Biertan.** A young Saxon of good family who died the night before his wedding in 1515. Biertan
+- **The baron of Biertan.** A young Saxon of good family who died the night before his wedding in 1321. Biertan
   denied him the wedding of the dead, so he walks as a strigoi mort and has played lord of the village ever since.
   Tired, courteous, half unwilling. He cannot die in this story.
 - **The sexton** (the Viscri sexton, who also keeps the Biertan church door: two bells, two salaries). In the Viscri

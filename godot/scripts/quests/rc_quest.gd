@@ -127,7 +127,7 @@ func talk(id: String) -> bool:
 			G.start_dialogue("Petrea", ["Uncle Toader asked me my name. Three times. He's never asked before." if has("rc_done") else "(A boy with very old eyes.) I was born in a caul, so I see them even in the day. There are seven. One of them is looking at you."])
 		"denisa":
 			if not has("rc_job"):
-				G.start_dialogue("Denisa · Herbalist", ["(Denisa, from Criș, puffing her pipe on the step of the house where she's lodging.) Fancy meeting you sober. What's wrong with this one, then?"])
+				G.start_dialogue("Denisa · Herbalist", ["(Denisa, from Criș, chewing a sprig of dried mint on the step of the house where she's lodging.) Fancy meeting you sober. What's wrong with this one, then?"])
 			elif not has("rc_basil"):
 				G.start_dialogue("Denisa · Herbalist", [
 					"Iele? Hm. Out of season, in the frost. That's your rot again, for once.",

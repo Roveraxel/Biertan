@@ -399,7 +399,7 @@ func _finale() -> void:
 		add_decor(at.call(160, -70), "haycart", 55.0)
 		add_prop("npc", "bvlad", "Vlad Laurențiu", cart, "E   Speak with Vlad")
 		add_prop("npc", "bmagda", "Magda", cart + Vector2(110, 0), "E   Speak with Magda")
-		add_prop("npc", "finpriest", "Father Imre", _on_square(sq + Vector2(-240, -80), 50.0), "E   Wake the priest", Color("3a3430"))
+		add_prop("npc", "finpriest", "Father Bálint", _on_square(sq + Vector2(-240, -80), 50.0), "E   Wake the priest", Color("3a3430"))
 		var j := _on_square(sq + Vector2(260, 80), 60.0)
 		add_decor(j + Vector2(0, -30), "joimarita", 20.0)
 		add_prop("task", "joimarita", "Joimărița", j + Vector2(0, 40), "E   Speak with Joimărița")

@@ -106,7 +106,7 @@ func talk(id: String) -> bool:
 				G.start_dialogue("Old Dumitru", [
 					"(An old shepherd with a crook, named after the saint whose day it is.) You're the one who came down from the mountains? Then you know what Sâmedru is. The end of the shepherds' summer.",
 					"And Moșii. The dead come home in autumn, to be remembered. You set a table, you give them colivă and bread and wine and candles, and they go back content.",
-					"Nobody has done it here in years. The young went to Germany, the old forgot. So the dead came home this year and found empty tables.",
+					"Nobody has done it here in years. The young went down to the towns and the wars, the old forgot. So the dead came home this year and found empty tables.",
 					"Now they are hungry and angry, and every night they come for whatever we have. You can't kill what's already dead. But you might help us do it properly.",
 				], func(): mark("ap_job"); Hud.toast("New quest: Sâmedru's Fire"))
 			elif offerings() and not has("ap_night"):
