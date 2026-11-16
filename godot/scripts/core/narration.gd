@@ -5,7 +5,7 @@
 class_name Narration
 extends RefCounted
 
-const VOICE := "933563129e564b19a115bedd57b7406a"   # Fish Audio voice: "Sarah", warm and close
+const VOICE := "6d76b9c0a0c54f6a97a1c1748270cee1"   # Fish Audio voice: "Romania", warm storyteller (drama-3)
 
 const LINES := {
 	"prologue": ["Let me tell you about my hunter. That summer he was minding other people's cows on the high pastures, with a dog who thought he was the one in charge. He was right, of course. Azorel usually is."],
