@@ -33,6 +33,7 @@ Narration and story polish for the web playtest; next big item is the final figh
 Claude (Claude Code session), 2026-11-16 03:00.
 
 ## Recent Changes
+- 2026-11-16 22:25: Meshy asset pack (Gemini): refined & downloaded 6 folklore props + Stână hut (70 credits used, 1,200 remaining) and 8 free architectural preview GLBs into `assets/meshy/staging/`. Rendered 4 smaller props in Blender (`tools/render_sprite.py`) into `sprites/Props/` (`hanging_charms.png`, `witch_effigy.png`, `bone_totem.png`, `forest_offerings.png`, ~2 KB each) and wrote `.ai/proposals/meshy_folklore_integration.md` for Claude.
 - 2026-11-16 22:02: Proposed `.ai/proposals/biertan_softlock_fix.md` (Gemini): fixes the T6 Biertan/sacristy softlock (`bt_quest.gd:264-268`) so players missing any of the 9 tokens can still return down the road to fetch them.
 - 2026-11-16 21:57: T15 (tools/render_sprite.py, Gemini) tested and verified in Blender 5.3.0 on `models/chapel.glb`: generated all 8 128x128 transparent pixel-art PNGs in `tools/render_out/test_chapel/` with clean edges and consistent lighting. Marked T15 done.
 - 2026-11-16 21:46: T3 (.ai/proposals/hillchurch_t3_fixes.md, Gemini) proposed: bell placement/whole-church stun radius and fight-start trigger fixes for `scripts/levels/hillchurch.gd` (not applied/compiled; Godot not installed here). T15 Blender run blocked here (`blender not found`).
