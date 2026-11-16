@@ -1,5 +1,26 @@
 # HANDOFF (live log; update before finishing and before every push)
 
+## READ THIS FIRST (self-contained rules for every AI; this file is enough)
+Project: Godot 4.7.2 game "Biertan" (GDScript, web export). Project root `/Users/alex/Biertan/godot`. More detail, only if you can open them: `.ai/ARCHITECTURE.md`, `.ai/LESSONS.md`, `.ai/AUDIT_2026-11-16.md`.
+
+**Who may edit code:** only Claude (it can compile and run the game). Every other AI writes proposals into `.ai/proposals/` and results into `.ai/`. Do not edit any `.gd`, scene or asset file.
+
+**Proposal and review loop:** (1) You write `.ai/proposals/<name>.md`: goal, files and functions touched, exact code in fenced blocks, what you could not check, first line `Status: proposed`. (2) Claude compiles it and writes `<name>.review.md` with `Verdict: approved / changes needed / rejected` and numbered changes (`file:line: problem: what to change`). (3) You answer with `<name>.v2.md` (then `.v3.md`), changing only what the review lists and saying which point each change answers. Three rounds at most. (4) Claude applies, tests and sets `Status: applied`. Add one line to Recent Changes below at every step.
+
+**Mistakes already made; do not repeat them:**
+1. Code you could not compile broke the game (a rejected patch is in `.ai/proposals/`). Never edit code directly.
+2. No `:=` on values whose type is not obvious (results of `Dictionary.get()`, `call()`, untyped arrays, properties of base classes such as `Material.albedo_color`). Cast first (`as StandardMaterial3D`) or declare the type.
+3. Call helpers where they exist: search for the `func` line first (example: `Level.dist_to_segment`, not a bare `dist_to_segment` inside `WorldBuilder`).
+4. No `randf()`, `randi()`, `shuffle()`. Use the level's `rng` (`rng.f()`, `rng.i(n)`) or a `NetRandom`. Do not change seeds that already work.
+5. Web performance: no one mesh node per decoration. Collect into a few `Batch` objects per chunk or material and commit once.
+6. Ground decals sit at fixed heights (roads 0.012 to 0.014, patches about 0.015 to 0.02); a new flat layer at a near height flickers.
+7. Stay inside your task and its files. Do not start work from the Known Issues list on your own.
+8. Do not change the signature of an existing function; add a new one.
+9. Godot 4 syntax only: `@export`, `@onready`, `signal.connect(callable)`, `await`, `super()`. Every variable, parameter and return gets a type. Typed loops: `for x: float in [..]:`.
+10. Report the exact files and lines, and say what you could not check.
+
+**Canon:** game year 1521; the baron died unmarried in 1321 ("two hundred years"); sacristy door 1515. Romanian folklore only, from Pamfile, Coman and Cosma (not pop culture, not Adevărul). Tone: dry, warm; Lorena narrates and fondly mocks the hunter.
+
 ## Active Feature
 Final wedding fight now runs inside the Church on the Hill (`scripts/levels/hillchurch.gd`). Task board is the last section of this file (T1, T2, T4 to T7 open for Nemotron in Cherry Studio; T3 Claude).
 
