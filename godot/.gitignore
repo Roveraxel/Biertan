@@ -1,3 +1,17 @@
 .godot/
 build/
 *.tmp
+# Local secrets written by `elevenlabs onboard`
+/.env.local
+.venv/
+assets/meshy/staging/
+tools/render_out/
+_sync*.tar.gz
+_cf.gd
+_gm.gd
+_cm.sh
+_rev.sh
+.fuse_hidden*
+_t
+.DS_Store
+

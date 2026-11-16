@@ -74,7 +74,7 @@ func build() -> void:
 	add_prop("task", "joimarita", "Joimărița", ALTAR + Vector2(80, 30), "E   Speak with Joimărița")
 	follower = add_prop("npc", "azorel", "Azorel", spawn + Vector2(50, 0), "E   Azorel", Color("d8d0c0"))
 	add_prop("task", "down", "The church door", Vector2(1200, 1660), "E   Go back out")
-	add_trigger(Rect2(950, 820, 500, 40), _cold_feet)   # reaching the wedding party starts the ceremony
+	add_trigger(Rect2(900, 600, 600, 260), _cold_feet)   # reaching the wedding party starts the ceremony
 	spots["altar"] = ALTAR + Vector2(0, 60)
 	if has("fin_done"): phase = 4
 
