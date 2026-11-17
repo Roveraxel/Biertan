@@ -65,8 +65,8 @@ func build() -> void:
 	add_tree(ALTAR + Vector2(170, -90), true)   # the fir, in the bride's place
 	add_torch(ALTAR, 620.0, Color(1, 0.78, 0.5), 1.0)
 	for p in [ALTAR + Vector2(-330, 150), ALTAR + Vector2(330, 150)]: add_brazier(p)
-	var guests := [["baron", "The baron of Biertan", Vector2(-60, -20)], ["finpriest", "Father Bálint", Vector2(40, -90)], ["lorena", "Lorena", Vector2(-230, 190)],
-		["bvlad", "Vlad Laurențiu", Vector2(250, 200)], ["bmagda", "Magda", Vector2(320, 190)], ["butcher", "Meister Thomas", Vector2(-330, 60)],
+	var guests := [["baron", "The baron of Biertan", Vector2(-60, -20)], ["finpriest", "Father Bálint", Vector2(40, -90)], ["lorena", "Lorena", Vector2(-130, 175)],
+		["bvlad", "Vlad Laurențiu", Vector2(140, 175)], ["bmagda", "Magda", Vector2(210, 120)], ["butcher", "Meister Thomas", Vector2(-330, 60)],
 		["captain", "The spiriduș captain", Vector2(-120, 210)], ["mbear", "The bear", Vector2(420, 40)]]
 	if has("favour_solomonar"): guests.append(["solomonar", "The Solomonar", Vector2(-440, -60)])
 	for it in guests: allies[it[0]] = add_prop("npc", it[0], it[1], ALTAR + it[2], "E   Talk")
