@@ -70,7 +70,7 @@ func build() -> void:
 
 func on_enter() -> void:
 	G.player.unarmed = true   # the knife stays in his belt for the cows
-	G.dusk = 0.55
+	G.dusk = 0.36
 	WorldBuilder.apply_darkness(self)
 	_intro()
 
@@ -204,12 +204,12 @@ func _hints(dt: float) -> void:
 
 func _wake() -> void:
 	Audio.sfx("dodge", -10.0, 0.8)
+	if is_instance_valid(_hay): remove_decor(_hay)   # up out of the hay, hat back on his head
+	add_decor(HILL + Vector2(-48, -14), "hay", 0.0)
+	G.player.visible = true
 	await G.say("Azorel", [
 		"(Something warm and wet across your face. You push the hat off your eyes: Azorel, licking you awake, very pleased with himself.)",
 		"(The sun is already behind the ridge. Down the slope the cows have wandered all over the pasture.)"])
-	if is_instance_valid(_hay): remove_decor(_hay)   # up out of the hay, hat back on his head
-	add_decor(HILL + Vector2(-36, -10), "hay", 0.0)
-	G.player.visible = true
 	await G.say("You", ["You're right, Azorel. Let's take them back to the stână. It's getting dark."])
 	G.player.frozen = false
 	step = 1; hint_t = 0.0; hint = 0

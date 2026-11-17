@@ -153,7 +153,7 @@ static func _roads() -> void:
 		var w: float = road.width * S
 		for i in pts.size():
 			var a: Vector2 = pts[i]
-			if cob: mb.disc(u(a, 0.013), w * 0.45, w * 0.45, 0.0, 16)
+			mb.disc(u(a, 0.013 if cob else 0.011), w * 0.5, w * 0.5, 0.0, 16)
 			if i == pts.size() - 1: break
 			var c: Vector2 = pts[i + 1]
 			var ang := rad_to_deg(atan2(-(c.y - a.y), c.x - a.x))
@@ -491,7 +491,7 @@ static func _curtain(cw: Dictionary) -> void:
 		var p0 := u(pts[0]); var p1 := u(pts[1]); var q0 := u(pts[-1]); var q1 := u(pts[-2])
 		wall_ends.append({"end": p0, "out": (p0 - p1).normalized(), "thick": t, "h": H, "seg": seg})
 		wall_ends.append({"end": q0, "out": (q0 - q1).normalized(), "thick": t, "h": H, "seg": seg})
-	var wall_mat: Material = Mats.wood() if gallery else (Mats.stone() if Mats.px() else Mats.mat("clay_plaster", 2.5, Color(0.8, 0.78, 0.72)))
+	var wall_mat: Material = Mats.wood() if gallery else Mats.stone()
 	var centroid := Vector2.ZERO
 	for p in pts: centroid += p
 	centroid /= maxi(1, pts.size())

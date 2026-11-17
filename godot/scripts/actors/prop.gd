@@ -170,8 +170,8 @@ func _setup_npc() -> void:
 		_board()
 		board.part("circle", Vector2(0, 16), Vector2(24, 30), col)
 		board.part("circle", Vector2(0, 32), Vector2(14, 14), Color("d9b48f"), 1)
-	label = _label(display, 2.15, 30, Color("e8e0cc"))
-	mark = _label("!", 2.55, 52, Fx.AMBER)
+	label = _label(display, 2.45, 30, Color("e8e0cc"))
+	mark = _label("!", 2.95, 52, Fx.AMBER)
 	mark.visible = false
 
 func _label(s: String, h: float, font_px: int, c: Color) -> Label3D:
@@ -299,7 +299,7 @@ func _process(dt: float) -> void:
 		fig.tick("move", _vel, look, dt)
 		if mark:
 			mark.visible = Events.marker_for(id)
-			mark.position.y = 2.1 + sin(t * 4.0) * 0.04
+			mark.position.y = 2.95 + sin(t * 4.0) * 0.04
 	match kind:
 		"sack", "ewe": board.visible = not used
 		"cross":

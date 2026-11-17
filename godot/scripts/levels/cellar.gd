@@ -59,9 +59,7 @@ func build() -> void:
 	spawn_enemy("spiridus_cap", Vector2(2560, 600)).died.connect(func(_e): _on_captain())
 	for p in [Vector2(2450, 480), Vector2(2460, 740)]: spawn_enemy("spiridus", p)
 	# the stair up to the yard: worn steps against the west wall, lit from above
-	for k in 4:
-		var v := k * 8
-		add_decal(false, Vector2(106.0 + k * 14.0, 600), Vector2(14, 180), Color8(0x5a - v, 0x52 - v, 0x48 - v), -988)
+	add_decor(Vector2(132, 600), "crypt_stairs")
 	add_torch(Vector2(130, 520), 170.0, Color(0.85, 0.8, 0.7), 0.55)
 	add_trigger(Rect2(100, 500, 30, 200), _leave)
 	add_trigger(Rect2(380, 300, 80, 600), _hat_theft)

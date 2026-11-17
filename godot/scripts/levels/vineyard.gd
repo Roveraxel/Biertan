@@ -55,7 +55,7 @@ func build() -> void:
 		while x < 2900.0:
 			var p := Vector2(x, y + (rng.f() - 0.5) * 24.0)
 			x += 150.0
-			if YARD.grow(160.0).has_point(p) or Rect2(1650, 700, 900, 300).has_point(p): continue
+			if YARD.grow(160.0).has_point(p) or Rect2(1650, 700, 900, 300).has_point(p) or p.distance_to(Vector2(1360, 1280)) < 170.0: continue
 			if rng.f() < 0.12: continue
 			add_decor(p, "vine_row", 0.0, rng.f() < 0.5)
 		y += 170.0

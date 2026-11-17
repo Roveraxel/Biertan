@@ -67,6 +67,7 @@ var smoke := false:
 		smoke = v
 		if v: Atmosphere.smoke(self)
 var _tick := randi() % 12
+var _base_tint := Color.WHITE
 
 var pos: Vector2:
 	get: return Vector2(position.x, position.z) / Fx.S
@@ -86,7 +87,7 @@ func setup(at: Vector2, sprite_id: String, r := 0.0, flip := false, scale_overri
 		sprite.texture = tex
 		sprite.pixel_size = scale_k / PPU
 		sprite.centered = false
-		sprite.offset = Vector2(-tex.get_width() / 2.0, 0)   # feet on the ground
+		sprite.offset = Vector2(-tex.get_width() / 2.0, -tex.get_height() * 0.06)   # sink transparent bottom margin slightly so feet sit in the ground
 		sprite.flip_h = flip
 		sprite.shaded = false
 		sprite.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
@@ -94,7 +95,14 @@ func setup(at: Vector2, sprite_id: String, r := 0.0, flip := false, scale_overri
 		sprite.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		sprite.rotation.x = -deg_to_rad(Fx.PITCH * 0.55)
 		if sprite_id == "flour":
-			sprite.modulate = Color(0.84, 0.8, 0.72)
+			_base_tint = Color(0.84, 0.8, 0.72)
+		elif sprite_id in ["ritual_stones", "forest_boulder", "livestock_trough", "milestone", "grindstone", "stepping_stones"]:
+			_base_tint = Color(0.52, 0.50, 0.46)
+		elif sprite_id in ["quarry_winch", "wine_press", "butter_churn", "washtub", "laundry_tub", "sluice_gate", "carpentry_bench", "kitchen_counter", "wooden_bench_3d"]:
+			_base_tint = Color(0.66, 0.54, 0.40)
+		elif sprite_id == "cheese_wheel":
+			_base_tint = Color(0.88, 0.76, 0.48)
+		sprite.modulate = _base_tint
 		add_child(sprite)
 		if sprite_id in ["cellar_door", "door_locks", "door_open", "flour", "rot_mark", "petals"]:   # flush with wall or ground: no drop shadow of its own
 			if sprite_id in ["cellar_door", "door_locks", "door_open"]: sprite.rotation.x = 0.0
@@ -102,11 +110,11 @@ func setup(at: Vector2, sprite_id: String, r := 0.0, flip := false, scale_overri
 		var sh := MeshInstance3D.new()
 		var pm := PlaneMesh.new()
 		var wdt := tex.get_width() / PPU * scale_k
-		pm.size = Vector2(wdt * 0.9, wdt * 0.4)
+		pm.size = Vector2(wdt * 0.72, wdt * 0.28)
 		sh.mesh = pm
-		sh.material_override = Mats.unlit(Color(0, 0, 0, 0.4), Fx.circle_tex())
+		sh.material_override = Mats.unlit(Color(0, 0, 0, 0.32), Fx.circle_tex())
 		sh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		sh.position.y = 0.012
+		sh.position = Vector3(0.0, 0.012, -wdt * 0.06)
 		add_child(sh)
 	set_solid(radius > 0.0)
 
@@ -129,4 +137,4 @@ func set_solid(on: bool) -> void:
 
 func _process(_dt: float) -> void:
 	_tick += 1
-	if sprite and (_tick % 12 == 0 or _tick < 3): sprite.modulate = Fx.light_at(global_position)
+	if sprite and (_tick % 12 == 0 or _tick < 3): sprite.modulate = Fx.light_at(global_position) * _base_tint

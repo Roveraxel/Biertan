@@ -340,15 +340,15 @@ func _tutorial() -> void:
 	var smoke_at: Vector2 = at.call(-112, -114)
 	add_decor(smoke_at + Vector2(0, -6), "grating").smoke = true   # the cellar breathes out through the street
 	add_prop("clue", "smoke", "", smoke_at, "E   Examine")
-	var cd0 := free_spot(m.at(-102, -92), 45.0)
-	var cw := wall_door(cd0, 450.0, func(p): return inside(p, _citadel) and not near_wall(p, 55.0))
+	var cd0 := free_spot(wife + Vector2(-30, 60), 45.0)
+	var cw := wall_door(cd0, 320.0, func(p): return inside(p, _citadel) and not near_wall(p, 75.0))
 	cellar_door = cw + Vector2(0, 16)
 	add_decor(cellar_door + Vector2(0, -8), "cellar_door")   # the way down, under the Butchers' Tower
 	add_prop("task", "cellar", "Cellar door", cellar_door, "E   Try the cellar door")
-	var gs: Vector2 = cw + Vector2(-72, 6)   # the guild's sign hangs beside the cellar door
+	var gs: Vector2 = free_spot(cw + Vector2(-48, 12), 28.0)   # the guild's sign hangs beside the cellar door
 	add_decor(gs + Vector2(0, -10), "guild_sign")
 	add_prop("task", "sign", "Guild sign", gs + Vector2(0, 14), "E   Look at the guild sign")
-	var crate: Vector2 = free_spot(cw + Vector2(85, 28), 45.0)
+	var crate: Vector2 = free_spot(cw + Vector2(56, 22), 38.0)
 	add_decor(crate + Vector2(0, -14), "crate", 16.0)
 	add_prop("task", "crate", "Crate", crate, "E   Look at the crate")
 

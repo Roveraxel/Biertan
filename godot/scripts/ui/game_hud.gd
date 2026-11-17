@@ -3,7 +3,7 @@
 ## scaled by height/720. Autoloaded as Hud.
 extends CanvasLayer
 
-const ITEMS := ["Begin the Hunt", "Continue", "Bestiary", "Settings", "Leave the Valley"]
+const ITEMS := ["Begin the Hunt", "Continue", "Bestiary", "Leave the Valley"]
 const TEXT := Color("e8e2d2")
 const MUTED := Color("9a9486")
 const AMBER := Color("ffb347")
@@ -35,6 +35,7 @@ var _fade: ColorRect
 var _fade_tw: Tween
 var _loading: Label
 var _soft: Texture2D
+var _moon: Texture2D
 var _grad: Texture2D
 var _menu_rects: Array[Rect2] = []
 
@@ -65,6 +66,7 @@ func _ready() -> void:
 	_loading.visible = false
 	top.add_child(_loading)
 	_soft = _soft_blob()
+	_moon = _blood_moon()
 	var g := Gradient.new()
 	g.colors = PackedColorArray([Color(0.02, 0.02, 0.03, 0.88), Color(0.02, 0.02, 0.03, 0)])
 	var gt := GradientTexture1D.new()
@@ -85,6 +87,30 @@ static func _soft_blob() -> Texture2D:
 			var a := 1.0 - r
 			a = a * a * (3.0 - 2.0 * a)
 			img.set_pixel(x, y, Color(1, 1, 1, a * a))
+	return ImageTexture.create_from_image(img)
+
+static func _blood_moon() -> Texture2D:
+	var n := 192
+	var img := Image.create(n, n, false, Image.FORMAT_RGBA8)
+	var fn := FastNoiseLite.new()
+	fn.seed = 1521
+	fn.frequency = 0.018
+	fn.fractal_octaves = 2
+	for y in n:
+		for x in n:
+			var p := Vector2((x + 0.5) / n * 2.0 - 1.0, (y + 0.5) / n * 2.0 - 1.0)
+			var r := p.length()
+			if r >= 1.0:
+				img.set_pixel(x, y, Color(0, 0, 0, 0))
+				continue
+			var edge := smoothstep(1.0, 0.93, r)
+			var limb := clampf(1.0 - r * r * 0.22, 0.78, 1.0)
+			var m := fn.get_noise_2d(float(x), float(y)) * 0.5 + 0.5
+			var maria := lerpf(0.87, 1.0, smoothstep(0.35, 0.68, m))
+			var shade := limb * maria
+			# luminous pale-rose / copper harvest moon, subtle enough to sit in the twilight sky
+			var col := Color(0.92 * shade, 0.72 * shade, 0.66 * shade, edge * 0.58)
+			img.set_pixel(x, y, col)
 	return ImageTexture.create_from_image(img)
 
 # ------------------------------------------------------------------ what the game calls
@@ -186,7 +212,7 @@ func _input(ev: InputEvent) -> void:
 			if G.ending_t > 4.0: G.leave_ending()
 
 func activate(i: int) -> void:
-	var enabled := has_save if i == 1 else i != 3
+	var enabled := has_save if i == 1 else true
 	if not enabled:
 		msg = "%s is not yet part of this tale." % ITEMS[i]; msg_t = 2.5
 		return
@@ -196,7 +222,7 @@ func activate(i: int) -> void:
 		2:
 			if has_node("/root/HudMap"): get_node("/root/HudMap").open_bestiary()
 			else: msg = "The bestiary is still being written."; msg_t = 2.5
-		4:
+		3:
 			if OS.has_feature("web"): msg = "Close the tab to leave the valley."; msg_t = 2.5
 			else: get_tree().quit()
 
@@ -278,45 +304,68 @@ func _draw_title() -> void:
 	var oy := (H - 810.0 * s) / 2.0   # letterbox when the window is taller than 16:9
 	box(Rect2(0, 0, W, H), Color(0.02, 0.02, 0.03))
 	var D := func(x: float, y: float, w: float, h: float) -> Rect2: return Rect2(x * s, oy + y * s, w * s, h * s)
-	# the photo fills the whole window (cropped), so a tall or wide window never shows a bare band
+	# the photo fills the whole window (cropped) with a slow breathing drift
 	var tp := photo("title_biertan")
 	var pa := tp.get_size().x / tp.get_size().y if tp else 16.0 / 9.0
-	if tp: image(tp, Rect2(0, 0, W, H))
+	var drift := 1.018 + 0.015 * sin(t * 0.14)
+	var cam_r := Rect2((1.0 - drift) * 0.5 * W, (1.0 - drift) * 0.5 * H, W * drift, H * drift)
+	if tp: image(tp, cam_r, true, Color(0.95, 0.92, 0.96))
 	# where the cropped photo actually lands, so the moon and lit windows stay on the photo in any window shape
-	var tw := W if W / H > pa else H * pa
-	var th := tw / pa; var tx := (W - tw) / 2.0; var ty := (H - th) / 2.0; var ps := tw / 1440.0
+	var tw := cam_r.size.x if W / H > pa else cam_r.size.y * pa
+	var th := tw / pa; var tx := cam_r.position.x + (cam_r.size.x - tw) / 2.0; var ty := cam_r.position.y + (cam_r.size.y - th) / 2.0; var ps := tw / 1440.0
 	var PV := func(x: float, y: float) -> Vector2: return Vector2(tx + x * ps, ty + y * ps)
-	# the blood moon over Biertan
-	soft(PV.call(1150, 150), 330 * ps, 330 * ps, Color(BLOOD.r, BLOOD.g, BLOOD.b, 0.35))
-	disc(PV.call(1150, 150), 84 * ps, Color(BLOOD.r, BLOOD.g, BLOOD.b, 0.9))
-	disc(PV.call(1124, 128), 16 * ps, Color(0, 0, 0, 0.12))
-	disc(PV.call(1172, 178), 12 * ps, Color(0, 0, 0, 0.12))
-	disc(PV.call(1180, 120), 7 * ps, Color(0, 0, 0, 0.12))
-	var flp := 0.55 + 0.25 * sin(t * 4.0)
-	for r in [Rect2(774, 640, 8, 20), Rect2(828, 640, 8, 20), Rect2(1240, 600, 6, 14), Rect2(1335, 470, 6, 10)]:
-		box(Rect2(PV.call(r.position.x, r.position.y), r.size * ps), Color(AMBER.r, AMBER.g, AMBER.b, flp))
+	# warm dusk rim behind the fortified church towers
+	soft(PV.call(1030, 520), 420 * ps, 260 * ps, Color(AMBER.r, AMBER.g * 0.55, BLOOD.b * 0.4, 0.14))
+	# luminous harvest/blood moon behind thin night clouds
+	var mc: Vector2 = PV.call(1150, 150)
+	soft(mc, 260 * ps, 260 * ps, Color(0.75, 0.35, 0.28, 0.18))
+	var mr := 50.0 * ps
+	cv.draw_texture_rect(_moon, Rect2(mc.x - mr, mc.y - mr, mr * 2.0, mr * 2.0), false)
+	# faint, diffused candlelight inside the tall nave lancet windows (no hard rectangles)
+	var flp := 0.14 + 0.04 * sin(t * 3.2)
+	for wp in [Vector2(778, 650), Vector2(832, 650)]:
+		soft(PV.call(wp.x, wp.y), 14 * ps, 28 * ps, Color(AMBER.r, AMBER.g * 0.8, AMBER.b * 0.5, flp))
 	# drifting mist
 	for m in 2:
 		var my := 520.0 if m == 0 else 600.0
 		var mx := 720.0 + sin(t * (0.16 if m == 0 else 0.12) + (0.0 if m == 0 else 1.7)) * 80.0
 		soft(PV.call(mx, my + 120.0), 820.0 * ps, 140.0 * ps, Color(0.59, 0.63, 0.69, 0.10))
-	cv.draw_texture_rect(_grad, Rect2(0, 0, 760 * s, H), false)
-	txt(D.call(96, 228, 900, 30), "Anno MDXXI · Siebenbürgen", 20 * s, MUTED.darkened(0.15))
-	txt(D.call(88, 250, 1000, 150), "Biertan", 132 * s, TEXT)
-	txt(D.call(96, 396, 900, 40), "A Hunter’s Ballad of Transylvania", 28 * s, MUTED)
+	# rising ember motes across the valley
+	for e in 14:
+		var seed_e := float(e) * 1.731
+		var phase := fmod(t * (0.045 + 0.015 * sin(seed_e * 3.1)) + seed_e * 0.29, 1.0)
+		var ex := fmod(seed_e * 0.37, 1.0) * W + sin(t * 0.9 + seed_e * 5.0) * 28.0 * s
+		var ey := H * (1.05 - phase * 1.1)
+		var ea := sin(phase * PI) * (0.35 + 0.25 * sin(t * 3.5 + seed_e))
+		var ec := AMBER if e % 3 != 0 else BLOOD.lightened(0.2)
+		soft(Vector2(ex, ey), 7.0 * s, 7.0 * s, Color(ec.r, ec.g, ec.b, ea * 0.45))
+		disc(Vector2(ex, ey), (1.6 if e % 2 == 0 else 1.1) * s, Color(ec.r, ec.g, ec.b, ea))
+	# atmospheric left & bottom vignette for readable typography
+	cv.draw_texture_rect(_grad, Rect2(0, 0, 820 * s, H), false)
+	box(Rect2(0, H - 90 * s, W, 90 * s), Color(0.02, 0.02, 0.03, 0.42))
+	txt(D.call(96, 224, 900, 30), "Anno MDXXI · Siebenbürgen", 20 * s, AMBER.lerp(MUTED, 0.45))
+	txt(D.call(88, 248, 1000, 150), "Biertan", 132 * s, TEXT)
+	txt(D.call(96, 394, 900, 40), "A Hunter’s Ballad of Transylvania", 28 * s, MUTED)
+	# hairline rule + crimson diamond ornament above the menu
+	var rule_y := oy + 442.0 * s
+	box(Rect2(96 * s, rule_y, 380 * s, maxf(1.0, 1.5 * s)), Color(AMBER.r, AMBER.g, AMBER.b, 0.32))
+	var oc := Vector2(96 * s, rule_y + 0.5 * s); var od := 4.5 * s
+	cv.draw_colored_polygon(PackedVector2Array([oc + Vector2(0, -od), oc + Vector2(od, 0), oc + Vector2(0, od), oc + Vector2(-od, 0)]), BLOOD)
 	_menu_rects.clear()
 	for i in ITEMS.size():
-		var r: Rect2 = D.call(88, 462 + i * 56, 520, 52)
+		var r: Rect2 = D.call(88, 466 + i * 58, 460, 50)
 		_menu_rects.append(r)
-		var enabled := has_save if i == 1 else i != 3
+		var enabled := has_save if i == 1 else true
 		var sel := i == menu_idx
 		var col := TEXT if sel else MUTED
 		if not enabled: col.a = 0.45
 		if sel:
-			var c := Vector2(r.position.x + 16 * s, r.position.y + r.size.y / 2.0)
+			box(Rect2(r.position.x, r.position.y + 4 * s, r.size.x, r.size.y - 8 * s), Color(BLOOD.r * 0.42, BLOOD.g * 0.15, BLOOD.b * 0.15, 0.32))
+			box(Rect2(r.position.x, r.position.y + 4 * s, 3.0 * s, r.size.y - 8 * s), BLOOD)
+			var c := Vector2(r.position.x + 20 * s, r.position.y + r.size.y / 2.0)
 			var d := 7.8 * s
 			cv.draw_colored_polygon(PackedVector2Array([c + Vector2(0, -d), c + Vector2(d, 0), c + Vector2(0, d), c + Vector2(-d, 0)]), BLOOD)
-		txt(Rect2(r.position.x + (40 + (6.0 if sel else 0.0)) * s, r.position.y + 6 * s, r.size.x, r.size.y), ITEMS[i], 32 * s, col)
+		txt(Rect2(r.position.x + (42 + (6.0 if sel else 0.0)) * s, r.position.y + 5 * s, r.size.x, r.size.y), ITEMS[i], 32 * s, col)
 	txt(D.call(96, 770, 900, 26), "Salt for the dead. Silver for what walks.", 18 * s, MUTED.darkened(0.3))
 	txt(D.call(644, 772, 700, 24), "WASD move · Mouse attack · Space dodge · E interact · Q tincture · T quest arrow", 15 * s, MUTED.darkened(0.35), UR)
 	if msg_t > 0.0: txt(D.call(96, 738, 900, 28), msg, 20 * s, Color(AMBER.r, AMBER.g, AMBER.b, minf(1.0, msg_t)))
@@ -426,7 +475,10 @@ func _draw_story() -> void:
 	var W := cv.size.x; var H := cv.size.y
 	box(Rect2(0, 0, W, H), Color(0.02, 0.02, 0.03))
 	if not G.STORIES.has(G.story_id): return
-	var card: Dictionary = G.STORIES[G.story_id]
+	var card: Dictionary = G.STORIES[G.story_id].duplicate()
+	var spoken: Array = Narration.LINES.get(G.story_id, [])
+	if not spoken.is_empty():
+		card.lore = spoken[0]
 	var s := minf(W / 1280.0, H / 720.0); var ox := (W - 1280.0 * s) / 2.0; var oy := (H - 720.0 * s) / 2.0
 	var D := func(x: float, y: float, w: float, h: float) -> Rect2: return Rect2(ox + x * s, oy + y * s, w * s, h * s)
 	var e := maxf(G.story_t, 0.0)
@@ -435,8 +487,10 @@ func _draw_story() -> void:
 	var again := Color(MUTED.r, MUTED.g, MUTED.b, 0.5 + 0.5 * sin(t * 3.0))
 	var panels: Array = card.get("panels", [])
 	if not panels.is_empty():
-		var pn: Dictionary = panels[mini(G.story_panel, panels.size() - 1)]
-		var pc := card.duplicate(); pc.lore = pn.text
+		var pi := mini(G.story_panel, panels.size() - 1)
+		var pn: Dictionary = panels[pi]
+		var pc := card.duplicate()
+		pc.lore = spoken[pi] if pi < spoken.size() else pn.text
 		pc.fact = "%d / %d" % [G.story_panel + 1, panels.size()]
 		var pa := _story_art(pn.art)
 		if pa:

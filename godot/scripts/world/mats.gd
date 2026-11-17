@@ -104,7 +104,7 @@ static func see_through(src: Material) -> Material:
 	return m
 
 # ---- the named surfaces of the Unity build ----
-static func ground() -> Material: return mat("px_meadow", 2.6, Color(1.0, 0.97, 0.88), 0.1) if px() else mat("grass_path_2", 5.0, Color(0.62, 0.66, 0.55))
+static func ground() -> Material: return mat("px_meadow", 2.6, Color(0.74, 0.72, 0.62), 0.1) if px() else mat("grass_path_2", 5.0, Color(0.62, 0.66, 0.55))
 static func cobble() -> Material: return mat("px_cobble", 1.4, Color(1.0, 0.94, 0.84), 0.4) if px() else mat("cobblestone_floor_08", 2.4, Color(0.78, 0.76, 0.72), 0.2)
 static func road() -> Material: return mat("forest_leaves_02", 3.0, Color(0.7, 0.62, 0.52))
 static func roof() -> Material: return mat("px_roof", 1.5, Color(1, 0.96, 0.94), 0.32) if px() else mat("clay_roof_tiles_02", 1.6, Color(0.85, 0.8, 0.78), 0.18)
@@ -128,10 +128,11 @@ static func shutter(p: Vector2) -> Color:
 	return SHUTTERS[absi(int(p.x * 0.13) * 7 + int(p.y * 0.11) * 3) % SHUTTERS.size()]
 
 static func ground_for(id: String, level: Node) -> Material:
-	if id == "stana" or is_village(id): return ground()
+	if id == "stana": return mat("grass_path_2", 4.5, Color(0.55, 0.68, 0.45))
+	if is_village(id): return ground()
 	if id in ["forest", "critforest", "crisforest", "richisforest", "ieleridge", "uriasi", "hills", "vineyard", "walls", "biertanfort"]: return mat("forest_leaves_02", 3.0, Color(0.6, 0.58, 0.52))
 	if id in ["arena", "hollow"]: return mat("forest_leaves_02", 3.0, Color(0.42, 0.44, 0.38))
-	if id in ["cellar", "crypt", "malcrypt", "tunnel"]: return mat("px_slab", 1.6, Color(0.62, 0.58, 0.54), 0.35)
+	if id in ["cellar", "crypt", "malcrypt", "tunnel"]: return mat("px_slab", 1.6, Color(0.84, 0.80, 0.76), 0.35)
 	if id in ["caves", "gorge"]: return mat("castle_wall_slates", 3.0, Color(0.36, 0.34, 0.32))
 	if id in ["church", "sacristy"]: return mat("cobblestone_floor_08", 1.6, Color(0.55, 0.53, 0.5), 0.3)
 	return plain(level.ground * 0.9) if level.tile == "" else ground()

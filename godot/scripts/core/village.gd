@@ -43,15 +43,13 @@ func graves_and_trees() -> void:
 
 func finish() -> void:
 	edge_walls()
-	plant_gardens(9001, garden_ok)
 
-## Streets wide enough for a cart are cobbled, the rest are dirt lanes; brooks run as paths too.
+## Streets wide enough for a cart are cobbled, the rest are dirt lanes.
 func lay_roads() -> void:
 	var roads := m.lines("roads")
 	for i in roads.size():
 		var w: float = m.road_width[i]
 		add_path(roads[i], w, Color.WHITE, -990, "Cobbles" if w >= 140.0 else "Path")
-	for s in m.lines("streams"): add_path(s, 50.0)
 
 ## Every surveyed house, shrunk until the street in front of it stays open (or left out if it never does).
 func add_houses(base_h: float, barn_h: float, no_overlap := false) -> void:
@@ -383,7 +381,7 @@ const GARDENS := [
 	[["kennel", 16], ["trough", 14], ["haycart", 22]],
 	[["well", 20], ["trough", 14], ["bench2", 10]],
 ]
-const GARDEN_LAYOUT := [Vector2(0, 0), Vector2(-58, 26), Vector2(56, 22), Vector2(0, -54)]
+const GARDEN_LAYOUT := [Vector2(0, 0), Vector2(-68, 30), Vector2(66, 26), Vector2(0, -64)]
 
 ## Autumn gardens and working yards behind the houses, after everything else has its place.
 func plant_gardens(seed_value: int, ok: Callable, limit := 80) -> int:
@@ -459,6 +457,7 @@ func compact() -> void:
 	for t in trees: t.p *= f
 	for d in decals: d.c *= f
 	for r in roads:
+		r.width = maxf(r.width * f, 44.0)
 		if not _done(done, r.pts):
 			for i in r.pts.size(): r.pts[i] *= f
 			done.append(r.pts)
@@ -499,6 +498,10 @@ func compact() -> void:
 			done.append(v)
 	_street_samples.clear()
 	_scale_statics(f)
+	for d in decors:
+		if is_instance_valid(d) and d.sprite_name in ["dog_sleep", "dog_bark", "laundry", "clothesline"] and near_road(d.pos, 32.0):
+			d.pos = free_spot(d.pos, 26.0)
+	plant_gardens(9001, garden_ok)
 
 static func _done(done: Array, a: Array) -> bool:
 	for d in done:

@@ -61,7 +61,7 @@ func build() -> void:
 	add_wall(Vector2(size.x + 20, size.y / 2.0), Vector2(40, size.y))
 	# the giant's toys: boulders stacked into little towers
 	for o in [Vector2(-700, -300), Vector2(650, -450), Vector2(-400, 520), Vector2(800, 380)]:
-		for k in 3: add_block(Rect2(MID.x + o.x - 40 + k * 6, MID.y + o.y - 40 - k * 70, 80, 70), "stone", 40.0 + k * 30.0)
+		for k in 3: add_decor(MID + o + Vector2(k * 18, -k * 52), "forest_boulder", 28.0 if k == 0 else 0.0, k % 2 == 1)
 	exit_prop = add_prop("task", "exit", "Down to Saschiz", Vector2(2200, 3480), "")
 	add_trigger(Rect2(1900, 3540, 600, 60), func(): if G.side_has("sx_giant"): quest.use(exit_prop))
 	add_torch(MID, 420.0, Color(0.75, 0.8, 1), 0.3)
@@ -83,8 +83,12 @@ func _process(dt: float) -> void:
 	for i in 3:
 		if not is_instance_valid(kids[i]): continue
 		if homecoming: continue
-		if freed[i]: kids[i].pos = kids[i].pos.move_toward(SAFE[i], 220.0 * dt)
-		else: kids[i].pos = giant.pos + Vector2(-40 + i * 40, -30)
+		if freed[i]:
+			if kids[i].label: kids[i].label.visible = true
+			kids[i].pos = kids[i].pos.move_toward(SAFE[i], 220.0 * dt)
+		else:
+			if kids[i].label: kids[i].label.visible = false
+			kids[i].pos = giant.pos + Vector2(-48 + i * 48, -28)
 
 func _freed(n: int) -> void:
 	var i := n - 1

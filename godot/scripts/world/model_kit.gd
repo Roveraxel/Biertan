@@ -116,11 +116,12 @@ static func place(level: Node3D, base: Transform3D, w: float, d: float, name: St
 	# shadows, and a plain box the size of its body casts the house's shadow instead
 	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	var caster := MeshInstance3D.new()
-	var bm := BoxMesh.new(); bm.size = Vector3(w * 0.9, height * 0.8, d * 0.9)
+	var ch := minf(height * 0.46, 3.4)
+	var bm := BoxMesh.new(); bm.size = Vector3(w * 0.82, ch, d * 0.82)
 	caster.mesh = bm
 	caster.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
 	level.add_child(caster)
-	caster.transform = base * Transform3D(Basis.IDENTITY, Vector3(0, height * 0.4, -d / 2.0))
+	caster.transform = base * Transform3D(Basis.IDENTITY, Vector3(0, ch * 0.5, -d / 2.0))
 	var g: AABB = node.global_transform * node.get_aabb()
 	level.cutaways.append({"node": node, "centre": g.get_center(), "half_w": g.size.x / 2.0, "half_d": g.size.z / 2.0,
 		"faded": false, "base": [roof_mat, wall_mat], "caster": caster})

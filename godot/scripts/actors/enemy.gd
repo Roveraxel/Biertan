@@ -616,6 +616,10 @@ func _process(dt: float) -> void:
 		set("slump", move_toward(get("slump"), 0.2 if get("done") else 0.0, dt * 0.12))
 		fig.sink = get("slump")
 	match kind:
+		"wolf", "pricolici":
+			fig.tint_mul = Color(1.45, 1.42, 1.38)
+		"spiridus", "spiridus_cap":
+			fig.tint_mul = Color(1.35, 1.32, 1.28)
 		"moroi":   # a buried moroi shows only its head above the earth, then shoves itself up out of the ground
 			if state == "dormant":
 				fig.sink = 0.82; _rise_t = 0.0

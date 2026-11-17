@@ -26,9 +26,9 @@ func build() -> void:
 		add_block(Rect2(x - 40, 420, 80, 80), "stone", 160.0)
 		add_block(Rect2(x - 40, 900, 80, 80), "stone", 160.0)
 		if i < 4:
-			add_block(Rect2(x + 110, 560, 160, 34), "pew", 26.0)
-			add_block(Rect2(x + 110, 806, 160, 34), "pew", 26.0)
-	for k in 4: add_decal(false, Vector2(126.0 + k * 14.0, 700), Vector2(14, 200), Color8(0x5a - k * 8, 0x52 - k * 8, 0x48 - k * 8), -988)
+			add_decor(Vector2(x + 190, 577), "sarcophagus", 28.0)
+			add_decor(Vector2(x + 190, 823), "sarcophagus", 28.0)
+	add_decor(Vector2(150, 700), "crypt_stairs")
 	add_decor(LOWER_STAIR, "crypt_stairs")
 	add_torch(Vector2(200, 620), 220.0, Color(0.85, 0.8, 0.7), 0.55)
 	add_torch(Vector2(1300, 700), 420.0, Color(1, 0.55, 0.28), 0.55)

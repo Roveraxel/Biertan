@@ -108,7 +108,7 @@ func _physics_process(dt: float) -> void:
 		var a := sin(now * 1.3) * 0.75 + sin(now * 3.1) * 0.25
 		if dir != Vector2.ZERO: dir = dir.rotated(a)
 		else: dir = Vector2(sin(now * 0.8), cos(now * 1.1)) * 0.18   # he can't stand still
-	if no_trousers and dir.length_squared() > 0.1:   # bare legs in the October cold: now and then he shivers
+	if no_trousers and G.current == "malancrav" and dir.length_squared() > 0.1:   # bare legs in the October cold: now and then he shivers
 		_step_t -= dt
 		if _step_t <= 0.0:
 			_step_t = randf_range(5.0, 9.0)
@@ -158,7 +158,7 @@ func _process(dt: float) -> void:
 
 ## The hunter loses his hat to a spiriduș in the smoke-cellar, and his trousers in Mălâncrav.
 func figure_name() -> String:
-	if G.side_has("ml_pantsless") and not G.side_has("ml_pants") and drunk_t <= 0.0: return "hunter_notrousers"
+	if G.current == "malancrav" and G.side_has("ml_pantsless") and not G.side_has("ml_pants") and drunk_t <= 0.0: return "hunter_notrousers"
 	return "hunter_nohat" if G.side_has("sig_hat_lost") and not G.side_has("sig_hat_back") else "hunter"
 
 ## The slash: a bright swoosh at waist height tracing the blade's real reach.

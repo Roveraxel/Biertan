@@ -4,7 +4,7 @@
 extends Level
 
 const CENTRE := Vector2(1000, 1350)
-const STONES := [Vector2(700, 1150), Vector2(1300, 1150), Vector2(1000, 1500), Vector2(620, 1600), Vector2(1380, 1600), Vector2(1000, 950)]
+const STONES := [Vector2(700, 1150), Vector2(1300, 1150), Vector2(780, 1480), Vector2(620, 1600), Vector2(1380, 1600), Vector2(1280, 940)]
 const LEDGE := Vector2(1560, 820)
 const COL := Color(0.8, 0.88, 1)
 
@@ -41,7 +41,7 @@ func build() -> void:
 	add_block(Rect2(-200, -200, 2200, 200), "hidden", 0.0)
 	add_block(Rect2(-200, 2400, 2200, 200), "hidden", 0.0)
 	add_block(Rect2(LEDGE.x - 90, LEDGE.y - 70, 190, 150), "rock", 60.0)   # the ledge he reads from
-	for c in STONES: add_block(Rect2(c.x - 26, c.y - 20, 52, 40), "stone", 95.0)
+	for c in STONES: add_decor(c, "ritual_stones", 28.0)
 	add_decor(Vector2(1380, 1280), "quarry_winch", 26.0)
 	add_decor(Vector2(360, 1450), "forest_boulder", 24.0)
 	add_decor(Vector2(1420, 740), "ritual_stones", 24.0)
