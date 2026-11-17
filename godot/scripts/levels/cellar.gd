@@ -36,10 +36,10 @@ func build() -> void:
 		for xi in 28:
 			var c := Rect2(xi * 100.0, yi * 100.0, 100, 100)
 			if not _open(c): add_block(c, "stone", 70.0)
-	add_block(Rect2(-200, -200, 3200, 200), "hidden", 0)
-	add_block(Rect2(-200, 1200, 3200, 200), "hidden", 0)
-	add_block(Rect2(-200, -200, 200, 1600), "hidden", 0)
-	add_block(Rect2(2800, -200, 200, 1600), "hidden", 0)
+	add_block(Rect2(-600, -600, 4000, 600), "stone", 70.0)
+	add_block(Rect2(-600, 1200, 4000, 600), "stone", 70.0)
+	add_block(Rect2(-600, -600, 600, 2400), "stone", 70.0)
+	add_block(Rect2(2800, -600, 600, 2400), "stone", 70.0)
 	for s in STORES: add_decor(Vector2(s[0], s[1]), s[2], 22.0, rng.f() < 0.5)
 	add_torch(Vector2(200, 560), 200.0, Color(1, 0.6, 0.3), 0.8)
 	add_torch(Vector2(680, 600), 260.0, Color(0.7, 0.75, 1), 0.35)   # cold store: a grey draught of daylight

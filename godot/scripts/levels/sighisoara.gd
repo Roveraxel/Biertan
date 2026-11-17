@@ -328,13 +328,17 @@ func _tutorial() -> void:
 	var wife: Vector2 = at.call(-100, -80)
 	add_prop("npc", "butcherwife", "Frau Gertrud", wife, "E   Speak with Frau Gertrud", Color("5a4a5a"))
 	# Mihai plays by the woodpile behind Gertrud's kitchen, a few steps from the tower
-	add_prop("npc", "child", "Mihai", free_spot(wife + Vector2(160, 90)), "E   Speak with Mihai", Color("6a5a40"))
+	var mihai_at := free_spot(wife + Vector2(180, -40), 75.0)
+	add_prop("npc", "child", "Mihai", mihai_at, "E   Speak with Mihai", Color("6a5a40"))
 	var hearth := free_spot(wife + Vector2(-60, -40))
 	add_decor(hearth + Vector2(0, -12), "hearth", 26.0)
 	add_prop("task", "hearth", "Hearth", hearth, "E   Look at the hearth")
 	add_torch(wife + Vector2(-60, -40), 160.0, Color(1, 0.55, 0.25), 0.6)
 	for c in [["flour", -97, -86, "flour"], ["grating", -107, -91, "grating"], ["hook", -91, -97, "hook_wall"]]:
 		var cp: Vector2 = at.call(c[1], c[2])
+		if c[0] == "hook":
+			var hw := wall_door(cp, 320.0, func(p): return inside(p, _citadel) and not near_wall(p, 55.0))
+			if hw != cp: cp = hw + Vector2(0, 14)
 		add_decor(cp + Vector2(0, -8), c[3])
 		add_prop("clue", c[0], "", cp, "E   Examine")
 	var smoke_at: Vector2 = at.call(-112, -114)
@@ -345,10 +349,10 @@ func _tutorial() -> void:
 	cellar_door = cw + Vector2(0, 16)
 	add_decor(cellar_door + Vector2(0, -8), "cellar_door")   # the way down, under the Butchers' Tower
 	add_prop("task", "cellar", "Cellar door", cellar_door, "E   Try the cellar door")
-	var gs: Vector2 = free_spot(cw + Vector2(-48, 12), 28.0)   # the guild's sign hangs beside the cellar door
+	var gs: Vector2 = cw + Vector2(48, 8)   # the guild's sign hangs beside the cellar door
 	add_decor(gs + Vector2(0, -10), "guild_sign")
 	add_prop("task", "sign", "Guild sign", gs + Vector2(0, 14), "E   Look at the guild sign")
-	var crate: Vector2 = free_spot(cw + Vector2(56, 22), 38.0)
+	var crate: Vector2 = free_spot(cw + Vector2(96, 26), 38.0)
 	add_decor(crate + Vector2(0, -14), "crate", 16.0)
 	add_prop("task", "crate", "Crate", crate, "E   Look at the crate")
 
