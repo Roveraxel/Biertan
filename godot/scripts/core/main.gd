@@ -210,10 +210,6 @@ func _place_camera(dt: float) -> void:
 ## Dash on Space, Shift and the right mouse button; keys also match by position, so a held modifier or a
 ## German/Romanian layout never blocks one.
 func _bind_keys() -> void:
-	for pair in [["cam_left", KEY_Z], ["cam_right", KEY_C]]:
-		if not InputMap.has_action(pair[0]): InputMap.add_action(pair[0])
-		var ek := InputEventKey.new(); ek.physical_keycode = pair[1]
-		InputMap.action_add_event(pair[0], ek)
 	var shift := InputEventKey.new(); shift.keycode = KEY_SHIFT
 	InputMap.action_add_event("dodge", shift)
 	var rmb := InputEventMouseButton.new(); rmb.button_index = MOUSE_BUTTON_RIGHT
@@ -227,9 +223,6 @@ func _bind_keys() -> void:
 
 
 func _unhandled_key_input(ev: InputEvent) -> void:
-	if ev is InputEventKey and ev.pressed and not ev.echo and G.state == G.State.PLAY:
-		if ev.physical_keycode == KEY_Z: yaw_goal = wrapf(yaw_goal - PI / 4.0, -PI, PI + 0.01)
-		elif ev.physical_keycode == KEY_C: yaw_goal = wrapf(yaw_goal + PI / 4.0, -PI, PI + 0.01)
 	if ev is InputEventKey and ev.pressed and not ev.echo and ev.keycode == KEY_F2:
 		folk_filter = not folk_filter
 		post_mat.set_shader_parameter("folk", 1.0 if folk_filter else 0.0)
