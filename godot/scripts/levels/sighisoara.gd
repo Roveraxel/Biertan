@@ -55,7 +55,7 @@ func build() -> void:
 	var door_ref := m.at(-116, -99)
 	var pw := _wall_point(door_ref)
 	var pdir := _wall_dir(pw)
-	pw += pdir * 140.0
+	pw += pdir * (340.0 if pdir.y < 0.0 else -340.0)   # up the wall to the north, where the road comes in
 	var pang := rad_to_deg(atan2(-pdir.y, pdir.x))
 	var postern := {"c": pw, "size": Vector2(GAP, 90.0), "angle": pang}
 	var cut := gates.duplicate(); cut.append(postern)
@@ -344,8 +344,9 @@ func _tutorial() -> void:
 	var smoke_at: Vector2 = at.call(-112, -114)
 	add_decor(smoke_at + Vector2(0, -6), "grating").smoke = true   # the cellar breathes out through the street
 	add_prop("clue", "smoke", "", smoke_at, "E   Examine")
-	var cd0 := free_spot(wife + Vector2(-30, 60), 45.0)
-	var cw := wall_door(cd0, 320.0, func(p): return inside(p, _citadel) and not near_wall(p, 75.0))
+	var cd0: Vector2 = at.call(-116, -99)
+	var cw := wall_door(cd0, 500.0)
+	if cw == cd0: cellar_head(cw)   # no house wall close by: a stone cellar head over the stair
 	cellar_door = cw + Vector2(0, 16)
 	add_decor(cellar_door + Vector2(0, -8), "cellar_door")   # the way down, under the Butchers' Tower
 	add_prop("task", "cellar", "Cellar door", cellar_door, "E   Try the cellar door")
