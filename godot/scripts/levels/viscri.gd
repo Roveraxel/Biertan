@@ -179,8 +179,8 @@ func _quest_things() -> void:
 	# the old barn on the church lane, where the hunter keeps watch
 	var barn := _free(Vector2(6670, 5830), 40.0)
 	barn_at = barn; goose_at = goose; lane_top = lane1
-	# the yard gate beside the barn, and the gate across the road out to Criț
-	if gap_gate(barn, 600.0) == null: WoodGate.make(self, _free(barn + Vector2(0, 160), 60.0), 170.0, 0.0, "Yard gate")
+	# the yard gate beside the barn
+	if gap_gate(barn, 260.0) == null: WoodGate.make(self, _free(barn + Vector2(0, 120), 60.0), 170.0, 0.0, "Yard gate")
 	add_decor(barn, "hay", 40.0)
 	add_decor(barn + Vector2(70, -20), "haycart", 55.0)
 	add_prop("task", "barn", "Old barn", barn + Vector2(0, 40), "E   Watch the barn")
@@ -199,7 +199,6 @@ func _quest_things() -> void:
 	# the road south to Criț
 	var road := _free(Vector2(7420, size.y - 260.0), 40.0)
 	road_prop = add_prop("task", "road", "Road to Criț", road, "E   Take the road south")
-	road_gate(road + Vector2(0, -260), "Village gate")
 	add_trigger(Rect2(road.x - 260.0, size.y - 70.0, 520, 70), func(): quest.use(road_prop))
 	# a few villagers' things along the street
 	for it in [[Vector2(12000, 4600), "barrel_rot"], [Vector2(11300, 5150), "firewood"], [Vector2(10100, 6300), "handcart"], [Vector2(9300, 6950), "trough"], [Vector2(8600, 7700), "well"], [Vector2(12600, 4150), "laundry"]]:
