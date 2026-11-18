@@ -78,7 +78,7 @@ func setup(_k: String) -> void:
 	smat = ShaderMaterial.new(); smat.shader = sh
 	smat.set_shader_parameter("tex", tex)
 	body.material_override = smat
-	body.rotation.x = -deg_to_rad(Fx.PITCH * 0.55)
+	body.rotation.x = -deg_to_rad(Fx.PITCH * 0.55); body.add_to_group("ybill")
 	add_child(body)
 	G.boss = self
 

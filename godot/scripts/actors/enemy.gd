@@ -128,7 +128,7 @@ func _make_figure() -> void:
 		var b := 22.0 if kind == "pricolici" else (15.0 if kind == "wolf" else 18.0)
 		if radius < b: radius = b
 	_bar = Node3D.new()
-	_bar.rotation.x = -deg_to_rad(Fx.PITCH)
+	_bar.rotation.x = -deg_to_rad(Fx.PITCH); _bar.add_to_group("ybill")
 	_bar.visible = false
 	add_child(_bar)
 	for i in 2:

@@ -9,7 +9,7 @@ var glow: Array[bool] = []
 var _tick := randi() % 12
 
 func _init() -> void:
-	rotation.x = -deg_to_rad(Fx.PITCH * 0.55)
+	rotation.x = -deg_to_rad(Fx.PITCH * 0.55); add_to_group("ybill")
 
 func part(shape: String, local: Vector2, sz: Vector2, color: Color, order := 0, unlit := false, parent: Node3D = null) -> Sprite3D:
 	var s := Sprite3D.new()

@@ -66,6 +66,7 @@ func reset_stats() -> void:
 
 func _move_input() -> Vector2:
 	var v := Vector2(Input.get_axis("move_left", "move_right"), Input.get_axis("move_up", "move_down"))
+	v = v.rotated(-Fx.yaw)
 	return v.normalized() if v.length_squared() > 1.0 else v
 
 func mouse_world() -> Vector2:

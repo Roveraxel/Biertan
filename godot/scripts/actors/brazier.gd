@@ -34,7 +34,7 @@ func setup(at: Vector2, start_lit: bool) -> void:
 	sprite.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 	sprite.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
 	sprite.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	sprite.rotation.x = -deg_to_rad(Fx.PITCH * 0.55)
+	sprite.rotation.x = -deg_to_rad(Fx.PITCH * 0.55); sprite.add_to_group("ybill")
 	add_child(sprite)
 	var sh := MeshInstance3D.new()
 	var pm := PlaneMesh.new()

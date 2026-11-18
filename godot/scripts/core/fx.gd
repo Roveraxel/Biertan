@@ -8,6 +8,7 @@ const PITCH := 52.0      # camera pitch, degrees
 const AMBER := Color("ffb347")
 
 var cam: Camera3D
+var yaw := 0.0            # camera turn around the hunter (Q/E), radians
 var lights: Array[OmniLight3D] = []
 var ambient_k := 1.0
 var ambient_tint := Color.WHITE

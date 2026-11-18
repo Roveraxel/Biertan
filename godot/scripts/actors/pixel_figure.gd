@@ -38,8 +38,9 @@ var model: Node3D              # a 3D model standing in for the sprite (res://mo
 var _anim: AnimationPlayer
 var _meshes: Array = []
 var _model_name := ""
+var _mat: StandardMaterial3D
 var _model_scale := 1.0
-const MODEL_TONE := 0.42        # cloth brightness of the models under the world's light
+const MODEL_TONE := 0.8        # cloth brightness of the models under the world's light
 const MODEL_HEIGHT := 1.72      # metres: how tall the models are built (hat included)
 static var _model_scenes := {}
 
@@ -117,7 +118,7 @@ static func make(names, h: float) -> PixelFigure:
 
 func _build() -> void:
 	board = Node3D.new()
-	board.rotation.x = -deg_to_rad(Fx.PITCH * 0.55)   # stands up, leaning back toward the camera
+	board.rotation.x = -deg_to_rad(Fx.PITCH * 0.55); board.add_to_group("ybill")   # stands up, leaning back toward the camera
 	add_child(board)
 	sprite = Sprite3D.new()
 	sprite.shaded = false
@@ -168,16 +169,13 @@ func _use_model(char_name: String) -> void:
 	for a in ["idle", "walk"]:
 		if _anim and _anim.has_animation(a): _anim.get_animation(a).loop_mode = Animation.LOOP_LINEAR
 	_meshes = model.find_children("*", "MeshInstance3D", true, false)
-	for m: MeshInstance3D in _meshes:   # the world's light is strong: tone the cloth down so the figure sits with the drawn ones
-		for i in m.mesh.get_surface_count():
-			var sm := m.mesh.surface_get_material(i)
-			if sm is StandardMaterial3D:
-				var d: StandardMaterial3D = sm.duplicate()
-				d.albedo_color = d.albedo_color * Color(MODEL_TONE, MODEL_TONE, MODEL_TONE, 1.0)
-				d.roughness = 1.0; d.metallic_specular = 0.0
-				m.set_surface_override_material(i, d)
+	_mat = StandardMaterial3D.new()   # unlit, vertex colours, tinted by the level's light like the drawn figures
+	_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_mat.vertex_color_use_as_albedo = true
+	for m: MeshInstance3D in _meshes: m.material_override = _mat
 
 func _tick_model(state: String, vel: Vector2, facing: Vector2, dt: float) -> void:
+	vel = vel.rotated(Fx.yaw); facing = facing.rotated(Fx.yaw)
 	var speed := vel.length() * Fx.S
 	var look := vel if speed >= 0.3 else facing
 	if look.length_squared() > 0.0001:
@@ -197,8 +195,10 @@ func _tick_model(state: String, vel: Vector2, facing: Vector2, dt: float) -> voi
 	_tick += 1
 	if _tick % 6 == 0 or _tint == Color.WHITE:
 		_tint = Fx.light_at(global_position) if lit else Color.WHITE
-	for m: MeshInstance3D in _meshes:
-		m.transparency = clampf(1.0 - alpha * tint_mul.a, 0.0, 1.0)
+	if _mat:
+		var tc := _tint * Color(tint_mul.r, tint_mul.g, tint_mul.b, 1.0)
+		_mat.albedo_color = Color(tc.r, tc.g, tc.b, alpha * tint_mul.a)
+		_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA if alpha * tint_mul.a < 0.99 else BaseMaterial3D.TRANSPARENCY_DISABLED
 	shadow.visible = alpha > 0.1
 
 func has_clip(anim: String) -> bool:

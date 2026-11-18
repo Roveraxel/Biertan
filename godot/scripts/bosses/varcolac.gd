@@ -46,7 +46,7 @@ func setup(_k: String) -> void:
 	sprite.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 	sprite.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
 	sprite.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	sprite.rotation.x = -deg_to_rad(Fx.PITCH * 0.55)
+	sprite.rotation.x = -deg_to_rad(Fx.PITCH * 0.55); sprite.add_to_group("ybill")
 	add_child(sprite)
 	if fig: sprite.visible = false   # the drawn, walking figure takes over from the still picture
 	G.boss = self

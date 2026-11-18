@@ -128,6 +128,9 @@ func _ready() -> void:
 		if JavaScriptBridge.eval("window.location.search.indexOf('fast') >= 0"): G.instant = true
 	var at = null
 	if OS.has_feature("web"):
+		var yq = JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('yaw') || '0'")
+		Fx.yaw = deg_to_rad(float(str(yq)))
+	if OS.has_feature("web"):
 		var a = JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('at') || ''")
 		if a is String and a.contains(","): at = Vector2(float(a.get_slice(",", 0)), float(a.get_slice(",", 1)))
 		var fl = JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('flags') || ''")   # ?flags=a,b sets story flags
@@ -181,6 +184,7 @@ func snap_camera() -> void:
 
 func _process(dt: float) -> void:
 	player.visible = G.state != G.State.TITLE and is_instance_valid(G.level)
+	_apply_yaw()
 	_place_camera(dt)
 
 func _place_camera(dt: float) -> void:
@@ -189,11 +193,13 @@ func _place_camera(dt: float) -> void:
 		cam_target = cam_target.lerp(G.cam_look.global_position, 1.0 - exp(-dt * 2.5))
 	else:
 		cam_target = target if cam_target.distance_to(target) > 20.0 else cam_target.lerp(target, 1.0 - exp(-dt * 6.0))
-	var rot := Vector3(-deg_to_rad(Fx.PITCH), 0, 0)
+	var turn := Input.get_axis("cam_left", "cam_right")
+	Fx.yaw = wrapf(Fx.yaw + turn * dt * 1.8, -PI, PI)
+	var rot := Vector3(-deg_to_rad(Fx.PITCH), Fx.yaw, 0)
 	# drunk: the whole world sways and rolls, slowly, like the deck of a boat
 	if player.drunk_t > 0.0:
 		var tt := Time.get_ticks_msec() / 1000.0; var k := clampf(player.drunk_t / 2.0, 0.0, 1.0)
-		rot = Vector3(-deg_to_rad(Fx.PITCH + sin(tt * 0.9) * 3.0 * k), deg_to_rad(sin(tt * 0.53) * 6.0 * k), deg_to_rad(sin(tt * 0.71) * 7.0 * k))
+		rot = Vector3(-deg_to_rad(Fx.PITCH + sin(tt * 0.9) * 3.0 * k), Fx.yaw + deg_to_rad(sin(tt * 0.53) * 6.0 * k), deg_to_rad(sin(tt * 0.71) * 7.0 * k))
 	var basis := Basis.from_euler(rot)
 	# a jolt on heavy blows that dies away within a quarter second
 	var jolt := Vector3(randf_range(-1, 1), randf_range(-1, 1), 0) * Fx.shake_amt
@@ -203,6 +209,10 @@ func _place_camera(dt: float) -> void:
 ## Dash on Space, Shift and the right mouse button; keys also match by position, so a held modifier or a
 ## German/Romanian layout never blocks one.
 func _bind_keys() -> void:
+	for pair in [["cam_left", KEY_Z], ["cam_right", KEY_C]]:
+		if not InputMap.has_action(pair[0]): InputMap.add_action(pair[0])
+		var ek := InputEventKey.new(); ek.physical_keycode = pair[1]
+		InputMap.action_add_event(pair[0], ek)
 	var shift := InputEventKey.new(); shift.keycode = KEY_SHIFT
 	InputMap.action_add_event("dodge", shift)
 	var rmb := InputEventMouseButton.new(); rmb.button_index = MOUSE_BUTTON_RIGHT
@@ -220,3 +230,11 @@ func _unhandled_key_input(ev: InputEvent) -> void:
 		folk_filter = not folk_filter
 		post_mat.set_shader_parameter("folk", 1.0 if folk_filter else 0.0)
 		Hud.toast("Illustration look on  (F2)" if folk_filter else "Illustration look off  (F2)")
+
+var _yaw_applied := 0.0
+## Standing sprites turn with the camera, so they always face it.
+func _apply_yaw() -> void:
+	if Fx.yaw == 0.0 and _yaw_applied == 0.0: return
+	for n in get_tree().get_nodes_in_group("ybill"):
+		if n is Node3D: n.rotation.y = Fx.yaw
+	_yaw_applied = Fx.yaw
