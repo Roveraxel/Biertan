@@ -67,6 +67,7 @@ var folk_filter := false   # the illustration filter test: off (it muddied the g
 var moon: DirectionalLight3D
 var cam: Camera3D
 var cam_target := Vector3.ZERO
+var yaw_goal := 0.0   # the view turns in quarter-eighths of a circle (Z / C), like Don't Starve
 var player: Player
 
 func _ready() -> void:
@@ -129,7 +130,7 @@ func _ready() -> void:
 	var at = null
 	if OS.has_feature("web"):
 		var yq = JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('yaw') || '0'")
-		Fx.yaw = deg_to_rad(float(str(yq)))
+		Fx.yaw = deg_to_rad(float(str(yq))); yaw_goal = Fx.yaw
 	if OS.has_feature("web"):
 		var a = JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('at') || ''")
 		if a is String and a.contains(","): at = Vector2(float(a.get_slice(",", 0)), float(a.get_slice(",", 1)))
@@ -193,8 +194,8 @@ func _place_camera(dt: float) -> void:
 		cam_target = cam_target.lerp(G.cam_look.global_position, 1.0 - exp(-dt * 2.5))
 	else:
 		cam_target = target if cam_target.distance_to(target) > 20.0 else cam_target.lerp(target, 1.0 - exp(-dt * 6.0))
-	var turn := Input.get_axis("cam_left", "cam_right")
-	Fx.yaw = wrapf(Fx.yaw + turn * dt * 1.8, -PI, PI)
+	Fx.yaw = lerp_angle(Fx.yaw, yaw_goal, 1.0 - exp(-dt * 9.0))
+	if absf(angle_difference(Fx.yaw, yaw_goal)) < 0.002: Fx.yaw = yaw_goal
 	var rot := Vector3(-deg_to_rad(Fx.PITCH), Fx.yaw, 0)
 	# drunk: the whole world sways and rolls, slowly, like the deck of a boat
 	if player.drunk_t > 0.0:
@@ -226,6 +227,9 @@ func _bind_keys() -> void:
 
 
 func _unhandled_key_input(ev: InputEvent) -> void:
+	if ev is InputEventKey and ev.pressed and not ev.echo and G.state == G.State.PLAY:
+		if ev.physical_keycode == KEY_Z: yaw_goal = wrapf(yaw_goal - PI / 4.0, -PI, PI + 0.01)
+		elif ev.physical_keycode == KEY_C: yaw_goal = wrapf(yaw_goal + PI / 4.0, -PI, PI + 0.01)
 	if ev is InputEventKey and ev.pressed and not ev.echo and ev.keycode == KEY_F2:
 		folk_filter = not folk_filter
 		post_mat.set_shader_parameter("folk", 1.0 if folk_filter else 0.0)
