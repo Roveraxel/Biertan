@@ -1,4 +1,4 @@
-# Builds the hunter as a low-poly rigged 3D model with idle/walk/attack/hurt animations and exports models/figures/hunter.glb
+# Builds the hunter as a low-poly rigged 3D model with idle/walk/attack/hurt animations and exports models/pilot/hunter.glb
 # usage: python3 tools/make_hunter.py   (needs the bpy module)
 import bpy, bmesh, math, sys
 from mathutils import Vector, Euler
@@ -95,7 +95,7 @@ pose("walk", [(1, step(1,1)), (7, step(0,0)), (13, step(-1,1)), (19, step(0,0)),
 pose("attack", [(1, {"uarm.R": (-20,0,0), "spine": (0,-10,0)}), (6, {"uarm.R": (-150,0,10), "farm.R": (-30,0,0), "spine": (0,-25,0)}), (12, {"uarm.R": (-40,0,-20), "farm.R": (0,0,0), "spine": (0,35,0)}), (20, {"uarm.R": (-10,0,0), "spine": (0,0,0)})])
 pose("hurt", [(1, {}), (4, {"spine": (-25,0,0), "head": (-15,0,0), "uarm.L": (-40,0,0), "uarm.R": (-40,0,0), "hips_loc": (0,0.1,0)}), (14, {})])
 pose("die", [(1, {}), (14, {"hips_loc": (0,0,-0.78), "spine": (-80,0,0), "thigh.L": (-60,0,0), "thigh.R": (-30,0,0), "shin.L": (70,0,0), "shin.R": (40,0,0)}), (22, {"hips_loc": (0,0,-0.78), "spine": (-80,0,0), "thigh.L": (-60,0,0), "thigh.R": (-30,0,0), "shin.L": (70,0,0), "shin.R": (40,0,0)})])
-out = sys.argv[-1] if sys.argv[-1].endswith(".glb") else "/home/claude/bg/models/figures/hunter.glb"
+out = sys.argv[-1] if sys.argv[-1].endswith(".glb") else "/home/claude/bg/models/pilot/hunter.glb"
 bpy.ops.object.select_all(action="SELECT")
 bpy.ops.export_scene.gltf(filepath=out, export_format="GLB", export_animations=True, export_animation_mode="NLA_TRACKS", export_apply=False, export_yup=True)
 print("exported", out)
