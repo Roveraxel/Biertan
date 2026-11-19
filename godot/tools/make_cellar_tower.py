@@ -1,4 +1,4 @@
-"""The cellar tower: a stout stone tower-house with the cellar's arched doorway and plank doors built in.
+"""The cellar tower: a stout stone tower-house (the cellar's hatch is a separate model, cellar_hatch).
 python3 tools/make_cellar_tower.py <outdir>.  Objects named wood_* become the timber surface in the game."""
 import bpy, bmesh, sys, math
 OUT = sys.argv[-1]
@@ -31,19 +31,7 @@ ov = 0.55; rise = 3.0; ze = H
 hull(st, [(x0 - ov, y0 - ov, ze - 0.25), (x1 + ov, y0 - ov, ze - 0.25), (x1 + ov, y1 + ov, ze - 0.25), (x0 - ov, y1 + ov, ze - 0.25),
           (x0 - ov, y0 - ov, ze - 0.45), (x1 + ov, y0 - ov, ze - 0.45), (x1 + ov, y1 + ov, ze - 0.45), (x0 - ov, y1 + ov, ze - 0.45),
           (-0.15, -0.15, ze + rise), (0.15, 0.15, ze + rise), (-0.15, 0.15, ze + rise), (0.15, -0.15, ze + rise)])
-# arched doorway surround on the front: heavy stone jambs and a voussoir ring
-dw, dh, pro, bar = 1.7, 2.25, 0.3, 0.38
-box(st, -dw / 2 - bar, -dw / 2, y0 - pro, y0 + 0.02, 0, dh)
-box(st, dw / 2, dw / 2 + bar, y0 - pro, y0 + 0.02, 0, dh)
-n = 9; r = dw / 2
-for i in range(n):
-    a0 = math.pi * i / n; a1 = math.pi * (i + 1) / n; pts = []
-    for rad in (r, r + bar):
-        for a in (a0, a1):
-            for y in (y0 - pro, y0 + 0.02): pts.append((-math.cos(a) * rad, y, dh + math.sin(a) * rad))
-    hull(st, pts)
-# a stone hood over it, and arrow slits
-box(st, -dw / 2 - bar - 0.25, dw / 2 + bar + 0.25, y0 - pro - 0.12, y0 + 0.02, dh + r + bar + 0.02, dh + r + bar + 0.26)
+# arrow slits
 for (cx, cz) in ((-1.7, 3.6), (1.7, 3.6), (0.0, 3.6)):
     box(st, cx - 0.09, cx + 0.09, y0 - 0.1, y0 + 0.02, cz - 0.4, cz + 0.4)
     box(st, cx - 0.2, cx + 0.2, y0 - 0.06, y0 + 0.02, cz + 0.4, cz + 0.5)
@@ -55,25 +43,6 @@ for sx in (x0, x1):                                                      # slits
 for sx in (x0, x1 - 0.4):
     box(st, sx - 0.1, sx + 0.5, y0 - 0.28, y0 + 0.02, 0, 1.7)
 obj(st, "cellar_tower")
-# the doors, in timber: two plank leaves under an arched head, iron-strapped, set a hand proud of the wall
-wd = new()
-y_in, y_out = y0 - 0.08, y0 + 0.01
-for sgn in (-1, 1):
-    xa = 0.02 if sgn > 0 else -dw / 2
-    xb = dw / 2 if sgn > 0 else -0.02
-    box(wd, xa, xb, y_in, y_out, 0.0, dh)
-n = 14
-for i in range(n):          # the arched head of the leaves
-    a0 = math.pi * i / n; a1 = math.pi * (i + 1) / n
-    hull(wd, [(-math.cos(a0) * r, y_in, dh + math.sin(a0) * r), (-math.cos(a1) * r, y_in, dh + math.sin(a1) * r),
-              (-math.cos(a0) * r, y_out, dh + math.sin(a0) * r), (-math.cos(a1) * r, y_out, dh + math.sin(a1) * r),
-              (-math.cos(a0) * r * 0.0, y_in, dh), (0.0, y_out, dh)])
-for z in (0.5, 1.15, 1.8):  # iron straps (proud of the planks)
-    box(wd, -dw / 2 + 0.03, dw / 2 - 0.03, y_in - 0.035, y_in, z, z + 0.11)
-box(wd, -0.07, 0.07, y_in - 0.05, y_in, 0.0, dh + 0.1)                   # the meeting stile
-for sx in (-0.3, 0.3): box(wd, sx - 0.05, sx + 0.05, y_in - 0.07, y_in, 0.95, 1.2)   # ring handles
-box(wd, -dw / 2 - bar, dw / 2 + bar, y0 - pro - 0.06, y0 - pro + 0.0, 0.0, 0.0001) if False else None
-obj(wd, "wood_door")
 bpy.ops.object.select_all(action="SELECT")
 bpy.ops.export_scene.gltf(filepath=f"{OUT}/cellar_tower.glb", export_format="GLB", use_selection=True, export_yup=True, export_apply=True, export_materials="NONE")
 print("built cellar_tower")
