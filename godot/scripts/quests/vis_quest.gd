@@ -269,6 +269,7 @@ func use(p: Prop) -> void:
 		return
 	match p.id:
 		"barn":
+			if G.level.get("watching") == true: return
 			if not ready_to_watch(): G.start_dialogue("Old barn", ["An old barn on the church lane, its doors hanging. The hay inside is dry and deep."])
 			elif has("vis_key"): G.start_dialogue("Old barn", ["Your hollow is still pressed into the hay."])
 			else:

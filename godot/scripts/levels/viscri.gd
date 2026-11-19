@@ -229,12 +229,24 @@ func _fort_life() -> void:
 
 ## The night watch from the barn, played out: the hooded sexton comes down the lane with his sack, feeds the
 ## dogs yard by yard, the geese scream, he drops his key and hurries back up to the churchyard.
+var watching := false
+
 func watch_barn(done: Callable) -> void:
+	if watching: return   # a second E press must not start the scene again
+	watching = true
 	var pl: Player = G.player
 	pl.frozen = true
+	pl.visible = false   # he is down in the hay: only his eyes show
+	var peep := add_decor(barn_at + Vector2(0, 18), "hay_eyes", 0.0)
+	# the village is asleep behind its shutters: nobody is out to see the sexton, or to talk to the hunter
+	var away: Array = []
+	for p in props:
+		if is_instance_valid(p) and p.kind == "npc" and p.visible:
+			p.visible = false; p.remove_from_group("interact"); away.append(p)
 	pl.pos = barn_at + Vector2(0, 10)
 	var old_dusk := G.dusk
-	G.dusk = 0.97
+	G.dusk = 0.85
+	WorldBuilder.apply_darkness(self)
 	var start := _free(Vector2(7700, 6700) + Vector2(380, 260), 30.0)
 	var s := add_prop("npc", "watchsexton", "", start, "", Color("3a3430"))
 	s.remove_from_group("interact")
@@ -258,7 +270,13 @@ func watch_barn(done: Callable) -> void:
 		await _walk_to(s, lane_top, 210.0)
 		remove_prop(s)
 	G.cam_look = null
+	for p in away:
+		if is_instance_valid(p): p.visible = true; p.add_to_group("interact")
+	if is_instance_valid(peep): peep.queue_free()
+	pl.visible = true
+	watching = false
 	G.dusk = old_dusk
+	WorldBuilder.apply_darkness(self)
 	pl.frozen = false
 	done.call()
 
