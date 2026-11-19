@@ -255,13 +255,13 @@ func cellar_tower(near: Vector2, reach := 700.0, ok := Callable()) -> Vector2:
 			var a := TAU * i / float(n)
 			var p := near + Vector2(cos(a), sin(a)) * r
 			if ok.is_valid() and not ok.call(p): continue
-			if not is_free(p, size * 0.5 + 40.0) or not is_free(p + Vector2(0, 190), 90.0): continue
+			if not is_free(p, size * 0.5 + 40.0) or not is_free(p + Vector2(0, 220), 130.0): continue
 			best = p
 			break
 		r += 50.0
 	if best == Vector2.INF: best = near
 	add_block(Rect2(best - Vector2(size, size) * 0.5, Vector2(size, size)), "cellartower", 64.0)
-	var hb := add_block(Rect2(best + Vector2(-70, size * 0.5 + 12), Vector2(140, 120)), "cellarhatch", 28.0)
+	var hb := add_block(Rect2(best + Vector2(-100, size * 0.5 + 12), Vector2(200, 170)), "cellarhatch", 28.0)
 	return hb.c + Vector2(0, 26)
 
 ## Where no house stands close enough: a low stone cellar head built over the stair, its door facing the camera.

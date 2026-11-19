@@ -135,7 +135,7 @@ static func place(level: Node3D, base: Transform3D, w: float, d: float, name: St
 	node.set_surface_override_material(1, wall_mat)
 	var bases: Array = [roof_mat, wall_mat]
 	if s.mesh.get_surface_count() > 2:
-		var wood_mat := Mats.mat("px_planks", 1.1, Color(0.66, 0.52, 0.4), 0.04)
+		var wood_mat := Mats.mat("px_planks", 1.1, Color(1.0, 0.8, 0.6), 0.04)
 		node.set_surface_override_material(2, wood_mat)
 		bases.append(wood_mat)
 	level.add_child(node)

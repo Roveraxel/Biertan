@@ -263,11 +263,12 @@ static func _modelled(b: Dictionary, base: Transform3D, w: float, d: float, h: f
 			return true
 		"cellartower":   # a stout stone tower with the cellar's arched double doors built into its front
 			if not ModelKit.exists("cellar_tower"): return false
-			ModelKit.place(L, base, w, d, "cellar_tower", Mats.roof_at(p), Mats.stone(), maxf(h * 1.35, 7.0))
+			ModelKit.place(L, base, w, d, "cellar_tower", Mats.roof_at(p), Mats.mat("px_stone", 1.5, Color(1.3, 1.27, 1.23), 0.25), maxf(h * 1.35, 7.0))
 			return true
 		"cellarhatch":   # the cellar's way down: a stone-framed hatch with sloped plank doors, in front of its tower
 			if not ModelKit.exists("cellar_hatch"): return false
-			ModelKit.place(L, base, w, d, "cellar_hatch", Mats.stone(), Mats.stone(), 1.25)
+			var lit := Mats.mat("px_stone", 1.5, Color(1.35, 1.32, 1.28), 0.25)
+			ModelKit.place(L, base, w, d, "cellar_hatch", lit, lit, 1.7)
 			return true
 		"clocktower":
 			if not ModelKit.exists("clocktower"): return false
