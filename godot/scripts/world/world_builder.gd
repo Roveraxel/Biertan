@@ -40,6 +40,7 @@ static func build(level: Level) -> void:
 	_gates()
 	for cw in L.covered: _covered_way(cw)
 	_trees()
+	_meadow()
 	_wilds()
 
 static func _cut(node: MeshInstance3D) -> void:
@@ -720,3 +721,63 @@ static func _wilds() -> void:
 	var _t0 := Time.get_ticks_msec()
 	for k in chunks: chunks[k].commit(root, "Wilds")
 	if OS.has_environment("PROF"): print("wilds commit ms ", Time.get_ticks_msec() - _t0, " chunks ", chunks.size())
+
+
+## Grass tufts and wildflowers scattered over open ground, kept off roads, buildings and trees (a coarse grid of
+## occupied cells is marked first, so this stays cheap).
+static func _meadow() -> void:
+	if not (Mats.is_village(L.id) or L.id in ["stana", "vineyard", "hills", "ieleridge", "biertanfort"]): return
+	var cell := 0.95
+	var map_m := L.size * S
+	var nx := int(map_m.x / cell) + 1; var nz := int(map_m.y / cell) + 1
+	var taken := PackedByteArray(); taken.resize(nx * nz)
+	var mark := func(cx: float, cz: float, r: float) -> void:   # metres
+		for i in range(maxi(0, int((cx - r) / cell)), mini(nx, int((cx + r) / cell) + 1)):
+			for j in range(maxi(0, int((cz - r) / cell)), mini(nz, int((cz + r) / cell) + 1)):
+				taken[i * nz + j] = 1
+	for b in L.blocks:
+		var rad := (maxf(b.size.x, b.size.y) * 0.5 + 18.0) * S
+		mark.call(b.c.x * S, b.c.y * S - b.size.y * S * 0.5, rad)
+	for t in L.trees: mark.call(t.p.x * S, t.p.y * S, 9.0 * t.sc * S)
+	for r in L.cobbles: mark.call(r.get_center().x * S, r.get_center().y * S, (maxf(r.size.x, r.size.y) * 0.5 + 10.0) * S)
+	for road in L.roads:
+		var pts: Array = road.pts
+		for i in pts.size() - 1:
+			var a: Vector2 = pts[i]; var c: Vector2 = pts[i + 1]
+			var n := maxi(1, int(a.distance_to(c) * S / (cell * 0.6)))
+			for k in n + 1:
+				var q: Vector2 = a.lerp(c, k / float(n))
+				mark.call(q.x * S, q.y * S, road.width * 0.5 * S + 0.5)
+	for d in L.decors:
+		if is_instance_valid(d): mark.call(d.pos.x * S, d.pos.y * S, maxf(d.radius, 14.0) * S + 0.3)
+	for pr in L.props:
+		if is_instance_valid(pr): mark.call(pr.pos.x * S, pr.pos.y * S, 0.9)
+	var greens := [Color(0.2, 0.36, 0.13), Color(0.27, 0.45, 0.16), Color(0.36, 0.5, 0.2), Color(0.45, 0.5, 0.24)]
+	var flowers := [Color(0.95, 0.94, 0.86), Color(0.96, 0.8, 0.2), Color(0.62, 0.42, 0.78), Color(0.9, 0.35, 0.3), Color(0.55, 0.65, 0.95)]
+	var rnd := NetRandom.new(hash(L.id + "meadow") & 0x7fffffff)
+	var chunks := {}
+	for i in nx:
+		for j in nz:
+			if taken[i * nz + j] != 0: continue
+			if rnd.f() < 0.1: continue
+			var at := Vector3((i + rnd.f()) * cell, 0.0, -(j + rnd.f()) * cell)
+			var bt := _chunk(chunks, at)
+			bt.xf = Transform3D(Basis(), at)
+			var gc: Color = greens[int(rnd.f() * greens.size()) % greens.size()]
+			var m := bt.mb(Mats.plain(gc, 0.0))
+			var blades := 7 + int(rnd.f() * 6.0)
+			for k in blades:
+				var ang := rnd.f() * TAU
+				var dir := Vector3(cos(ang), 0, sin(ang))
+				var side := Vector3(-dir.z, 0, dir.x) * 0.05
+				var base := dir * (0.05 + rnd.f() * 0.22)
+				var h := 0.26 + rnd.f() * 0.26
+				var tip := base + dir * (0.05 + rnd.f() * 0.08) + Vector3(0, h, 0)
+				m.tri(base - side, base + side, tip)
+				m.tri(base + side, base - side, tip)
+			if rnd.f() < 0.22:
+				var fc: Color = flowers[int(rnd.f() * flowers.size()) % flowers.size()]
+				var fp := Vector3((rnd.f() - 0.5) * 0.4, 0, (rnd.f() - 0.5) * 0.4)
+				bt.mb(Mats.plain(Color(0.25, 0.42, 0.15), 0.0)).box(fp + Vector3(-0.008, 0, -0.008), fp + Vector3(0.008, 0.2, 0.008), false)
+				bt.mb(Mats.plain(fc, 0.0)).box(fp + Vector3(-0.07, 0.2, -0.07), fp + Vector3(0.07, 0.28, 0.07), true)
+	for k in chunks: chunks[k].commit(root, "Meadow", false)
