@@ -258,6 +258,7 @@ static func _modelled(b: Dictionary, base: Transform3D, w: float, d: float, h: f
 			return true
 		"house":
 			var roof_h := minf(minf(w, d) * 0.95, 3.8)
+			if b.get("timber", false): return false   # a shepherds' hut: the plain timber box
 			if b.c.distance_to(village_heart) >= romanian_from:
 				if not ModelKit.exists("house_ro"): return false
 				ModelKit.place(L, base, w, d, "house_ro", _ro_roof(p), _ro_wall(p), h + roof_h)

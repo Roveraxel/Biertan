@@ -53,7 +53,7 @@ func build() -> void:
 		add_tree(p, true)
 	_fence(false)
 	_fence(true)   # the gate starts shut: the hunter opens it himself
-	add_block(Rect2(FOLD.end.x - 220.0, FOLD.position.y + 30.0, 180.0, 120.0), "house", 46.0)   # the shepherds' hut
+	add_block(Rect2(FOLD.end.x - 220.0, FOLD.position.y + 30.0, 180.0, 120.0), "house", 46.0).timber = true   # the shepherds' hut
 	add_brazier(Vector2(FOLD.end.x - 130.0, FOLD.position.y + 220.0))
 	add_decor(FOLD.position + Vector2(120, 80), "haystack_plain", 30.0)
 	add_decor(FOLD.position + Vector2(280, 70), "livestock_trough", 20.0)
