@@ -88,6 +88,11 @@ static func apply_darkness(level: Level) -> void:
 		moon_col = Color(0.8, 0.66, 0.52); moon_e = 0.8 * k; shadow = 0.6
 		sky = Color(0.3, 0.26, 0.22) * k; eq = Color(0.24, 0.2, 0.17) * k
 		fog_c = Color(0.06, 0.05, 0.04)
+	if level.id in Mats.BRICK_LEVELS or level.id in Mats.SALT_LEVELS:
+		# cellars and caves: black but for pools of warm lamp and torch light, a little amber glow off the stone
+		moon_col = Color(0.9, 0.68, 0.46); moon_e = 0.8; shadow = 0.7
+		sky = Color(0.42, 0.32, 0.24); eq = Color(0.34, 0.26, 0.19); gnd = Color(0.12, 0.09, 0.07)
+		fog_d = 0.035; fog_c = Color(0.025, 0.018, 0.014)
 	main.set_light(moon_col, moon_e, shadow, sky, eq, gnd, fog_d, fog_c)
 
 # ------------------------------------------------------------------ ground
@@ -96,6 +101,8 @@ static func _ground() -> void:
 	# the ground runs well past the map's edges so the camera never looks into a void
 	var m := Mats.ground_for(L.id, L)
 	var x0 := -35.0; var x1 := L.size.x * S + 35.0; var z1 := 35.0; var z0 := -L.size.y * S - 35.0
+	if L.id in Mats.BRICK_LEVELS or L.id in Mats.SALT_LEVELS:   # underground: nothing but black past the walls
+		x0 = 0.0; z0 = -L.size.y * S; x1 = L.size.x * S; z1 = 0.0
 	var step := 12.0
 	var holder := Node3D.new()
 	holder.name = "Ground"
@@ -370,8 +377,14 @@ static func _block(b: Dictionary) -> void:
 		_:   # stone, rock
 			if style == "rock": wall_mat = Mats.mat("castle_wall_slates", 2.4, Color(0.42, 0.4, 0.38))
 			var uw := Mats.under_wall(L.id)
-			if uw != null: wall_mat = uw
-			bt.mb(wall_mat).box(mn, mx, true)
+			if uw != null:
+				# underground: only the face toward the room is seen, the rock's top is black (the mass of the wall is unseen)
+				bt.mb(uw).box(mn, mx, false)
+				var dark := bt.mb(Mats.plain(Color(0.008, 0.007, 0.006), 0.0))
+				dark.quad(Vector3(mn.x, mx.y, mn.z), Vector3(mn.x, mx.y, mx.z), Vector3(mx.x, mx.y, mx.z), Vector3(mx.x, mx.y, mn.z))
+				dark.quad(Vector3(mn.x, mx.y, mn.z), Vector3(mx.x, mx.y, mn.z), Vector3(mx.x, mx.y, mx.z), Vector3(mn.x, mx.y, mx.z))
+			else:
+				bt.mb(wall_mat).box(mn, mx, true)
 	if style in ["house", "church"]:
 		_windows(bt, mn, mx, style == "church", Mats.shutter(p) if style == "house" and L.id != "sighisoara" else null)
 	if style == "house":
