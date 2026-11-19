@@ -65,6 +65,9 @@ func build() -> void:
 	for t0 in m.boxes("towers"):
 		var t := _fixed(t0)
 		var gate: bool = t.name == "Turnul cu Ceas"
+		if t.name == "Turnul Măcelarilor":
+			var wp := _wall_point(t.c)
+			if t.c.distance_to(wp) < 150.0: t.c = t.c.lerp(wp, 0.65)
 		var h := 269.0 if t.style == "clocktower" else (150.0 if t.name == "Turnul Croitorilor" else 125.0)
 		add_block_rotated(t.c, t.size, t.angle, t.style, h, not gate)
 		if gate: _gate_flanks(t)
@@ -85,7 +88,7 @@ func build() -> void:
 		var n := Vector2(-dir.y, dir.x)
 		add_torch(g.c + n * (maxf(g.size.x, g.size.y) * 0.6), 260.0, Color(1, 0.62, 0.3), 0.8)
 		add_torch(g.c - n * (maxf(g.size.x, g.size.y) * 0.6), 260.0, Color(1, 0.62, 0.3), 0.8)
-	add_brazier(m.at(77, 29)).base_energy = 0.7
+	add_brazier(_on_square(m.at(66, 40) + Vector2(95, 25), 40.0)).base_energy = 0.7
 	add_torch(m.at(84, -10), 220.0, Color(1, 0.55, 0.3), 0.6)      # Casa Vlad Dracul
 	add_torch(m.at(-118, -92), 220.0, Color(1, 0.5, 0.25), 0.7)    # Butchers' Tower
 	edge_walls()
@@ -293,7 +296,7 @@ func _facade(g: Vector2) -> Vector2:
 ## notice board of the opening job all stand in the open on the square.
 func _on_square(g: Vector2, clear: float) -> Vector2:
 	var ok := func(p: Vector2) -> bool:
-		return not blocked(p, clear) and not near_building(p, clear) and not near_wall(p, 45.0) and line_clear(spawn, p)
+		return not blocked(p, clear) and not near_building(p, clear) and not near_wall(p, 45.0) and not near_road(p, 42.0) and line_clear(spawn, p)
 	if ok.call(g): return g
 	var r := 30.0
 	while r <= 700.0:

@@ -97,10 +97,10 @@ func _fence(shut: bool) -> void:
 			var q := a.lerp(b, d / length)
 			var in_gap := west and absf(q.y - GATE.y) < GATE_HALF
 			if in_gap == shut:
-				var dd := add_decor(q, "wattle_fence", 30.0, int(d / 58.0) % 2 == 0)
+				var dd := add_decor(q, "wattle_fence", 30.0, int(d / 44.0) % 2 == 0)
 				if vert: dd.rotation.y = PI / 2.0
 				if in_gap: _gap.append(dd)
-			d += 58.0
+			d += 44.0
 	var tl := FOLD.position; var br := FOLD.end
 	if not shut:
 		side.call(tl, Vector2(br.x, tl.y), false)
