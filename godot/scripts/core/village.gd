@@ -496,6 +496,7 @@ func compact() -> void:
 		elif v is Array and not v.is_empty() and v[0] is Vector2 and not _done(done, v):
 			for i in v.size(): v[i] *= f
 			done.append(v)
+	_mend_walls()
 	_street_samples.clear()
 	_scale_statics(f)
 	for d in decors:
@@ -568,3 +569,61 @@ func _trim_edges() -> void:
 			for sh in cu.get("shapes", []):
 				if is_instance_valid(sh): sh.queue_free()
 			curtains.erase(cu)
+
+
+## After the village has shrunk some yard walls stop short of a house (its neighbour was dropped or drawn smaller):
+## run each loose end on, along its own line, until it meets a building. Ends at a road, a gate gap or a house are left.
+func _mend_walls() -> void:
+	var ends: Array = []
+	for j in curtains.size():
+		var pts: Array = curtains[j].pts
+		if pts.size() >= 2 and curtains[j].thick <= 30.0:
+			ends.append([pts[0], j]); ends.append([pts[pts.size() - 1], j])
+	for cu in curtains:
+		if cu.thick > 30.0 or cu.pts.size() < 2: continue
+		for side in 2:
+			var first := side == 0
+			var p: Vector2 = cu.pts[0] if first else cu.pts[cu.pts.size() - 1]
+			var q: Vector2 = cu.pts[1] if first else cu.pts[cu.pts.size() - 2]
+			var dir := (p - q).normalized()
+			if near_road(p, 60.0): continue
+			var gap := false
+			for e in ends:
+				if not is_same(curtains[e[1]].pts, cu.pts) and p.distance_to(e[0]) < 320.0 and (near_road((p + e[0]) / 2.0, 110.0) or p.distance_to(e[0]) < 90.0): gap = true; break
+			if gap: continue
+			var best := INF
+			var near_pt := Vector2.ZERO; var near_d := 450.0
+			for b in blocks:
+				if b.style not in ["house", "church", "tower", "wall"] or b.size.x > 900.0: continue
+				var r := deg_to_rad(b.angle)
+				var up := Vector2(-sin(r), -cos(r)); var al := Vector2(cos(r), -sin(r))
+				var ctr: Vector2 = b.c + up * b.size.y / 2.0
+				var o := p - ctr
+				var lo := Vector2(o.dot(al), o.dot(up)); var ld := Vector2(dir.dot(al), dir.dot(up))
+				var h: Vector2 = b.size / 2.0
+				var cl := Vector2(clampf(lo.x, -h.x, h.x), clampf(lo.y, -h.y, h.y))
+				if cl.distance_to(lo) < near_d:
+					near_d = cl.distance_to(lo); near_pt = ctr + al * cl.x + up * cl.y
+				if absf(lo.x) <= h.x and absf(lo.y) <= h.y: best = -1.0; break   # already touching
+				var t0 := 0.0; var t1 := 700.0; var ok := true
+				for a in 2:
+					if absf(ld[a]) < 1e-5:
+						if absf(lo[a]) > h[a]: ok = false
+					else:
+						var ta := (-h[a] - lo[a]) / ld[a]; var tb := (h[a] - lo[a]) / ld[a]
+						t0 = maxf(t0, minf(ta, tb)); t1 = minf(t1, maxf(ta, tb))
+				if ok and t0 <= t1 and t0 < best: best = t0
+			if best >= 0.0 and best < 700.0:
+				var np := p + dir * (best + 6.0)
+				if first: cu.pts.insert(0, np)
+				else: cu.pts.append(np)
+			elif best != -1.0 and near_d < 450.0:   # no house straight ahead: bend the wall to the nearest one
+				var tp := p + (near_pt - p) * (1.0 + 6.0 / maxf(near_d, 1.0))
+				if first: cu.pts.insert(0, tp)
+				else: cu.pts.append(tp)
+	for cu in curtains:
+		if cu.thick > 30.0: continue
+		for sh in cu.get("shapes", []):
+			if is_instance_valid(sh): sh.queue_free()
+		cu.shapes = []
+		_curtain_shapes(cu)
