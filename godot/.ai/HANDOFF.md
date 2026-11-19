@@ -33,6 +33,7 @@ Narration and story polish for the web playtest; next big item is the final figh
 Claude (Claude Code session), 2026-11-16 03:00.
 
 ## Recent Changes
+- 2026-11-20 00:30: Added `.ai/STYLE.md`, the design system (scale, characters, models, colour, light, materials, props, UI, story art, checklist), built from the values in the code; linked from ARCHITECTURE.md.
 - 2026-11-16 23:30: Re-recorded the 11 earlier Fish Audio lines via ElevenLabs (Lily `pFZP5JQG7iQjIQuC4Bku`, `eleven_multilingual_v2`) so all 29/29 narration lines in `audio/voice/` use one consistent voice (~5,593 ElevenLabs credits remaining). Re-imported in Godot 4.7.2 and rebuilt Web export.
 - 2026-11-16 23:25: Generated all 18 missing Lorena narration MP3s into `audio/voice/` via ElevenLabs (`eleven_multilingual_v2`, Lily `pFZP5JQG7iQjIQuC4Bku`, `tools/gen_voice.py`), imported into Godot 4.7.2, and rebuilt Web export (`build/web/index.pck`, 89 MB, exit 0).
 - 2026-11-16 23:14: Placed new Meshy-rendered `Decor` props in `stana.gd`, `saschiz.gd`, `vineyard.gd`, `gorge.gd`, and `hillchurch.gd` (verified with `tests/chk.gd`). Installed Godot 4.7.2 Web export templates and ran `--export-release Web build/web/index.html` cleanly (exit 0; `index.pck` 87 MB). Missing 18 narration MP3s left silent until Fish Audio / ElevenLabs API key is provided.

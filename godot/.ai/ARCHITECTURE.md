@@ -3,6 +3,8 @@
 Shared by every AI tool working on this folder (Claude, and Gemini in Antigravity; ChatGPT as reserve).
 Read this file and `HANDOFF.md` before changing anything. Update `HANDOFF.md` before you finish and before you push.
 
+Art, models, colours, lights and UI follow `.ai/STYLE.md` (the design system). Read it before changing any of those.
+
 ## Engine
 - Godot 4.7.2 (stable), GDScript only, Compatibility renderer, 3D scene presented top-down with pixel-art sprites.
 - Web export is the playtest target (GitHub Pages, branch `gh-pages` of Roveraxel/Biertan). Keep everything web-safe (no threads, no native extensions).
