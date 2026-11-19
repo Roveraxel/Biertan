@@ -118,7 +118,8 @@ func flashback(id: String) -> void:
 	if G.STORIES.has("flash_" + id):   # the memory comes back as a picture first, then he is in it
 		await G.show_story("flash_" + id)
 		Hud.fade_to(0.0, 0.6)
-	saved_dusk = G.dusk; G.dusk = 0.9
+	saved_dusk = G.dusk; G.dusk = 0.75
+	WorldBuilder.apply_darkness(self)
 	G.player.drunk_t = 2.0
 	Audio.sfx("blip", -4.0, 0.5)
 	var g: Vector2 = G.player.pos
@@ -200,6 +201,7 @@ func _end_flash() -> void:
 	flash_props.clear(); flash_foes.clear()
 	G.player.drunk_t = 0.0
 	G.dusk = saved_dusk
+	WorldBuilder.apply_darkness(self)
 	G.player.pos = flash_from
 	G.side_add("ml_f_" + flash_id)
 	for p in props.duplicate():

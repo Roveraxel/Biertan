@@ -96,7 +96,8 @@ func light_fire() -> void:
 # ------------------------------------------------------------------ the night
 
 func begin_night() -> void:
-	G.dusk = 0.95
+	G.dusk = 0.8
+	WorldBuilder.apply_darkness(self)
 	add_decor(table_at + Vector2(-70, 25), "coliva")
 	add_decor(table_at + Vector2(70, 25), "colac")
 	add_decor(table_at + Vector2(60, -20), "wine")
