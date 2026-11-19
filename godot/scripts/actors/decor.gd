@@ -15,7 +15,7 @@ const SIZES := {
 	"trough": 0.9, "lantern": 1.45, "cauldron": 0.75, "wheel": 0.7, "laundry": 1.1,
 	"hams_beam": 1.4, "sausage_rack": 1.2, "salt_barrel": 0.75, "chopping_block": 0.7, "ham_pile": 0.8,
 	"smoke_pit": 1.2, "spiridus_lantern": 0.45, "red_cap": 0.35, "ladder": 1.6, "fish_crate": 0.75,
-	"potlid": 0.5, "shelf": 1.2, "hook_empty": 0.9,
+	"potlid": 0.5, "shelf": 1.2, "jar_shelf": 1.5, "stump_stool": 0.55, "pallet_table": 1.0, "iron_grate": 1.9, "hook_empty": 0.9,
 	"fig_mon": 0.6, "fig_tue": 0.6, "fig_wed": 0.6, "fig_thu": 0.6, "fig_fri": 0.6, "fig_sat": 0.6, "fig_sun": 0.6,
 	"notice_board": 1.4, "guild_sign": 0.9, "portrait": 0.9, "grating": 0.8, "flour": 0.8, "hook_wall": 0.9,
 	"dog_sleep": 0.75, "dog_bark": 0.8, "goose": 0.5, "goose_honk": 0.55, "scraps": 0.4, "bone": 0.35,

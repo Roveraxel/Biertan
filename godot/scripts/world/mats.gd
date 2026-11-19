@@ -15,6 +15,15 @@ static var _tex := {}
 static func px() -> bool:
 	return G.current in VILLAGES
 
+## Underground rooms: vaulted brick cellars and crypts, and the salt-mine caves and tunnels.
+const BRICK_LEVELS := ["cellar", "crypt", "malcrypt"]
+const SALT_LEVELS := ["tunnel", "caves"]
+
+static func under_wall(id: String) -> Material:
+	if id in BRICK_LEVELS: return mat("px_brick", 2.2, Color(0.5, 0.42, 0.36), 0.1)
+	if id in SALT_LEVELS: return mat("px_salt", 3.2, Color(1.0, 0.84, 0.66), 0.08)
+	return null
+
 static func is_village(id: String) -> bool:
 	return id in VILLAGES or id in OLD_VILLAGES
 
@@ -132,7 +141,8 @@ static func ground_for(id: String, level: Node) -> Material:
 	if is_village(id): return ground()
 	if id in ["forest", "critforest", "crisforest", "richisforest", "ieleridge", "uriasi", "hills", "vineyard", "walls", "biertanfort"]: return mat("forest_leaves_02", 3.0, Color(0.6, 0.58, 0.52))
 	if id in ["arena", "hollow"]: return mat("forest_leaves_02", 3.0, Color(0.42, 0.44, 0.38))
-	if id in ["cellar", "crypt", "malcrypt", "tunnel"]: return mat("px_slab", 1.6, Color(0.84, 0.80, 0.76), 0.35)
+	if id in BRICK_LEVELS: return mat("px_flag", 2.6, Color(0.78, 0.66, 0.52), 0.2)
+	if id in SALT_LEVELS: return mat("px_gravel", 2.0, Color(1.6, 1.3, 1.0), 0.05)
 	if id in ["caves", "gorge"]: return mat("castle_wall_slates", 3.0, Color(0.36, 0.34, 0.32))
 	if id in ["church", "sacristy"]: return mat("cobblestone_floor_08", 1.6, Color(0.55, 0.53, 0.5), 0.3)
 	return plain(level.ground * 0.9) if level.tile == "" else ground()

@@ -41,6 +41,7 @@ static func build(level: Level) -> void:
 	for cw in L.covered: _covered_way(cw)
 	_trees()
 	_meadow()
+	_cave_dressing()
 	_wilds()
 
 static func _cut(node: MeshInstance3D) -> void:
@@ -368,6 +369,8 @@ static func _block(b: Dictionary) -> void:
 			bt.mb(wall_mat).ruin_box(mn, mx, int(p.x * 7 + p.y * 3))
 		_:   # stone, rock
 			if style == "rock": wall_mat = Mats.mat("castle_wall_slates", 2.4, Color(0.42, 0.4, 0.38))
+			var uw := Mats.under_wall(L.id)
+			if uw != null: wall_mat = uw
 			bt.mb(wall_mat).box(mn, mx, true)
 	if style in ["house", "church"]:
 		_windows(bt, mn, mx, style == "church", Mats.shutter(p) if style == "house" and L.id != "sighisoara" else null)
@@ -781,3 +784,57 @@ static func _meadow() -> void:
 				bt.mb(Mats.plain(Color(0.25, 0.42, 0.15), 0.0)).box(fp + Vector3(-0.008, 0, -0.008), fp + Vector3(0.008, 0.2, 0.008), false)
 				bt.mb(Mats.plain(fc, 0.0)).box(fp + Vector3(-0.07, 0.2, -0.07), fp + Vector3(0.07, 0.28, 0.07), true)
 	for k in chunks: chunks[k].commit(root, "Meadow", false)
+
+
+## Salt-mine caves (Salina Turda): stalagmites and pale salt-crystal clusters standing along the walls, loose chips
+## and pebbles on the floor.
+static func _cave_dressing() -> void:
+	if not L.id in Mats.SALT_LEVELS: return
+	var cell := 1.2
+	var map_m := L.size * S
+	var nx := int(map_m.x / cell) + 1; var nz := int(map_m.y / cell) + 1
+	var wall := PackedByteArray(); wall.resize(nx * nz)
+	var near := PackedByteArray(); near.resize(nx * nz)
+	for b in L.blocks:
+		if not b.solid: continue
+		var x0: float = (b.c.x - b.size.x * 0.5) * S; var x1: float = (b.c.x + b.size.x * 0.5) * S
+		var z1: float = b.c.y * S; var z0: float = (b.c.y - b.size.y) * S
+		for i in range(maxi(0, int(x0 / cell)), mini(nx, int(x1 / cell) + 1)):
+			for j in range(maxi(0, int(z0 / cell)), mini(nz, int(z1 / cell) + 1)): wall[i * nz + j] = 1
+	for i in nx:
+		for j in nz:
+			if wall[i * nz + j] == 0: continue
+			for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+				var a: int = i + d.x; var c: int = j + d.y
+				if a >= 0 and c >= 0 and a < nx and c < nz and wall[a * nz + c] == 0: near[a * nz + c] = 1
+	var taken := {}
+	for pr in L.props:
+		if is_instance_valid(pr): taken[Vector2i(int(pr.pos.x * S / cell), int(pr.pos.y * S / cell))] = 1
+	for d in L.decors:
+		if is_instance_valid(d): taken[Vector2i(int(d.pos.x * S / cell), int(d.pos.y * S / cell))] = 1
+	var rnd := NetRandom.new(hash(L.id + "cave") & 0x7fffffff)
+	var chunks := {}
+	var salts := [Color(0.62, 0.55, 0.46), Color(0.55, 0.48, 0.4), Color(0.66, 0.5, 0.36), Color(0.7, 0.64, 0.56)]
+	for i in nx:
+		for j in nz:
+			if wall[i * nz + j] != 0 or taken.has(Vector2i(i, j)): continue
+			var at := Vector3((i + rnd.f()) * cell, 0.0, -(j + rnd.f()) * cell)
+			var is_near := near[i * nz + j] != 0
+			var bt := _chunk(chunks, at)
+			bt.xf = Transform3D(Basis(), at)
+			var r := rnd.f()
+			if is_near and r < 0.22:   # stalagmites, a tall one among smaller
+				var sc: Color = salts[int(rnd.f() * salts.size()) % salts.size()]
+				var m := bt.mb(Mats.plain(sc, 0.1))
+				m.cone(Vector3(0, 0, 0), 0.22 + rnd.f() * 0.16, 0.7 + rnd.f() * 0.9, 7)
+				m.cone(Vector3(0.3, 0, 0.12), 0.14, 0.35 + rnd.f() * 0.3, 6)
+				m.cone(Vector3(-0.22, 0, -0.18), 0.12, 0.3 + rnd.f() * 0.3, 5)
+			elif is_near and r < 0.3:   # a cluster of pale salt crystals, faintly glowing
+				var cm := bt.mb(Mats.plain(Color(0.8, 0.72, 0.62), 0.5, Color(0.2, 0.15, 0.1)))
+				for k in 4:
+					cm.cone(Vector3((rnd.f() - 0.5) * 0.45, 0, (rnd.f() - 0.5) * 0.45), 0.07 + rnd.f() * 0.05, 0.25 + rnd.f() * 0.3, 4)
+			elif r < 0.07:   # chips and pebbles
+				var pm := bt.mb(Mats.plain(salts[int(rnd.f() * salts.size()) % salts.size()] * 0.8, 0.05))
+				for k in 3 + int(rnd.f() * 3.0):
+					pm.cone(Vector3((rnd.f() - 0.5) * 0.7, 0, (rnd.f() - 0.5) * 0.7), 0.05 + rnd.f() * 0.07, 0.05 + rnd.f() * 0.06, 5)
+	for k in chunks: chunks[k].commit(root, "CaveDressing", false)

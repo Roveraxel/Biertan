@@ -8,7 +8,8 @@ const THINGS := [[560, 350, "barrel_rot"], [700, 340, "barrels"], [1050, 360, "b
 	[820, 860, "scraps"], [960, 820, "bone"], [640, 620, "bone"], [1040, 860, "crate"],
 	[1240, 250, "chains"], [1840, 260, "chains"], [1600, 260, "bellrope"], [1860, 840, "barrel_rot"],
 	[1250, 840, "lantern_iron"], [1340, 1050, "chains"], [1660, 1050, "chains"], [1660, 1250, "hay"],
-	[2470, 550, "barrel_rot"], [2080, 620, "lantern_iron"]]
+	[2470, 550, "barrel_rot"], [2080, 620, "lantern_iron"],
+	[1500, 1100, "iron_grate"], [760, 310, "jar_shelf"], [880, 860, "jar_shelf"]]
 
 func build() -> void:
 	title = "UNDER THE CHURCHYARD"

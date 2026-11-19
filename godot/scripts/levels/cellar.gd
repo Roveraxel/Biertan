@@ -15,6 +15,8 @@ const STORES := [
 	[450, 420, "hams_rack"], [600, 410, "sausage_rack"], [760, 420, "hams_rack"], [900, 440, "salt_barrel"],
 	[470, 780, "ham_pile"], [640, 800, "chopping_block"], [820, 790, "shelf"], [960, 760, "fish_crate"],
 	[120, 540, "ladder"], [1200, 420, "hook_empty"], [1480, 760, "spiridus_lantern"],
+	# a pickle cellar corner: jars on shelves, a stump to sit on, a pallet table
+	[830, 890, "jar_shelf"], [560, 640, "stump_stool"], [470, 660, "pallet_table"], [1100, 880, "jar_shelf"],
 	# the captain's den
 	[2420, 560, "ham_pile"], [2650, 520, "potlid"], [2700, 680, "red_cap"], [2470, 700, "spiridus_lantern"],
 	[2380, 400, "sacks"], [2700, 420, "barrels"], [2690, 800, "crate"], [2390, 800, "barrel"],
