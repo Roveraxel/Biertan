@@ -186,11 +186,10 @@ func _quest_things() -> void:
 	add_prop("task", "barn", "Old barn", barn + Vector2(0, 40), "E   Watch the barn")
 	# the cellar door, in the churchyard wall just inside the gate
 	var near_door := _inside_fort(gate_c + (m.boxes("church")[0].c - gate_c).normalized() * 260.0 + Vector2(-180, 0))
-	var door := wall_door(near_door, 900.0, func(q: Vector2) -> bool: return inside(q, fort)) + Vector2(0, 14)   # in the wall of a building in the churchyard
+	var door := cellar_tower(near_door, 900.0, func(q: Vector2) -> bool: return inside(q, fort))   # a little cellar tower in the churchyard
 	VisQuest.crypt_door = door
-	add_decor(door + Vector2(0, -6), "cellar_door")
 	add_prop("task", "cryptdoor", "Cellar door", door + Vector2(0, 20), "E   Open the cellar door")
-	add_decor(door + Vector2(40, 0), "lantern_iron")
+	add_decor(door + Vector2(120, 0), "lantern_iron")
 	add_torch(door, 180.0, Color(1, 0.55, 0.25), 0.55)
 	# a troiță where the lane from Bunești meets the street: with Lorena's map, roads to anywhere he has been
 	var tr := _free(spawn + Vector2(160, -150), 40.0)

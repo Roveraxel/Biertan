@@ -9,7 +9,7 @@ def shade(c, k): return tuple(clamp(x * k) for x in c)
 def brick():
     r = random.Random(7); im = Image.new("RGB", (N, N), (150, 132, 108))
     rows = 8; bh = N // rows
-    base = [(146, 96, 66), (128, 82, 58), (158, 108, 74), (116, 76, 56), (138, 94, 66)]
+    base = [(128, 104, 90), (114, 94, 82), (136, 112, 96), (104, 88, 78), (122, 100, 86)]
     for ry in range(rows):
         off = (ry % 2) * 8; x = -off
         while x < N:
@@ -25,7 +25,7 @@ def brick():
 
 def flags():
     r = random.Random(11); pts = [(r.random() * N, r.random() * N) for _ in range(11)]
-    im = Image.new("RGB", (N, N)); cols = [(150, 142, 128), (138, 130, 118), (158, 150, 134), (128, 122, 112), (146, 134, 120)]
+    im = Image.new("RGB", (N, N)); cols = [(150, 146, 138), (140, 136, 128), (156, 152, 142), (132, 128, 120), (146, 140, 130)]
     cc = [r.choice(cols) for _ in pts]
     for y in range(N):
         for x in range(N):
@@ -35,7 +35,7 @@ def flags():
                 d.append((dx * dx + dy * dy, i))
             d.sort()
             edge = math.sqrt(d[1][0]) - math.sqrt(d[0][0])
-            if edge < 1.6: im.putpixel((x, y), (82, 76, 68))
+            if edge < 1.6: im.putpixel((x, y), (112, 106, 98))
             else:
                 k = 0.92 + r.random() * 0.16 + (0.08 if edge < 3 else 0)
                 im.putpixel((x, y), shade(cc[d[0][1]], k))

@@ -25,22 +25,25 @@ static func shape(name: String) -> Dictionary:
 	if _shapes.has(name): return _shapes[name]
 	var src: Node3D = load("res://models/%s.glb" % name).instantiate()
 	var tris := PackedVector3Array()
+	var wtris := PackedVector3Array()   # parts of the model named "wood_*": doors and shutters, drawn in timber
 	for mi in src.find_children("*", "MeshInstance3D", true, false):
 		var xf := _local_xf(src, mi)
+		var dst := wtris if String(mi.name).begins_with("wood") else tris
 		for si in mi.mesh.get_surface_count():
 			var arr: Array = mi.mesh.surface_get_arrays(si)
 			var vs: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
 			var idx = arr[Mesh.ARRAY_INDEX]
 			if idx == null or idx.is_empty():
-				for v in vs: tris.append(xf * v)
+				for v in vs: dst.append(xf * v)
 			else:
-				for i in idx: tris.append(xf * vs[i])
+				for i in idx: dst.append(xf * vs[i])
 	src.free()
 	var box := AABB(tris[0], Vector3.ZERO)
 	var top := tris[0]
 	for v in tris:
 		box = box.expand(v)
 		if v.y > top.y: top = v
+	for v in wtris: box = box.expand(v)
 	var c := box.get_center()
 	var cut := box.position.y + box.size.y * 0.06   # the patch of ground, base or low wall it was modelled on
 	var H := box.position.y + box.size.y - cut
@@ -69,10 +72,29 @@ static func shape(name: String) -> Dictionary:
 		var hi := maxf(pts[0].y, maxf(pts[1].y, pts[2].y))
 		var st := roof if (n.y > 0.3 or (n.y > 0.08 and hi > H * 0.55)) else wall
 		var an := n.abs()
-		for p in pts:
-			var q := p * uv_k
+		for p in [pts[0], pts[2], pts[1]]:
+			var q: Vector3 = p * uv_k
 			var uv := Vector2(q.x, q.z) if (an.y >= an.x and an.y >= an.z) else (Vector2(q.z, -q.y) if an.x >= an.z else Vector2(q.x, -q.y))
 			st.set_normal(n); st.set_uv(uv); st.add_vertex(p)
+	var wood := SurfaceTool.new(); wood.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for i in range(0, wtris.size() - 2, 3):
+		var wp: Array[Vector3] = []
+		for v in [wtris[i], wtris[i + 1], wtris[i + 2]]: wp.append(Vector3(v.x - c.x, maxf(v.y - cut, 0.0), v.z - c.z))
+		var wn := (wp[1] - wp[0]).cross(wp[2] - wp[0])
+		if wn.length_squared() < 1e-12: continue
+		wn = wn.normalized()
+		var wm: Vector3 = (wp[0] + wp[1] + wp[2]) / 3.0
+		var wflip := false
+		if absf(wn.y) < 0.3:
+			if wn.dot(Vector3(wm.x, 0, wm.z)) < 0.0: wn = -wn; wflip = true
+		elif wn.y < 0.0: wn = -wn; wflip = true
+		if wflip:
+			var wt := wp[1]; wp[1] = wp[2]; wp[2] = wt
+		var wa := wn.abs()
+		for p in [wp[0], wp[2], wp[1]]:
+			var q: Vector3 = p * uv_k
+			var uv := Vector2(q.x, q.z) if (wa.y >= wa.x and wa.y >= wa.z) else (Vector2(q.z, -q.y) if wa.x >= wa.z else Vector2(q.x, -q.y))
+			wood.set_normal(wn); wood.set_uv(uv); wood.add_vertex(p)
 	var mesh := ArrayMesh.new()
 	roof.commit(mesh)
 	if mesh.get_surface_count() == 0:   # keep the surface order: 0 roof, 1 wall
@@ -80,6 +102,7 @@ static func shape(name: String) -> Dictionary:
 		for k in 3: empty.set_normal(Vector3.UP); empty.add_vertex(Vector3.ZERO)
 		empty.commit(mesh)
 	wall.commit(mesh)
+	if not wtris.is_empty(): wood.commit(mesh)   # surface 2: timber
 	var size := Vector3(box.size.x, H, box.size.z)
 	var tip := Vector3(top.x - c.x, 0, top.z - c.z)
 	_shapes[name] = {"mesh": mesh, "size": size, "tip": tip}
@@ -110,6 +133,11 @@ static func place(level: Node3D, base: Transform3D, w: float, d: float, name: St
 	node.mesh = s.mesh
 	node.set_surface_override_material(0, roof_mat)
 	node.set_surface_override_material(1, wall_mat)
+	var bases: Array = [roof_mat, wall_mat]
+	if s.mesh.get_surface_count() > 2:
+		var wood_mat := Mats.mat("px_planks", 1.1, Color(0.66, 0.52, 0.4), 0.04)
+		node.set_surface_override_material(2, wood_mat)
+		bases.append(wood_mat)
 	level.add_child(node)
 	node.transform = base * Transform3D(Basis(Vector3.UP, yaw) * Basis.from_scale(sc), Vector3(0, 0, -d / 2.0))
 	# the many small faces flicker in the moon's shadow map as the camera moves: the model takes no part in
@@ -124,7 +152,7 @@ static func place(level: Node3D, base: Transform3D, w: float, d: float, name: St
 	caster.transform = base * Transform3D(Basis.IDENTITY, Vector3(0, ch * 0.5, -d / 2.0))
 	var g: AABB = node.global_transform * node.get_aabb()
 	level.cutaways.append({"node": node, "centre": g.get_center(), "half_w": g.size.x / 2.0, "half_d": g.size.z / 2.0,
-		"faded": false, "base": [roof_mat, wall_mat], "caster": caster})
+		"faded": false, "base": bases, "caster": caster})
 	return node
 
 static func _local_xf(root: Node3D, n: Node3D) -> Transform3D:

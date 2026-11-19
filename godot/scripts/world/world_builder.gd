@@ -90,8 +90,8 @@ static func apply_darkness(level: Level) -> void:
 		fog_c = Color(0.06, 0.05, 0.04)
 	if level.id in Mats.BRICK_LEVELS or level.id in Mats.SALT_LEVELS:
 		# cellars and caves: black but for pools of warm lamp and torch light, a little amber glow off the stone
-		moon_col = Color(0.9, 0.68, 0.46); moon_e = 0.8; shadow = 0.7
-		sky = Color(0.42, 0.32, 0.24); eq = Color(0.34, 0.26, 0.19); gnd = Color(0.12, 0.09, 0.07)
+		moon_col = Color(0.82, 0.76, 0.68); moon_e = 0.7; shadow = 0.6
+		sky = Color(0.36, 0.33, 0.3); eq = Color(0.3, 0.27, 0.24); gnd = Color(0.11, 0.1, 0.09)
 		fog_d = 0.035; fog_c = Color(0.025, 0.018, 0.014)
 	main.set_light(moon_col, moon_e, shadow, sky, eq, gnd, fog_d, fog_c)
 
@@ -260,6 +260,10 @@ static func _modelled(b: Dictionary, base: Transform3D, w: float, d: float, h: f
 			var m := "gate_tower" if (L.id == "viscri" and not b.solid) else "guild_tower"
 			if L.id in ["uriasi"] or not ModelKit.exists(m): return false   # the giant's fortress is a ruin
 			ModelKit.place(L, base, w, d, m, Mats.roof(), _old_plaster() if m == "gate_tower" else Mats.stone(), h * 1.3)
+			return true
+		"cellartower":   # a stout stone tower with the cellar's arched double doors built into its front
+			if not ModelKit.exists("cellar_tower"): return false
+			ModelKit.place(L, base, w, d, "cellar_tower", Mats.roof_at(p), Mats.stone(), h * 1.35)
 			return true
 		"clocktower":
 			if not ModelKit.exists("clocktower"): return false

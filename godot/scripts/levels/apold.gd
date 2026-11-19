@@ -47,9 +47,8 @@ func _quest_things() -> void:
 	add_prop("npc", "baker", "The baker's wife", baker, "E   Speak with the baker's wife", Color("6a5a4a"))
 	add_decor(baker + Vector2(110, -20), "oven", 40.0)
 	add_torch(baker + Vector2(110, -20), 200.0, Color(1, 0.55, 0.25), 0.6)
-	var cellar := wall_door(c + Vector2(700, -500))   # the cellar opens in the front wall of a house
-	add_decor(cellar + Vector2(0, 8), "cellar_door")
-	add_prop("task", "cellar", "The cellar", cellar + Vector2(0, 30), "E   Go down into the cellar")
+	var cellar := cellar_tower(c + Vector2(700, -500), 700.0)   # the cellar opens in a little stone tower
+	add_prop("task", "cellar", "The cellar", cellar + Vector2(0, 14), "E   Go down into the cellar")
 	var chairs := free_spot(Vector2(3600, 7300), 40.0)
 	add_decor(chairs, "feast_table", 30.0); add_decor(chairs + Vector2(-120, 20), "chair"); add_decor(chairs + Vector2(120, 20), "chair", 0.0, true)
 	add_prop("clue", "chairs", "Empty chairs", chairs + Vector2(0, 60), "E   Look at the table")

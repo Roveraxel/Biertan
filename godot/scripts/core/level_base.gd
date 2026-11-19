@@ -243,6 +243,26 @@ func wall_door(near: Vector2, reach := 1200.0, ok := Callable()) -> Vector2:
 		bd = d; best = p
 	return best
 
+## A little stone cellar tower, doors built in, on free ground near `near` (inside `ok`). Returns where the hunter
+## stands to use the doors, at the foot of its front.
+func cellar_tower(near: Vector2, reach := 700.0, ok := Callable()) -> Vector2:
+	var size := 240.0
+	var best := Vector2.INF
+	var r := 0.0
+	while r <= reach and best == Vector2.INF:
+		var n := maxi(1, int(r / 45.0) * 2)
+		for i in n:
+			var a := TAU * i / float(n)
+			var p := near + Vector2(cos(a), sin(a)) * r
+			if ok.is_valid() and not ok.call(p): continue
+			if not is_free(p, size * 0.5 + 40.0): continue
+			best = p
+			break
+		r += 50.0
+	if best == Vector2.INF: best = near
+	var b := add_block(Rect2(best - Vector2(size, size) * 0.5, Vector2(size, size)), "cellartower", 64.0)
+	return b.c + Vector2(0, 26)
+
 ## Where no house stands close enough: a low stone cellar head built over the stair, its door facing the camera.
 ## `at` is the foot of the door; the little building rises behind it.
 func cellar_head(at: Vector2) -> void:
@@ -392,7 +412,8 @@ func add_brazier(at: Vector2, lit := true) -> Brazier:
 	return b
 
 ## A flickering point light with no visible source.
-func add_torch(at: Vector2, radius := 240.0, col := Color(1, 0.68, 0.34), energy := 1.1) -> OmniLight3D:
+func add_torch(at: Vector2, radius := 240.0, col := Color(1, 0.86, 0.68), energy := 0.95) -> OmniLight3D:
+	if id in Mats.BRICK_LEVELS or id in Mats.SALT_LEVELS: col = col.lerp(Color(0.96, 0.9, 0.82), 0.6)   # underground: a soft lamp glow, easy on the eyes
 	var l := Fx.add_light(self, at, radius, col, energy)
 	l.set_meta("flicker", randf() * 10.0)
 	return l
