@@ -142,6 +142,7 @@ static func ground_for(id: String, level: Node) -> Material:
 	if is_village(id): return ground()
 	if id in ["forest", "critforest", "crisforest", "richisforest", "ieleridge", "uriasi", "hills", "vineyard", "walls", "biertanfort"]: return mat("forest_leaves_02", 3.0, Color(0.6, 0.58, 0.52))
 	if id in ["arena", "hollow"]: return mat("forest_leaves_02", 3.0, Color(0.42, 0.44, 0.38))
+	if id == "cellar": return mat("px_cobble", 1.8, Color(0.62, 0.58, 0.54), 0.15)
 	if id in BRICK_LEVELS: return mat("px_flag", 2.6, Color(0.82, 0.78, 0.72), 0.2)
 	if id in SALT_LEVELS: return mat("px_gravel", 2.0, Color(1.5, 1.4, 1.3), 0.05)
 	if id in ["caves", "gorge"]: return mat("castle_wall_slates", 3.0, Color(0.36, 0.34, 0.32))

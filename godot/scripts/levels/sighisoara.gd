@@ -266,7 +266,7 @@ func _clutter() -> void:
 				next = s
 				var skip := p.distance_to(_spawn_ref) < 200.0 or p.x < 60.0 or p.y < 60.0 or p.x > size.x - 60.0 or p.y > size.y - 60.0
 				if not skip and p.x < m.at(60, 0).x and not inside(p, _citadel): skip = true
-				if not skip: skip = near_road(p, -10.0) or near_building(p, 4.0) or near_wall(p, 40.0)
+				if not skip: skip = near_road(p, 35.0) or near_building(p, 4.0) or near_wall(p, 40.0)
 				if not skip:
 					var pick := rng.f() * total
 					var c: Array = CLUTTER[0]
