@@ -103,6 +103,7 @@ const NAMES := {
 	"biertanfort": "Biertan", "biertan": "Biertan", "mosna": "Moșna", "richis": "Richiș", "hub": "Saschiz",
 }
 const SAVE_PATH := "user://biertan_save.json"
+const COMPLETE_PATH := "user://biertan_completed.flag"
 
 var state: State = State.TITLE
 var current := ""
@@ -296,8 +297,47 @@ func close_story() -> void:
 	story_closed.emit()
 
 func leave_ending() -> void:
+	mark_completed()
 	ending_t = -999.0
 	to_title()
+
+func mark_completed() -> void:
+	var f := FileAccess.open(COMPLETE_PATH, FileAccess.WRITE)
+	if f: f.store_string("1")
+
+func is_completed() -> bool:
+	return FileAccess.file_exists(COMPLETE_PATH) or side_has("bt_home") or side_has("fin_done")
+
+const CHAPTERS := [
+	{"name": "Prologue · The Stână", "level": "stana", "flags": [], "hp": 100.0, "dmg": 12.0, "coins": 20, "salt": false},
+	{"name": "Act I · Sighișoara", "level": "sighisoara", "flags": [], "hp": 100.0, "dmg": 12.0, "coins": 30, "salt": false},
+	{"name": "Act I · Viscri", "level": "viscri", "flags": ["sig_deal"], "hp": 105.0, "dmg": 13.0, "coins": 45, "salt": false},
+	{"name": "Act I · Criț", "level": "crit", "flags": ["sig_deal", "vis_done"], "hp": 110.0, "dmg": 14.0, "coins": 65, "salt": false},
+	{"name": "Act I · Saschiz", "level": "saschiz", "flags": ["sig_deal", "vis_done", "cr_done"], "hp": 115.0, "dmg": 15.0, "coins": 85, "salt": false},
+	{"name": "Act I · Șapartoc", "level": "sapartoc", "flags": ["sig_deal", "vis_done", "cr_done", "sx_done"], "hp": 120.0, "dmg": 16.0, "coins": 100, "salt": false},
+	{"name": "Act I · Apold", "level": "apold", "flags": ["sig_deal", "vis_done", "cr_done", "sx_done", "sp_done"], "hp": 120.0, "dmg": 17.0, "coins": 115, "salt": true},
+	{"name": "Act I · Criș & Mălâncrav", "level": "cris", "flags": ["sig_deal", "vis_done", "cr_done", "sx_done", "sp_done", "ap_done"], "hp": 125.0, "dmg": 18.0, "coins": 130, "salt": true},
+	{"name": "Act I · Richiș", "level": "richisvillage", "flags": ["sig_deal", "vis_done", "cr_done", "sx_done", "sp_done", "ap_done", "cs_done", "ml_done"], "hp": 130.0, "dmg": 19.0, "coins": 145, "salt": true},
+	{"name": "Act II · Biertan", "level": "biertanfort", "flags": ["sig_deal", "vis_done", "cr_done", "sx_done", "sp_done", "ap_done", "cs_done", "ml_done", "rc_done"], "hp": 135.0, "dmg": 20.0, "coins": 160, "salt": true},
+	{"name": "Act III · The Gorge", "level": "gorge", "flags": ["sig_deal", "vis_done", "cr_done", "sx_done", "sp_done", "ap_done", "cs_done", "ml_done", "rc_done", "bt_fled"], "hp": 145.0, "dmg": 22.0, "coins": 180, "salt": true},
+	{"name": "Act IV · The Open Gate", "level": "viscri", "flags": ["sig_deal", "vis_done", "cr_done", "sx_done", "sp_done", "ap_done", "cs_done", "ml_done", "rc_done", "bt_fled", "bt_done"], "hp": 150.0, "dmg": 25.0, "coins": 200, "salt": true},
+]
+
+func start_chapter(idx: int) -> void:
+	if transitioning or idx < 0 or idx >= CHAPTERS.size(): return
+	var ch: Dictionary = CHAPTERS[idx]
+	player.reset_stats()
+	quest = 0; quest2 = 0; quest3 = 0; quest4 = 0
+	smith_level = 0; ewe_quest = 0
+	met_ileana = false; visited_richis = false; met_vasile = false
+	rozalia_thanked = false; visited_mosna = false; visited_biertan = false; sofia_gift = false
+	side.clear()
+	for f in ch.flags: side[f] = true
+	player.max_hp = ch.hp; player.hp = ch.hp; player.dmg = ch.dmg
+	player.coins = ch.coins; player.potions = 2
+	player.salt_unlocked = ch.salt; player.salt = 6 if ch.salt else 0
+	saved_road = ch.level if ch.level != "gorge" else "biertanfort"
+	Loader.goto_level(ch.level)
 
 func to_title() -> void:
 	await Hud.fade_to(1.0, 0.6)

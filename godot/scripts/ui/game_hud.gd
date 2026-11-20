@@ -3,7 +3,10 @@
 ## scaled by height/720. Autoloaded as Hud.
 extends CanvasLayer
 
-const ITEMS := ["Begin the Hunt", "Continue", "Bestiary", "Leave the Valley"]
+const ITEMS := ["Begin the Hunt", "Continue", "Chapter Select", "Bestiary", "Leave the Valley"]
+var chapter_open := false
+var chapter_idx := 0
+var _chapter_rects: Array[Rect2] = []
 const TEXT := Color("e8e2d2")
 const MUTED := Color("9a9486")
 const AMBER := Color("ffb347")
@@ -168,6 +171,16 @@ func _process(dt: float) -> void:
 func _input(ev: InputEvent) -> void:
 	if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
 		if G.state == G.State.TITLE:
+			if chapter_open:
+				for i in _chapter_rects.size():
+					if _chapter_rects[i].has_point(ev.position):
+						chapter_idx = i
+						chapter_open = false
+						play_time = 0.0
+						G.start_chapter(i)
+						return
+				chapter_open = false
+				return
 			for i in _menu_rects.size():
 				if _menu_rects[i].has_point(ev.position):
 					menu_idx = i
@@ -177,6 +190,10 @@ func _input(ev: InputEvent) -> void:
 		for p in pages: p.click(ev.position)
 		return
 	if ev is InputEventMouseMotion and G.state == G.State.TITLE:
+		if chapter_open:
+			for i in _chapter_rects.size():
+				if _chapter_rects[i].has_point(ev.position): chapter_idx = i
+			return
 		for i in _menu_rects.size():
 			if _menu_rects[i].has_point(ev.position): menu_idx = i
 		return
@@ -188,6 +205,16 @@ func _input(ev: InputEvent) -> void:
 		if p.key(k, next): return
 	match G.state:
 		G.State.TITLE:
+			if chapter_open:
+				var nc := G.CHAPTERS.size()
+				if k == KEY_ESCAPE: chapter_open = false
+				elif down: chapter_idx = (chapter_idx + 1) % nc
+				elif up: chapter_idx = (chapter_idx + nc - 1) % nc
+				elif next:
+					chapter_open = false
+					play_time = 0.0
+					G.start_chapter(chapter_idx)
+				return
 			if down: menu_idx = (menu_idx + 1) % ITEMS.size()
 			if up: menu_idx = (menu_idx + ITEMS.size() - 1) % ITEMS.size()
 			if next: activate(menu_idx)
@@ -212,17 +239,19 @@ func _input(ev: InputEvent) -> void:
 			if G.ending_t > 4.0: G.leave_ending()
 
 func activate(i: int) -> void:
-	var enabled := has_save if i == 1 else true
+	var enabled := has_save if i == 1 else (G.is_completed() if i == 2 else true)
 	if not enabled:
-		msg = "%s is not yet part of this tale." % ITEMS[i]; msg_t = 2.5
+		msg = "Complete the game to unlock Chapter Select." if i == 2 else "%s is not yet part of this tale." % ITEMS[i]
+		msg_t = 2.5
 		return
 	match i:
 		0: play_time = 0.0; G.start_game()
 		1: play_time = 0.0; G.continue_game()
-		2:
+		2: chapter_open = true; chapter_idx = 0
+		3:
 			if has_node("/root/HudMap"): get_node("/root/HudMap").open_bestiary()
 			else: msg = "The bestiary is still being written."; msg_t = 2.5
-		3:
+		4:
 			if OS.has_feature("web"): msg = "Close the tab to leave the valley."; msg_t = 2.5
 			else: get_tree().quit()
 
@@ -355,7 +384,7 @@ func _draw_title() -> void:
 	for i in ITEMS.size():
 		var r: Rect2 = D.call(88, 466 + i * 58, 460, 50)
 		_menu_rects.append(r)
-		var enabled := has_save if i == 1 else true
+		var enabled := has_save if i == 1 else (G.is_completed() if i == 2 else true)
 		var sel := i == menu_idx
 		var col := TEXT if sel else MUTED
 		if not enabled: col.a = 0.45
@@ -369,6 +398,23 @@ func _draw_title() -> void:
 	txt(D.call(96, 770, 900, 26), "Salt for the dead. Silver for what walks.", 18 * s, MUTED.darkened(0.3))
 	txt(D.call(644, 772, 700, 24), "WASD move · Mouse attack · Space dodge · E interact · Q tincture · T quest arrow", 15 * s, MUTED.darkened(0.35), UR)
 	if msg_t > 0.0: txt(D.call(96, 738, 900, 28), msg, 20 * s, Color(AMBER.r, AMBER.g, AMBER.b, minf(1.0, msg_t)))
+	if chapter_open:
+		box(Rect2(0, 0, W, H), Color(0.02, 0.02, 0.03, 0.78))
+		var pw := 640.0 * s; var ph := 560.0 * s
+		var px := (W - pw) * 0.5; var py := (H - ph) * 0.5
+		box(Rect2(px, py, pw, ph), Color(0.08, 0.07, 0.06, 0.96))
+		frame(Rect2(px, py, pw, ph), Color(AMBER.r, AMBER.g, AMBER.b, 0.45), maxf(1.5, 2.0 * s))
+		txt(Rect2(px + 28 * s, py + 20 * s, pw - 56 * s, 34 * s), "CHAPTER SELECT", 26 * s, AMBER)
+		txt(Rect2(px + 28 * s, py + 52 * s, pw - 56 * s, 20 * s), "Choose where to begin your hunt (Esc to close)", 14 * s, MUTED)
+		_chapter_rects.clear()
+		for i in G.CHAPTERS.size():
+			var cr := Rect2(px + 28 * s, py + (84.0 + i * 36.0) * s, pw - 56 * s, 32.0 * s)
+			_chapter_rects.append(cr)
+			var csel := i == chapter_idx
+			if csel:
+				box(cr, Color(BLOOD.r * 0.45, BLOOD.g * 0.16, BLOOD.b * 0.16, 0.45))
+				box(Rect2(cr.position.x, cr.position.y, 3.0 * s, cr.size.y), BLOOD)
+			txt(Rect2(cr.position.x + 14 * s, cr.position.y + 4 * s, cr.size.x - 20 * s, cr.size.y), G.CHAPTERS[i].name, 19 * s, TEXT if csel else MUTED)
 
 func _draw_hud(p: Player) -> void:
 	var W := cv.size.x; var H := cv.size.y; var k := H / 720.0
