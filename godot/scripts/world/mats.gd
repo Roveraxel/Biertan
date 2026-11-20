@@ -11,6 +11,7 @@ const SHUTTERS := [Color(0.16, 0.36, 0.62), Color(0.55, 0.14, 0.12), Color(0.2, 
 
 static var _cache := {}
 static var _tex := {}
+static var _nor_cache := {}
 
 static func px() -> bool:
 	return G.current in VILLAGES
@@ -38,6 +39,33 @@ static func _set_tex(set_name: String, kind: String) -> Texture2D:
 		if t: return t
 	return null
 
+## Generates a cached Sobel normal map from a pixel-art diffuse texture so roads, roofs, and plaster catch light.
+static func _px_normal(set_name: String, diff: Texture2D) -> Texture2D:
+	if _nor_cache.has(set_name): return _nor_cache[set_name]
+	var src: Image = diff.get_image()
+	if src == null or src.is_empty():
+		_nor_cache[set_name] = null
+		return null
+	var img := src.duplicate()
+	if img.is_compressed(): img.decompress()
+	if img.get_width() > 256 or img.get_height() > 256:
+		img.resize(mini(256, img.get_width()), mini(256, img.get_height()), Image.INTERPOLATE_BILINEAR)
+	var w := img.get_width(); var h := img.get_height()
+	var nimg := Image.create(w, h, false, Image.FORMAT_RGB8)
+	var lum := func(x: int, y: int) -> float:
+		return img.get_pixel(posmod(x, w), posmod(y, h)).get_luminance()
+	var strength := 2.4 if set_name in ["px_cobble", "px_stone", "px_roof", "px_roof2", "px_brick"] else 1.2
+	for y in h:
+		for x in w:
+			var dx: float = (lum.call(x + 1, y) - lum.call(x - 1, y)) * strength
+			var dy: float = (lum.call(x, y + 1) - lum.call(x, y - 1)) * strength
+			var n := Vector3(-dx, -dy, 1.0).normalized()
+			nimg.set_pixel(x, y, Color(n.x * 0.5 + 0.5, n.y * 0.5 + 0.5, n.z * 0.5 + 0.5))
+	nimg.generate_mipmaps()
+	var ntex := ImageTexture.create_from_image(nimg)
+	_nor_cache[set_name] = ntex
+	return ntex
+
 ## A lit, textured surface; `tile` is how many metres one repeat of the texture covers.
 static func mat(set_name: String, tile: float, tint: Color, smooth := 0.12) -> StandardMaterial3D:
 	var key := "%s|%s|%s|%s" % [set_name, tile, tint, smooth]
@@ -47,10 +75,12 @@ static func mat(set_name: String, tile: float, tint: Color, smooth := 0.12) -> S
 	m.vertex_color_use_as_albedo = true
 	m.albedo_texture = _set_tex(set_name, "diff")
 	var nor := _set_tex(set_name, "nor_gl")
+	if nor == null and set_name.begins_with("px_") and m.albedo_texture != null:
+		nor = _px_normal(set_name, m.albedo_texture)
 	if nor:
 		m.normal_enabled = true
 		m.normal_texture = nor
-		m.normal_scale = 1.2
+		m.normal_scale = 0.75 if set_name.begins_with("px_") else 1.2
 	m.roughness = 1.0 - smooth
 	m.metallic_specular = 0.3
 	m.uv1_scale = Vector3(1.0 / tile, 1.0 / tile, 1.0)
