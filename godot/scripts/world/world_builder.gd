@@ -300,6 +300,12 @@ static func _modelled(b: Dictionary, base: Transform3D, w: float, d: float, h: f
 			if not ModelKit.exists(m): return false
 			var wm2: Material = Mats.mat("px_planks", 1.1, Color(0.55, 0.45, 0.36), 0.04) if m == "barn" else Mats.saxon_plaster(p)
 			ModelKit.place(L, base, w, d, m, Mats.roof_at(p), wm2, h + roof_h)
+			if m != "barn":
+				var wbt := Batch.new(); wbt.xf = base
+				var wmn := Vector3(-w * 0.5, 0.0, -d); var wmx := Vector3(w * 0.5, h, 0.0)
+				_windows(wbt, wmn, wmx, false, Mats.shutter(p))
+				wbt.mb(Mats.wood()).cube(Vector3(0.0, minf(0.95, h * 0.42), -d - 0.02), Vector3(0.56, minf(1.85, h * 0.8), 0.06))
+				wbt.commit(root, "HouseTrim", false)
 			return true
 		"portal_wall":
 			if not ModelKit.exists("portal_wall_arched"): return false

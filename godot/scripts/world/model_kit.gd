@@ -46,7 +46,9 @@ static func shape(name: String) -> Dictionary:
 		if v.y > top.y: top = v
 	for v in wtris: box = box.expand(v)
 	var c := box.get_center()
-	var cut := box.position.y + box.size.y * 0.06   # the patch of ground, base or low wall it was modelled on
+const NO_GROUND_MODELS := ["house_town_2story", "house_saxon_halfhip", "inn_2story", "portal_wall_arched",
+	"apold_church", "street_bench_wood", "fence_post_rail", "culvert_bridge", "stork_nest_pole"]
+var cut := box.position.y + (0.002 if name in NO_GROUND_MODELS else box.size.y * 0.06)   # the patch of ground, base or low wall it was modelled on
 	var H := box.position.y + box.size.y - cut
 	var uv_k := _nominal(name) / maxf(box.size.x, box.size.z)   # model units to metres, for the textures
 	var roof := SurfaceTool.new(); roof.begin(Mesh.PRIMITIVE_TRIANGLES)
