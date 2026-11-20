@@ -68,6 +68,29 @@ var smoke := false:
 		if v: Atmosphere.smoke(self)
 var _tick := randi() % 12
 var _base_tint := Color.WHITE
+static var _pad_cache := {}
+
+static func _bottom_pad(sprite_id: String, tex: Texture2D) -> float:
+	if _pad_cache.has(sprite_id): return _pad_cache[sprite_id]
+	var h := float(tex.get_height())
+	var fallback := h * 0.06
+	var img: Image = tex.get_image()
+	if img == null or img.is_empty():
+		_pad_cache[sprite_id] = fallback
+		return fallback
+	if img.is_compressed(): img.decompress()
+	var w: int = img.get_width(); var ih: int = img.get_height()
+	var pad := 0
+	for y in range(ih - 1, -1, -1):
+		var empty := true
+		for x in w:
+			if img.get_pixel(x, y).a > 0.08:
+				empty = false; break
+		if not empty: break
+		pad += 1
+	var res := float(pad) + h * 0.02
+	_pad_cache[sprite_id] = res
+	return res
 
 var pos: Vector2:
 	get: return Vector2(position.x, position.z) / Fx.S
@@ -87,7 +110,7 @@ func setup(at: Vector2, sprite_id: String, r := 0.0, flip := false, scale_overri
 		sprite.texture = tex
 		sprite.pixel_size = scale_k / PPU
 		sprite.centered = false
-		sprite.offset = Vector2(-tex.get_width() / 2.0, -tex.get_height() * 0.06)   # sink transparent bottom margin slightly so feet sit in the ground
+		sprite.offset = Vector2(-tex.get_width() / 2.0, -_bottom_pad(sprite_id, tex))
 		sprite.flip_h = flip
 		sprite.shaded = false
 		sprite.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
