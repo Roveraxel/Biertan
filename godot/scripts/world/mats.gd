@@ -46,11 +46,11 @@ static func _px_normal(set_name: String, diff: Texture2D) -> Texture2D:
 	if src == null or src.is_empty():
 		_nor_cache[set_name] = null
 		return null
-	var img := src.duplicate()
+	var img: Image = src.duplicate()
 	if img.is_compressed(): img.decompress()
 	if img.get_width() > 256 or img.get_height() > 256:
 		img.resize(mini(256, img.get_width()), mini(256, img.get_height()), Image.INTERPOLATE_BILINEAR)
-	var w := img.get_width(); var h := img.get_height()
+	var w: int = img.get_width(); var h: int = img.get_height()
 	var nimg := Image.create(w, h, false, Image.FORMAT_RGB8)
 	var lum := func(x: int, y: int) -> float:
 		return img.get_pixel(posmod(x, w), posmod(y, h)).get_luminance()
