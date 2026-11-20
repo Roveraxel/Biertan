@@ -317,6 +317,18 @@ func _tutorial() -> void:
 	var nb := _on_square(m.at(76, 30) + Vector2(220, -60), 60.0)
 	add_decor(nb + Vector2(0, -16), "notice_board", 20.0)
 	add_prop("task", "notice", "Notice board", nb, "E   Read the notice board")
+	if ModelKit.exists("street_bench_wood"):
+		for bo in [Vector2(-180, -40), Vector2(180, 110)]:
+			var bp := _on_square(m.at(76, 30) + bo, 30.0)
+			add_block_rotated(bp, Vector2(54.0, 20.0), 0.0, "street_bench", 14.0, true)
+	if not G.side_has("sig_keys"):
+		var kp := _on_square(m.at(96, -24), 30.0)
+		add_decor(kp, "crate", 18.0)
+		add_prop("task", "watch_keys", "Watchman's chest", kp + Vector2(0, 28), "E   Pick up dropped keys & open chest")
+	if not G.side_has("sig_crow"):
+		var cp := free_spot(m.at(118, -50), 30.0)
+		add_decor(cp, "crow", 10.0)
+		add_prop("task", "clock_crow", "Clock Tower crow", cp + Vector2(0, 24), "E   Shoo the crow")
 	add_prop("npc", "vlad", "Vlad Laurențiu · Merchant", at.call(150, -62), "E   Speak with Vlad Laurențiu", Color("4a5a6a"))
 	add_decor(at.call(160, -70), "horse_cart", 70.0)   # Vlad's căruță, horse and all
 	var tr: Vector2 = at.call(135, -82)   # a troiță by the road out of the gate yard

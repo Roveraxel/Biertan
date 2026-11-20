@@ -211,3 +211,24 @@ func use(p: Prop) -> void:
 				"The house where, they say, Vlad Dracul lived when the town was his. A portrait hangs in the dark hall.",
 				"Someone has scratched out the face with a knife, again and again, until the board shows through. The scratches are fresh.",
 			])
+		"watch_keys":
+			if not has("sig_keys"):
+				mark("sig_keys")
+				G.player.coins += 12
+				G.player.potions += 1
+				Audio.sfx("coin", -4.0)
+				G.level.remove_prop(p)
+				G.start_dialogue("Watchman's chest", [
+					"(A brass key ring lies beside the guild crate—the night watchman's spare keys.)",
+					"(Inside you find 12 coins and a fresh tincture left for the patrol. +12 coins, +1 tincture.)",
+				])
+		"clock_crow":
+			if not has("sig_crow"):
+				mark("sig_crow")
+				G.player.coins += 15
+				Audio.sfx("crow", -4.0)
+				G.level.remove_prop(p)
+				G.start_dialogue("Clock Tower crow", [
+					"(You clap your hands; the black crow hops onto the parapet and drops a glinting silver coin from its beak.)",
+					"(Every hour the wooden figurines of the Clock Tower turn above the gate—and the crows still steal whatever shines. +15 coins.)",
+				])
