@@ -11,7 +11,7 @@ const SIZES := {
 	"wattle_fence": 0.95, "beehives": 0.85, "apple_tree_autumn": 1.9, "pepper_rack": 0.9,
 	"wheelbarrow_pumpkins": 0.75, "sunflowers_dry": 0.95, "apple_basket": 0.42, "brazier_cold": 0.7, "garden_shed": 1.45,
 	"bench": 0.6, "crate": 0.75, "sacks": 0.7, "barrel": 0.72, "barrels": 0.95,
-	"firewood": 0.8, "handcart": 1.2, "horse_cart": 1.15, "hunter_hay": 0.85, "priest_sleep": 1.1, "haycart": 1.6, "well": 1.4, "stall": 1.8, "haystack_plain": 1.9, "hay_eyes": 1.9, "hams_rack": 1.4, "hearth": 1.15,
+	"firewood": 0.8, "handcart": 1.2, "horse_cart": 0.5, "hunter_hay": 0.85, "priest_sleep": 1.1, "haycart": 1.6, "well": 1.4, "stall": 1.8, "haystack_plain": 1.9, "hay_eyes": 1.9, "hams_rack": 1.4, "hearth": 1.15,
 	"trough": 0.9, "lantern": 1.45, "cauldron": 0.75, "wheel": 0.7, "laundry": 1.1,
 	"hams_beam": 1.4, "sausage_rack": 1.2, "salt_barrel": 0.75, "chopping_block": 0.7, "ham_pile": 0.8,
 	"smoke_pit": 1.2, "spiridus_lantern": 0.45, "red_cap": 0.35, "ladder": 1.6, "fish_crate": 0.75,
