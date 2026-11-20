@@ -35,7 +35,7 @@ func goto_level(level_id: String, at = null) -> void:
 	var dest := level_id
 	if at == null and not G.instant and from != "road_stretch":
 		var route := "%s_%s" % [from, level_id]
-		if route in ["sighisoara_viscri", "viscri_crit", "crit_saschiz", "saschiz_sapartoc", "apold_cris"] and not G.side_has("road_" + level_id):
+		if route in ["sighisoara_viscri", "viscri_crit", "crit_saschiz", "saschiz_sapartoc", "sapartoc_apold", "apold_cris"] and not G.side_has("road_" + level_id):
 			var rs: GDScript = load("res://scripts/levels/road_stretch.gd")
 			rs.set("route_key", route)
 			rs.set("next_dest", level_id)

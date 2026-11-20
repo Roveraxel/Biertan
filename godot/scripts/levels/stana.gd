@@ -55,6 +55,7 @@ func build() -> void:
 	_fence(true)   # the gate starts shut: the hunter opens it himself
 	add_block(Rect2(FOLD.end.x - 220.0, FOLD.position.y + 30.0, 180.0, 120.0), "house", 46.0).timber = true   # the shepherds' hut
 	add_brazier(Vector2(FOLD.end.x - 130.0, FOLD.position.y + 220.0))
+	add_prop("task", "campfire_pack", "Shepherd's fire", Vector2(FOLD.end.x - 130.0, FOLD.position.y + 255.0), "E   Pack cheese & slănină")
 	add_decor(FOLD.position + Vector2(120, 80), "haystack_plain", 30.0)
 	add_decor(FOLD.position + Vector2(280, 70), "livestock_trough", 20.0)
 	add_decor(FOLD.position + Vector2(190, 140), "butter_churn", 12.0)
@@ -277,6 +278,15 @@ func use(p: Prop) -> void:
 		G.start_dialogue("Lost lamb", [
 			"(You part the brambles carefully. The lamb scrambles free and trots straight toward the fold.)",
 			"(Azorel gives one approving bark. Found 10 coins and a spare tincture tucked in the shepherd's pouch nearby.)"
+		])
+	elif p.id == "campfire_pack":
+		G.player.max_hp += 15.0
+		G.player.hp = minf(G.player.max_hp, G.player.hp + 15.0)
+		G.player.potions += 1
+		remove_prop(p)
+		G.start_dialogue("Shepherd's fire", [
+			"(You wrap smoked slănină and fresh sheep cheese from the hearth into your satchel. Max Health +15, +1 tincture.)",
+			"(Azorel sits very still until he gets his share of the rind, then trots back toward the gate.)"
 		])
 
 func pending(p: Prop) -> bool:

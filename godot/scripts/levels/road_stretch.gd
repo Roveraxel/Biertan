@@ -11,12 +11,13 @@ var wolves_left := 0
 func build() -> void:
 	id = "road_stretch"
 	size = Vector2(2600, 1400)
-	ground = Color("2e3a24")
+	var is_autumn := route_key == "sapartoc_apold"
+	ground = Color("3d381e") if is_autumn else Color("2e3a24")
 	tile = ""
 	rng = NetRandom.new(hash(route_key) & 0x7fffffff)
 	title = "ON THE ROAD"
 	subtitle = _subtitle_for()
-	scatter(Rect2(Vector2.ZERO, size), 280, [Color("364428"), Color("28341e"), Color("423c2c")])
+	scatter(Rect2(Vector2.ZERO, size), 280, [Color("4a3e22"), Color("38321c"), Color("564024")] if is_autumn else [Color("364428"), Color("28341e"), Color("423c2c")])
 	var road_pts := [Vector2(120, 720), Vector2(680, 680), Vector2(1300, 740), Vector2(1920, 690), Vector2(2480, 710)]
 	add_path(road_pts, 125.0)
 	var side_pts := [Vector2(1150, 720), Vector2(1240, 460), Vector2(1420, 320)]
@@ -95,6 +96,19 @@ func build() -> void:
 					if wolves_left <= 0:
 						resolved = true
 						Hud.toast("The ambush is broken. Continue east down the road."))
+		"sapartoc_apold":
+			add_decor(Vector2(1420, 320), "shrine", 24.0)
+			add_prop("task", "encounter", "Autumn shrine", Vector2(1420, 385), "E   Inspect the autumn shrine")
+			wolves_left = 3
+			var mr := spawn_enemy("moroi", Vector2(1350, 360))
+			mr.died.connect(func(_e):
+				wolves_left -= 1
+				if wolves_left <= 0: Hud.toast("The moroi crumbles into dry leaves. Check the shrine!"))
+			for wp in [Vector2(1180, 680), Vector2(1560, 460)]:
+				var w := spawn_enemy("wolf", wp)
+				w.died.connect(func(_e):
+					wolves_left -= 1
+					if wolves_left <= 0: Hud.toast("The moroi crumbles into dry leaves. Check the shrine!"))
 		_:
 			add_decor(Vector2(1360, 740), "fallen_log", 36.0)
 			add_prop("task", "encounter", "Blocked culvert", Vector2(1290, 740), "E   Clear the fallen log")
@@ -119,6 +133,7 @@ func _subtitle_for() -> String:
 		"viscri_crit": return "The Scarecrow Hollow"
 		"crit_saschiz": return "The Crossroads Troiță"
 		"saschiz_sapartoc": return "A Trail of Dark Earth"
+		"sapartoc_apold": return "The Autumn Crossroads"
 		_: return "The Blocked Culvert"
 
 func objective() -> String:
@@ -128,6 +143,7 @@ func objective() -> String:
 			"viscri_crit": return "Clear the haunted hollow off the road or keep walking east."
 			"crit_saschiz": return "Explore the roadside clearing to recover the stolen parcel, or keep walking east."
 			"saschiz_sapartoc": return "Follow the spilled dark earth off the road, or keep walking east."
+			"sapartoc_apold": return "Clear the moroi and wolves at the autumn shrine, or keep walking east."
 			_: return "Drive off the pack and clear the fallen log on the road."
 	return "Follow the road east to %s." % G.NAMES.get(next_dest, next_dest.capitalize())
 
