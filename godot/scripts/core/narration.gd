@@ -10,6 +10,13 @@ const VOICE := "6d76b9c0a0c54f6a97a1c1748270cee1"   # Fish Audio voice: "Romania
 const LINES := {
 	"prologue": ["Let me tell you about my hunter. That summer he was minding other people's cows on the high pastures, with a dog who thought he was the one in charge. He was right, of course. Azorel usually is."],
 	"descent": ["At first light he gave the cows back, took his wage in coins and cheese, and walked north to Sighișoara. Looking for winter work, he said. Looking for trouble, I say. He found both."],
+	"recap_viscri": ["In Viscri the dogs had gone silent and the sexton's boots were far too clean. My hunter got the cellar key, Matei got his supper, and the village learned that a quiet dog is never a good sign."],
+	"recap_crit": ["Floarea soaked her trousseau on a Friday and paid for it. My hunter climbed the mountain with an apple and a poppy to beg for mercy, and Sfânta Vineri took pity on the girl. She looked at him like an uninvited goat."],
+	"recap_saschiz": ["The mob above Saschiz wanted blood, but my hunter found a lonely giant playing horses with three stolen children in his apron. He brought them down without drawing steel, and the mother pressed a fortress stone into his hand."],
+	"recap_sapartoc": ["Three empty churches and one noisy ghost. My hunter put soup in the Catholic nave, fiddles in the tower, and poured enough plum wine down a sleeping priest to hold a mass. By evening, families were moving back in."],
+	"recap_apold": ["On Sâmedru's night the dead came home for supper, grumbling about the colivă, and my hunter kept them off the tables. He stood by the bonfire until dawn, smelling of smoke and old tallow."],
+	"recap_malancrav": ["He woke in a haystack without his trousers, swore he had only had three cups, and had to climb the church tower to fetch them from the weathervane. The children cheered. The valley still tells the rest."],
+	"recap_richisvillage": ["Seven Iele danced on the frost. Moș Ilie played the doina until his lips bled, while my hunter stood in the circle taking blows meant for a phantom. Toader came back to his right mind, and the road to Biertan opened."],
 	"recap_sighisoara": [
 		"In Sighișoara the butchers' guild was losing bacon, a slab a night, and nobody had seen the thief.",
 		"My brave hunter followed flour footprints with long toes, all the way under the tower, and found the spiriduși. One of them stole his hat. He still will not talk about the hat.",
