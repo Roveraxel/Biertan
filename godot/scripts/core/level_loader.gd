@@ -32,11 +32,19 @@ func goto_level(level_id: String, at = null) -> void:
 	if act != "" and not G.instant:
 		G.side_add(act)
 		await G.show_story(act)   # a new act begins: its title card
+	var dest := level_id
+	if at == null and not G.instant and from != "road_stretch":
+		var route := "%s_%s" % [from, level_id]
+		if route in ["crit_saschiz", "saschiz_sapartoc", "apold_cris"] and not G.side_has("road_" + level_id):
+			var rs: GDScript = load("res://scripts/levels/road_stretch.gd")
+			rs.set("route_key", route)
+			rs.set("next_dest", level_id)
+			dest = "road_stretch"
 	unload()
 	Hud.loading("On the road...")
 	await get_tree().process_frame   # let the old level go
 	await get_tree().process_frame   # and let the line reach the screen before the build blocks it
-	enter(level_id, at)
+	enter(dest, at)
 	Hud.loading("")
 	G.state = G.State.PLAY
 	await Hud.fade_to(0.0, 0.35)

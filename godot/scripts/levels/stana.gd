@@ -66,6 +66,7 @@ func build() -> void:
 		cow.harmless = true   # nobody takes a blade to the cows he is paid to mind
 		cows.append(cow)
 	azorel = add_prop("npc", "azorel", "Azorel", Vector2(1350, 900), "", Color("d8d0c0"))
+	add_prop("ewe", "lost_lamb", "Lost lamb", Vector2(560, 520), "E   Free the lamb from the brambles")
 	gate = add_prop("task", "gate", "Gate", GATE + Vector2(-40, 0), "E   Open the gate")
 
 func on_enter() -> void:
@@ -268,6 +269,14 @@ func use(p: Prop) -> void:
 	if p.id == "gate":
 		if gate_open: _close_gate()
 		else: _open_gate()
+	elif p.id == "lost_lamb":
+		G.player.potions += 1
+		G.player.coins += 10
+		remove_prop(p)
+		G.start_dialogue("Lost lamb", [
+			"(You part the brambles carefully. The lamb scrambles free and trots straight toward the fold.)",
+			"(Azorel gives one approving bark. Found 10 coins and a spare tincture tucked in the shepherd's pouch nearby.)"
+		])
 
 func pending(p: Prop) -> bool:
 	return p.id == "gate" and step == 1 and (not gate_open or penned() == cows.size())
