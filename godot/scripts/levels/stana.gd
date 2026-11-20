@@ -66,7 +66,8 @@ func build() -> void:
 		cow.harmless = true   # nobody takes a blade to the cows he is paid to mind
 		cows.append(cow)
 	azorel = add_prop("npc", "azorel", "Azorel", Vector2(1350, 900), "", Color("d8d0c0"))
-	add_prop("ewe", "lost_lamb", "Lost lamb", Vector2(560, 520), "E   Free the lamb from the brambles")
+	add_decor(Vector2(560, 520), "sheep_lie", 16.0)
+	add_prop("task", "lost_lamb", "Lost lamb", Vector2(560, 540), "E   Free the lamb from the brambles")
 	gate = add_prop("task", "gate", "Gate", GATE + Vector2(-40, 0), "E   Open the gate")
 
 func on_enter() -> void:

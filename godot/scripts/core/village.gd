@@ -95,17 +95,17 @@ func add_street_dressing() -> void:
 	var sq := centre_spot()
 	if ModelKit.exists("street_bench_wood"):
 		for o in [Vector2(-150, 90), Vector2(160, -80)]:
-			var bp := free_spot(sq + o, 30.0, func(p: Vector2) -> bool: return not near_road(p, 55.0))
-			if not near_building(bp, 25.0):
+			var bp := free_spot(sq + o, 30.0)
+			if not near_building(bp, 25.0) and not near_road(bp, 45.0):
 				add_block_rotated(bp, Vector2(54.0, 20.0), 0.0, "street_bench", 14.0, true)
 	if ModelKit.exists("stork_nest_pole"):
-		var sp := free_spot(sq + Vector2(280, 160), 40.0, func(p: Vector2) -> bool: return near_road(p, 160.0) and not near_road(p, 60.0))
-		if not near_building(sp, 35.0):
+		var sp := free_spot(sq + Vector2(280, 160), 40.0)
+		if not near_building(sp, 35.0) and not near_road(sp, 50.0):
 			add_block_rotated(sp, Vector2(28.0, 28.0), 0.0, "stork_pole", 110.0, true)
 	if id in ["apold", "saschiz", "viscri"] and ModelKit.exists("culvert_bridge"):
 		for h_idx in mini(3, m.boxes("houses").size()):
 			var h: Dictionary = m.boxes("houses")[h_idx * maxi(1, m.boxes("houses").size() / 4)]
-			var cp := free_spot(h.c + Vector2(0, maxf(h.size.x, h.size.y) * 0.5 + 48.0), 25.0, func(p: Vector2) -> bool: return not near_road(p, 28.0))
+			var cp := free_spot(h.c + Vector2(0, maxf(h.size.x, h.size.y) * 0.5 + 48.0), 25.0)
 			if not near_building(cp, 18.0):
 				add_block_rotated(cp, Vector2(68.0, 34.0), h.angle, "culvert_bridge", 12.0, false)
 

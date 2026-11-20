@@ -48,7 +48,7 @@ func _quest_things() -> void:
 	var stones := free_spot(Vector2(2300, 6300), 80.0)
 	for k in 3: add_block(Rect2(stones.x - 30.0 + k * 4.0, stones.y - 30.0 - k * 55.0, 60, 55), "rock", 24.0 + k * 14.0)
 	add_prop("clue", "stones", "Stacked stones", stones + Vector2(0, 60), "E   Look at the stones")
-	var carts := free_spot(Vector2(10000, 4000), 90.0, func(p: Vector2) -> bool: return not near_road(p, 110.0))
+	var carts := free_spot(Vector2(10000, 4000), 90.0)
 	add_decor(carts, "haycart", 55.0); add_decor(carts + Vector2(160, 40), "haycart", 55.0, true); add_decor(carts + Vector2(70, 120), "handcart", 30.0)
 	add_decor(free_spot(mob_at + Vector2(-140, -60), 30.0), "anvil", 16.0)
 	add_decor(free_spot(mob_at + Vector2(-220, -40), 30.0), "blacksmith_forge", 22.0)

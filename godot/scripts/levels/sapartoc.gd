@@ -117,7 +117,7 @@ func _quest_things() -> void:
 		lamp_decor.append(add_decor(lamp_at[i], "lamp_lit" if lit else "lamp_post", 12.0))
 		if lit: _light_at(i)
 		add_prop("task", "lamp%d" % i, "Lamp", lamp_at[i] + Vector2(0, 30), "E   Light the lamp")
-	ana_at = free_spot(bo + Vector2(-240, -60), 50.0, func(p: Vector2) -> bool: return not near_road(p, 110.0))
+	ana_at = free_spot(bo + Vector2(-240, -60), 50.0)
 	if has.call("sp_ana") and not has.call("sp_done"): _show_ana()
 	elif has.call("sp_done"):
 		add_decor(ana_at + Vector2(0, -40), "hammock"); add_decor(ana_at + Vector2(40, -20), "book")
