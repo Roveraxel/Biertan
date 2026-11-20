@@ -18,8 +18,21 @@ static func clues_found() -> int:
 		if has("sx_c_" + c): n += 1
 	return n
 
+var _wp_t := 0.0
+var _wp_for := Vector2.ZERO
+var _wp_pos := Vector2.ZERO
+
 func _to(id: String, label: String) -> Array:
-	return [G.level.spots[id], label] if G.level.spots.has(id) else []
+	if not G.level.spots.has(id): return []
+	var dst: Vector2 = G.level.spots[id]
+	if G.current == "saschiz" and is_instance_valid(G.player) and G.player.pos.distance_to(dst) > 700.0 and G.level.has_method("find_path"):
+		var now := Time.get_ticks_msec() / 1000.0
+		if now - _wp_t > 0.6 or _wp_for.distance_to(dst) > 20.0:
+			_wp_t = now; _wp_for = dst
+			var path: Array = G.level.find_path(G.player.pos, dst, 12.0, null, 2400.0)
+			_wp_pos = path[mini(2, path.size() - 1)] if path.size() > 1 else dst
+		return [_wp_pos, label]
+	return [dst, label]
 
 func target() -> Array:
 	if G.current == "uriasi": return _to("exit", "Down to Saschiz") if has("sx_giant") else _to("giant", "The giant")

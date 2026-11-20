@@ -117,6 +117,12 @@ func _day() -> void:
 	for it in [["market1", "A woman with a basket", Vector2(1040, 2700) * K], ["market2", "The chestnut seller", Vector2(1560, 2730) * K], ["market3", "An old man", Vector2(930, 2560) * K]]:
 		add_prop("npc", it[0], it[1], it[2], "E   Talk")
 	add_decor(Vector2(1610, 2700) * K, "barrel"); add_decor(Vector2(1000, 2760) * K, "crate"); add_decor(Vector2(880, 2600) * K, "bench")
+	if ModelKit.exists("street_bench_wood"):
+		add_block_rotated(Vector2(1140, 2780) * K, Vector2(54, 20), 0.0, "street_bench", 14.0, true)
+		add_block_rotated(Vector2(1460, 2780) * K, Vector2(54, 20), 0.0, "street_bench", 14.0, true)
+	if ModelKit.exists("inn_2story"):
+		var th := add_block_rotated(Vector2(780, 2760) * K, Vector2(210, 140), 0.0, "house", 58.0, true)
+		th["inn"] = true
 	add_torch(Vector2(1300, 2650) * K, 420.0, Color(1, 0.75, 0.5), 0.6)
 	# Vlad and Magda, by the old graves in the middle ring (at the foot of the stair once it is over)
 	var gr := in_band(1, 195.0)
