@@ -291,7 +291,7 @@ func use(p: Prop) -> void:
 				mark("cr_sub_found"); p.used = true
 				Audio.sfx("hunter_hm", -2.0)
 				Audio.sfx("blip", -4.0, 0.9)
-				G.start_dialogue("Millrace", ["You wade into the sluice, dodge a paddle that wants your ribs, and fish out a carved walnut distaff, slick as an eel.", "(Somewhere downstream the water laughs, once, very softly.)", "Lorena, from the bank: \"Look at you. Dripping like a drowned sheep. Quite the hero.\""])
+				G.start_dialogue("Millrace", ["You wade into the sluice, dodge a paddle that wants your ribs, and fish out a carved walnut distaff, slick as an eel.", "(Somewhere downstream the water laughs, once, very softly.)", "(You shake the water out of your sleeves and climb back onto the bank, dripping like a drowned sheep.)"])
 		"apples":
 			if not has("cr_basket"): G.start_dialogue("Garden", ["Apple and plum trees in the mother's garden, heavy with fruit."])
 			elif not has("cr_fruit"):

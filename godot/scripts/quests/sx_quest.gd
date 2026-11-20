@@ -128,7 +128,7 @@ func _song() -> void:
 		"Paul (skipping): \"Big boots, long knife, afraid of his own wife! Came from the mountain, slept in the hay, chased all the giant's sheep away!\"",
 		"(You reach into your pack, find three dried plums, and hold them out on your palm.)",
 		"Andrei (grabs a plum, inspects it for dirt, wipes it on his knee, and bites): ...They're sweet. He's allowed to stay.",
-		"Lorena, leaning on the low wall: Don't look so offended, hunter. Children and drunkards are the only two kinds of people who speak the plain truth."],
+		"Ilinca, leaning on the low wall: Don't look so offended, hunter. Children and drunkards are the only two kinds of people who speak the plain truth."],
 		func():
 			G.player.coins += 10
 			Audio.sfx("coin", -4.0)
