@@ -76,6 +76,14 @@ static func shape(name: String) -> Dictionary:
 		for p in [pts[0], pts[2], pts[1]]:
 			var q: Vector3 = p * uv_k
 			var uv := Vector2(q.x, q.z) if (an.y >= an.x and an.y >= an.z) else (Vector2(q.z, -q.y) if an.x >= an.z else Vector2(q.x, -q.y))
+			var yn := clampf(p.y / maxf(H, 0.01), 0.0, 1.0)
+			if st == wall:
+				var plinth := smoothstep(0.08, 0.16, yn)
+				var ao := lerpf(0.36, 1.0, plinth) * lerpf(1.0, 0.90, smoothstep(0.55, 0.95, yn))
+				st.set_color(Color(ao, ao * 0.99, ao * 0.97))
+			else:
+				var shade := lerpf(0.90, 1.04, smoothstep(0.3, 1.0, yn))
+				st.set_color(Color(shade, shade, shade))
 			st.set_normal(n); st.set_uv(uv); st.add_vertex(p)
 	var wood := SurfaceTool.new(); wood.begin(Mesh.PRIMITIVE_TRIANGLES)
 	for i in range(0, wtris.size() - 2, 3):

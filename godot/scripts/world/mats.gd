@@ -44,6 +44,7 @@ static func mat(set_name: String, tile: float, tint: Color, smooth := 0.12) -> S
 	if _cache.has(key): return _cache[key]
 	var m := StandardMaterial3D.new()
 	m.albedo_color = tint
+	m.vertex_color_use_as_albedo = true
 	m.albedo_texture = _set_tex(set_name, "diff")
 	var nor := _set_tex(set_name, "nor_gl")
 	if nor:
