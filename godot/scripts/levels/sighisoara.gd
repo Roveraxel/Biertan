@@ -338,7 +338,7 @@ func _tutorial() -> void:
 	var at_square := _on_square(m.at(86, 12), 40.0)
 	butcher_at_tower = at.call(-92, -76)
 	butcher = add_prop("npc", "butcher", "Meister Thomas · Guild master", butcher_at_tower if G.side_has("sig_job") else at_square, "E   Speak with Meister Thomas", Color("6a3a30"))
-	var face := _facade(m.at(86, -8))   # hung on the house front, facing the square
+	var face := free_spot(_facade(m.at(86, -8)), 25.0)   # hung on the house front, off the street
 	_dracul_house(face)
 	add_decor(face, "portrait")
 	add_prop("task", "portrait", "Casa Vlad Dracul", face + Vector2(0, 26), "E   Look into Casa Vlad Dracul")
@@ -366,7 +366,7 @@ func _tutorial() -> void:
 	cellar_door = cellar_tower(cd0, 600.0, func(p): return inside(p, _citadel) and not near_wall(p, 200.0))   # the way down, in a cellar tower
 	var cw := cellar_door - Vector2(0, 16)
 	add_prop("task", "cellar", "Cellar door", cellar_door, "E   Try the cellar door")
-	var gs: Vector2 = cw + Vector2(170, 8)   # the guild's sign hangs beside the cellar door
+	var gs: Vector2 = free_spot(cw + Vector2(68, 8), 24.0)   # the guild's sign hangs beside the cellar door, off the street
 	add_decor(gs + Vector2(0, -10), "guild_sign")
 	add_prop("task", "sign", "Guild sign", gs + Vector2(0, 14), "E   Look at the guild sign")
 	var crate: Vector2 = free_spot(cw + Vector2(96, 26), 38.0)
