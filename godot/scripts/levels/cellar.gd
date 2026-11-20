@@ -43,11 +43,11 @@ func build() -> void:
 	add_block(Rect2(-600, -600, 600, 2400), "stone", 70.0)
 	add_block(Rect2(2800, -600, 600, 2400), "stone", 70.0)
 	for s in STORES: add_decor(Vector2(s[0], s[1]), s[2], 22.0, rng.f() < 0.5)
-	add_torch(Vector2(200, 560), 200.0, Color(1, 0.6, 0.3), 0.8)
-	add_torch(Vector2(680, 600), 260.0, Color(0.7, 0.75, 1), 0.35)   # cold store: a grey draught of daylight
-	add_torch(Vector2(1340, 600), 240.0, Color(1, 0.6, 0.3), 0.7)
-	for x in [1900.0, 1730.0, 2190.0]: add_torch(Vector2(x, 320.0 if x == 1900.0 else 880.0), 220.0, Color(1, 0.45, 0.18), 0.9)   # smoking fires
-	add_torch(Vector2(2540, 600), 260.0, Color(1, 0.55, 0.25), 0.8)
+	add_torch(Vector2(200, 560), 360.0, Color(1, 0.65, 0.35), 1.3)
+	add_torch(Vector2(680, 600), 440.0, Color(0.85, 0.82, 0.92), 1.1)   # cold store: a grey draught of daylight
+	add_torch(Vector2(1340, 600), 420.0, Color(1, 0.65, 0.35), 1.3)
+	for x in [1900.0, 1730.0, 2190.0]: add_torch(Vector2(x, 320.0 if x == 1900.0 else 880.0), 380.0, Color(1, 0.52, 0.22), 1.4)   # smoking fires
+	add_torch(Vector2(2540, 600), 440.0, Color(1, 0.62, 0.3), 1.4)
 	# the smokehouse: hams on chains swinging across the way through
 	for h in [[1800, 600, 0.0, false, "ham_hook"], [1940, 460, 0.6, true, "bacon_hook"], [1940, 760, 1.3, true, "sausage_hook"], [2090, 600, 0.9, false, "ham_hook"]]:
 		var hk := SwingingHook.new()
@@ -67,7 +67,7 @@ func build() -> void:
 	add_trigger(Rect2(380, 300, 80, 600), _hat_theft)
 
 func ambient() -> Color:
-	return Color(0.34, 0.3, 0.27)
+	return Color(0.56, 0.52, 0.46)
 
 func _open(c: Rect2) -> bool:
 	for r in ROOMS:
