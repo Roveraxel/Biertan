@@ -75,6 +75,14 @@ static func apply_darkness(level: Level) -> void:
 		moon_col = Color(0.66, 0.7, 0.78); moon_e = 1.9 * k; shadow = 0.45
 		sky = Color(0.5, 0.53, 0.6) * k; eq = Color(0.36, 0.37, 0.4) * k; gnd = Color(0.13, 0.13, 0.12) * k
 		fog_d = 0.026; fog_c = Color(0.16, 0.18, 0.2)
+		if G.RECAP_AFTER.has(level.id) and G.side_has(G.RECAP_AFTER[level.id]):
+			# freed village: lift the damp grey haze into warm golden autumn light
+			k *= 1.15
+			moon_col = moon_col.lerp(Color(1.0, 0.88, 0.68), 0.55)
+			moon_e *= 1.15
+			fog_d *= 0.65
+			fog_c = fog_c.lerp(Color(0.32, 0.28, 0.24), 0.4)
+			sky = sky.lerp(Color(0.68, 0.60, 0.48) * k, 0.35)
 	# night: a thin blue moon and black haze. Day: a low warm sun, long soft shadows, the haze burnt off.
 	moon_col = moon_col.lerp(Color(0.42, 0.52, 0.95), night * 0.7).lerp(Color(1.0, 0.9, 0.72), day)
 	moon_e *= 1.0 + day * 0.35 + night * 0.75   # a clear moon: dark, but shapes still read
