@@ -19,6 +19,7 @@ func build() -> void:
 	_quest_things()
 	edge_walls()
 	_road_stops()
+	add_street_dressing()
 	plant_gardens(9001, garden_ok)
 	add_troita(quiet_spot(centre_spot()))   # last, so it can stand clear of the market, the carts and Floarea's yard
 
@@ -40,7 +41,8 @@ func _quest_things() -> void:
 	add_prop("npc", "rada", "Baba Rada", free_spot(well + Vector2(-130, 50), 30.0), "E   Speak with Baba Rada", Color("3a3430"))
 	add_prop("task", "windlass", "Well windlass", well + Vector2(0, 60), "E   Tie a red knot")
 	add_prop("clue", "lye", "Lye bucket", well + Vector2(60, 50), "E   Look at the bucket")
-	var garden := free_spot(house + Vector2(-150, -320), 50.0)
+	var garden := free_spot(house + Vector2(-150, -320), 80.0)
+	if near_road(garden, 85.0): garden = free_spot(house + Vector2(-240, -360), 80.0)
 	add_decor(garden, "apples", 25.0); add_decor(garden + Vector2(110, 20), "apples", 25.0, true)
 	add_decor(garden + Vector2(50, 60), "plums")
 	add_prop("task", "apples", "Garden", garden + Vector2(50, 90), "E   Pick fruit")
@@ -48,9 +50,14 @@ func _quest_things() -> void:
 		var p := free_spot(w[2], 40.0)
 		add_prop("npc", w[0], w[1], p, "E   Speak with " + w[1], Color("3a3430"))
 		add_decor(p + Vector2(-40, -10), "bench", 20.0)
-	# the edge of the village: ribbons on the trees and the old path into the forest
+	# the edge of the village: ribbons on the trees, an orchard/forest edge, and the old path into the forest
 	var rib := free_spot(Vector2(11800, 5300), 40.0)
 	add_decor(rib, "ribbons"); add_decor(rib + Vector2(90, -40), "ribbons", 0.0, true)
+	for o in [Vector2(-110, -70), Vector2(140, -110), Vector2(40, -140), Vector2(-150, 60)]:
+		var tp: Vector2 = free_spot(rib + o, 30.0)
+		if not near_road(tp, 70.0) and not near_building(tp, 50.0): add_tree(tp, true)
+	add_decor(free_spot(rib + Vector2(-80, 40), 25.0), "plum_tree", 20.0)
+	add_decor(free_spot(rib + Vector2(130, 30), 25.0), "apples", 20.0)
 	add_prop("clue", "ribbons", "Ribbons", rib + Vector2(0, 30), "E   Look at the ribbons")
 	var gate := free_spot(Vector2(size.x - 220.0, 5600), 60.0)
 	CritQuest.forest_gate = gate
@@ -157,11 +164,21 @@ func _graves() -> void:
 		for i in cem.size():
 			var a0: Vector2 = cem[i]; var a1: Vector2 = cem[(i + 1) % cem.size()]
 			var length := a0.distance_to(a1)
-			var d := 0.0
-			while d < length:
-				var q := a0.lerp(a1, d / length)
-				d += 95.0
-				if not near_road(q, 60.0): add_decor(q, "wattle_fence", 12.0, i % 2 == 0)
+			if length < 30.0: continue
+			if ModelKit.exists("fence_post_rail"):
+				var dir := (a1 - a0) / length
+				var ang := rad_to_deg(-dir.angle())
+				var count := maxi(1, int(round(length / 110.0)))
+				var pw := length / float(count)
+				for k in count:
+					var q := a0.lerp(a1, (k + 0.5) / float(count))
+					if not near_road(q, 55.0): add_block_rotated(q, Vector2(pw, 14.0), ang, "fence_rail", 18.0, true)
+			else:
+				var d := 0.0
+				while d < length:
+					var q := a0.lerp(a1, d / length)
+					d += 58.0
+					if not near_road(q, 60.0): add_decor(q, "wattle_fence", 12.0, i % 2 == 0)
 		for k in 4:
 			var t := Vector2(lerpf(bb.position.x, bb.end.x, 0.2 + 0.2 * k), lerpf(bb.position.y, bb.end.y, 0.15 if k % 2 == 0 else 0.85))
 			if inside(t, cem) and not near_road(t, 60.0): add_tree(t, k % 2 == 1)

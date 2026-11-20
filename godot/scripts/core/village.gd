@@ -55,6 +55,8 @@ func lay_roads() -> void:
 func add_houses(base_h: float, barn_h: float, no_overlap := false) -> void:
 	for b in m.boxes("houses"):
 		var sz: Vector2 = b.size
+		if sz.x < sz.y * 0.45: sz.x = sz.y * 0.45
+		elif sz.y < sz.x * 0.45: sz.y = sz.x * 0.45
 		var tries := 0
 		while tries < 3 and blocks_street(b.c, sz, b.angle, 1.05):
 			sz *= 0.8; tries += 1
