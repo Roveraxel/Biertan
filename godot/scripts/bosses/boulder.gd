@@ -15,6 +15,7 @@ static func launch(a: Vector2, b: Vector2, flight: float, damage: float) -> void
 	o.from = a; o.to = b; o.life = flight; o.dmg = damage
 	Fx.root().add_child(o)
 	var tex: Texture2D = Mats.tex("res://sprites/Props/boulder.png")
+	if not tex: tex = Mats.tex("res://sprites/Props/forest_boulder.png")
 	var s := Sprite3D.new()
 	s.texture = tex if tex else Fx.circle_tex()
 	s.pixel_size = 1.1 / Decor.PPU if tex else 46.0 * Fx.S / 512.0

@@ -30,14 +30,22 @@ func build() -> void:
 	arrive_flag = "sp_arrive"
 	standard("sapartoc", 1390)
 	for c in m.boxes("churches"): add_church(c, 78.0 if c.area > 250.0 else 56.0, c.area > 250.0, 0.75, 190.0)
+	var radu_pos: Vector2 = m.at(168, -489)
+	var radu_house: Dictionary = {}
+	var rbest := INF
 	for b in m.boxes("houses"):
-		var sz: Vector2 = b.size
+		var rd: float = b.c.distance_to(radu_pos)
+		if rd < rbest: rbest = rd; radu_house = b
+	for b in m.boxes("houses"):
+		var is_radu: bool = not radu_house.is_empty() and b.c == radu_house.c
+		var sz: Vector2 = b.size * (1.35 if is_radu else 1.0)
 		var tries := 0
 		while tries < 3 and blocks_street(b.c, sz, b.angle):
 			sz *= 0.8; tries += 1
 		if blocks_street(b.c, sz, b.angle): continue
 		if blocked(b.c, minf(sz.x, sz.y) * 0.45): continue   # drawn closer together than in life: no house on top of another
-		add_block_rotated(b.c, sz, b.angle, "house", 60.0 if b.style == "barn" else 44.0 + rng.f() * 12.0)
+		var blk := add_block_rotated(b.c, sz, b.angle, "house", 58.0 if is_radu else (60.0 if b.style == "barn" else 44.0 + rng.f() * 12.0))
+		if is_radu: blk["inn"] = true
 	spawn = free_spot(m.at(-64, 28), 120.0)   # the lane from Saschiz comes in from the north
 	plant_trees(400.0, 280.0, 0.55, 80.0, spawn)
 	_hillside()
@@ -87,6 +95,10 @@ func _quest_things() -> void:
 	var radu := _in_front_of(m.at(168, -489))   # Radu's blue house at the south end of the village
 	add_prop("npc", "radu", "Radu · Innkeeper", radu, "E   Speak with Radu", Color("3a5a8a"))
 	add_decor(radu + Vector2(-80, -30), "geraniums"); add_decor(radu + Vector2(90, -30), "logs", 25.0)
+	var garden := free_spot(radu + Vector2(160, 40), 50.0)
+	add_decor(garden, "feast_table", 32.0)
+	add_decor(garden + Vector2(-90, 15), "chair"); add_decor(garden + Vector2(90, 15), "chair", 0.0, true)
+	add_decor(garden + Vector2(140, -30), "barrel", 18.0)
 	add_torch(radu + Vector2(0, -60), 240.0, Color(1, 0.62, 0.3), 0.7)
 	var horia := free_spot(m.at(148, -236), 50.0)
 	add_prop("npc", "horia", "Horia · Mayor", horia, "E   Speak with Horia", Color("4a4a5a"))
@@ -103,7 +115,7 @@ func _quest_things() -> void:
 		lamp_decor.append(add_decor(lamp_at[i], "lamp_lit" if lit else "lamp_post", 12.0))
 		if lit: _light_at(i)
 		add_prop("task", "lamp%d" % i, "Lamp", lamp_at[i] + Vector2(0, 30), "E   Light the lamp")
-	ana_at = free_spot(bo + Vector2(-160, 0), 40.0)
+	ana_at = free_spot(bo + Vector2(-240, -60), 50.0, func(p: Vector2) -> bool: return not near_road(p, 110.0))
 	if has.call("sp_ana") and not has.call("sp_done"): _show_ana()
 	elif has.call("sp_done"):
 		add_decor(ana_at + Vector2(0, -40), "hammock"); add_decor(ana_at + Vector2(40, -20), "book")

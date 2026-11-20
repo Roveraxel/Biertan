@@ -16,7 +16,7 @@ const FIGURES := {
 	"kid1": ["npc_child", 0.95], "kid2": ["npc_ioana", 0.95], "kid3": ["npc_child", 0.95],
 	"ilinca": ["npc_ilinca", 1.2], "ana": ["npc_ana_ghost", 1.2], "dumitru": ["npc_dumitru", 1.25],
 	"granny": ["npc_veta", 1.15], "baker": ["npc_anna", 1.2], "costache": ["npc_costache", 1.25],
-	"pubcostache": ["npc_costache", 1.25], "pubghost": ["shade", 1.25], "traveller": ["npc_priest", 1.25],
+	"pubcostache": ["npc_costache", 1.25], "pubghost": ["shade", 1.25], "traveller": ["npc_priest", 1.12],
 	"giant": ["uriasul", 2.6], "watchsexton": ["npc_sexton", 1.25], "hatthief": ["spiridus", 0.8], "mob": ["npc_konrad", 1.25], "vbutcher": ["npc_hans", 1.25],
 	"goosewife": ["npc_katharina", 1.2], "caretaker": ["npc_andreas", 1.25], "vineri": ["npc_sfanta_vineri", 1.3],
 	"gerda": ["npc_sofia", 1.18], "rada": ["npc_rozalia", 1.12], "baba_ana": ["npc_veta", 1.15], "baba_safta": [["npc_safta", "npc_rozalia"], 1.12], "baba_veta": ["npc_anna", 1.15],
@@ -269,9 +269,9 @@ func _move(dt: float) -> void:
 		return
 	if d < 46.0: return
 	if d > 220.0:   # fallen behind: run after him round the walls, quicker the further he is
-		steer_to(G.player.pos, clampf(d * 0.9, 200.0, 360.0), dt, 46.0)
+		steer_to(G.player.pos, clampf(d * 1.4, 260.0, 460.0), dt, 46.0)
 		return
-	var sp: float = clampf(d * 2.2, 60.0, 230.0) * dt
+	var sp: float = clampf(d * 2.8, 120.0, 340.0) * dt
 	var dir := to / d
 	for a in [0.0, 0.6, -0.6, 1.2, -1.2, 1.8, -1.8]:
 		var step: Vector2 = dir.rotated(a) * sp

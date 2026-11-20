@@ -120,11 +120,11 @@ func talk(id: String) -> bool:
 ## The children on the church steps sing the sun-calling rhyme and make up verses about the hunter.
 func _song() -> void:
 	mark("sx_sing")
-	Audio.sfx("kids_song", -2.0)
+	Audio.sfx("kids_song", -10.0)
 	G.start_dialogue("The children", [
 		"(The three of them climb the church steps with four more from the lane, and hold hands. The smallest counts them in.)",
 		"\"Ieși, soare, din închisoare, / Că te caută o căprioară, / Cu cercei de aur mare! / Vino, soare, pe pământ, / Că la noi e numai vânt!\"",
-		"Ioana (pointing at you): Look at the big shepherd! His dog has nicer manners than he does!",
+		"Ioana (pointing at you): Look at the big shepherd! Even a stray sheep has nicer manners than he does!",
 		"Paul (skipping): \"Big boots, long knife, afraid of his own wife! Came from the mountain, slept in the hay, chased all the giant's sheep away!\"",
 		"(You reach into your pack, find three dried plums, and hold them out on your palm.)",
 		"Andrei (grabs a plum, inspects it for dirt, wipes it on his knee, and bites): ...They're sweet. He's allowed to stay.",

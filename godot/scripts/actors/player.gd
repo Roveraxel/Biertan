@@ -7,6 +7,9 @@ signal died
 
 var hp := 100.0
 var max_hp := 100.0
+var stamina := 100.0
+var max_stamina := 100.0
+var sprint_exhausted := false
 var speed := 205.0
 var dmg := 12.0
 var facing := Vector2.RIGHT
@@ -62,7 +65,7 @@ func reset_stats() -> void:
 	max_hp = 100.0; hp = max_hp; dmg = 12.0; potions = 1; coins = 20
 	charm_dodge = false; red_thread = false; frozen = false
 	salt = 0; salt_unlocked = false; wormwood = false; oak_heart = false; garlic = false; torch = false
-	madness = 0.0; blood = 0.0; vamp_t = 0.0; haste_t = 0.0; drunk_t = 0.0; no_trousers = false
+	madness = 0.0; blood = 0.0; vamp_t = 0.0; haste_t = 0.0; drunk_t = 0.0; no_trousers = false; stamina = max_stamina; sprint_exhausted = false
 
 func _move_input() -> Vector2:
 	var v := Vector2(Input.get_axis("move_left", "move_right"), Input.get_axis("move_up", "move_down"))
@@ -124,7 +127,16 @@ func _physics_process(dt: float) -> void:
 		dodge_t -= dt
 		vel = dodge_dir * (600.0 if charm_dodge else 540.0)
 	else:
-		var sp := speed * (0.55 if slow_t > 0.0 else 1.0) * (1.25 if haste_t > 0.0 else 1.0)
+		var sprinting := Input.is_key_pressed(KEY_SHIFT) and dir != Vector2.ZERO and not sprint_exhausted and slow_t <= 0.0
+		if sprinting:
+			stamina -= 28.0 * dt
+			if stamina <= 0.0:
+				stamina = 0.0
+				sprint_exhausted = true
+		else:
+			stamina = minf(max_stamina, stamina + 24.0 * dt)
+			if sprint_exhausted and stamina >= 25.0: sprint_exhausted = false
+		var sp := speed * (0.55 if slow_t > 0.0 else 1.0) * (1.25 if haste_t > 0.0 else 1.0) * (1.65 if sprinting else 1.0)
 		vel = vel.move_toward(dir * sp + pull, 2800.0 * dt)
 		pull = Vector2.ZERO
 		if Input.is_action_just_pressed("dodge") and dodge_cd <= 0.0:

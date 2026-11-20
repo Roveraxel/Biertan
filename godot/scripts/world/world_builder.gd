@@ -229,6 +229,7 @@ static func _church_model(b: Dictionary) -> String:
 	match L.id:
 		"saschiz": return "saschiz_church"
 		"viscri": return "viscri_church"
+		"apold": return "apold_church"
 		"biertanfort": return "biertan_church"
 		"hillchurch": return "hill_church"
 		"sighisoara": return "hill_church" if nm.contains("deal") else "village_church"   # the Church on the Hill
@@ -284,10 +285,33 @@ static func _modelled(b: Dictionary, base: Transform3D, w: float, d: float, h: f
 			if b.get("dracul", false) and ModelKit.exists("house_big"):   # Casa Vlad Dracul: ochre, as it is painted now
 				ModelKit.place(L, base, w, d, "house_big", Mats.mat("px_roof", 1.2, Color(0.55, 0.4, 0.38), 0.05), Mats.mat("px_plaster0", 1.8, Color(1.0, 0.74, 0.32)), h + roof_h)
 				return true
-			var m := "barn" if b.h >= 58.0 else ("house_big" if w * d > 70.0 else "house_saxon")
+			if b.get("inn", false) and ModelKit.exists("inn_2story"):
+				ModelKit.place(L, base, w, d, "inn_2story", Mats.roof_at(p), Mats.saxon_plaster(p), h + roof_h)
+				return true
+			var m := "barn" if b.h >= 58.0 else ("house_town_2story" if (L.id == "sighisoara" or b.h >= 48.0) and ModelKit.exists("house_town_2story") else ("house_big" if w * d > 70.0 else ("house_saxon_halfhip" if absi(int(p.x * 0.19) + int(p.y * 0.23)) % 2 == 0 and ModelKit.exists("house_saxon_halfhip") else "house_saxon")))
 			if not ModelKit.exists(m): return false
 			var wm2: Material = Mats.mat("px_planks", 1.1, Color(0.55, 0.45, 0.36), 0.04) if m == "barn" else Mats.saxon_plaster(p)
 			ModelKit.place(L, base, w, d, m, Mats.roof_at(p), wm2, h + roof_h)
+			return true
+		"portal_wall":
+			if not ModelKit.exists("portal_wall_arched"): return false
+			ModelKit.place(L, base, w, d, "portal_wall_arched", Mats.roof_at(p), Mats.saxon_plaster(p), maxf(h, 2.8))
+			return true
+		"street_bench":
+			if not ModelKit.exists("street_bench_wood"): return false
+			ModelKit.place(L, base, w, d, "street_bench_wood", Mats.wood(), Mats.wood(), maxf(h, 0.9))
+			return true
+		"fence_rail":
+			if not ModelKit.exists("fence_post_rail"): return false
+			ModelKit.place(L, base, w, d, "fence_post_rail", Mats.wood(), Mats.wood(), maxf(h, 1.1))
+			return true
+		"culvert_bridge":
+			if not ModelKit.exists("culvert_bridge"): return false
+			ModelKit.place(L, base, w, d, "culvert_bridge", Mats.wood(), Mats.stone(), maxf(h, 0.8))
+			return true
+		"stork_pole":
+			if not ModelKit.exists("stork_nest_pole"): return false
+			ModelKit.place(L, base, w, d, "stork_nest_pole", Mats.wood(), Mats.stone(), maxf(h, 7.5))
 			return true
 	return false
 
@@ -777,7 +801,8 @@ static func _meadow() -> void:
 		if is_instance_valid(d): mark.call(d.pos.x * S, d.pos.y * S, maxf(d.radius, 14.0) * S + 0.3)
 	for pr in L.props:
 		if is_instance_valid(pr): mark.call(pr.pos.x * S, pr.pos.y * S, 0.9)
-	var greens := [Color(0.2, 0.36, 0.13), Color(0.27, 0.45, 0.16), Color(0.36, 0.5, 0.2), Color(0.45, 0.5, 0.24)]
+	var is_autumn := L.id == "apold"
+	var greens := [Color(0.46, 0.44, 0.18), Color(0.55, 0.46, 0.20), Color(0.38, 0.40, 0.16), Color(0.58, 0.42, 0.18)] if is_autumn else [Color(0.2, 0.36, 0.13), Color(0.27, 0.45, 0.16), Color(0.36, 0.5, 0.2), Color(0.45, 0.5, 0.24)]
 	var flowers := [Color(0.95, 0.94, 0.86), Color(0.96, 0.8, 0.2), Color(0.62, 0.42, 0.78), Color(0.9, 0.35, 0.3), Color(0.55, 0.65, 0.95)]
 	var rnd := NetRandom.new(hash(L.id + "meadow") & 0x7fffffff)
 	var chunks := {}
@@ -800,11 +825,21 @@ static func _meadow() -> void:
 				var tip := base + dir * (0.05 + rnd.f() * 0.08) + Vector3(0, h, 0)
 				m.tri(base - side, base + side, tip)
 				m.tri(base + side, base - side, tip)
-			if rnd.f() < 0.22:
+			if not is_autumn and rnd.f() < 0.14:
 				var fc: Color = flowers[int(rnd.f() * flowers.size()) % flowers.size()]
 				var fp := Vector3((rnd.f() - 0.5) * 0.4, 0, (rnd.f() - 0.5) * 0.4)
-				bt.mb(Mats.plain(Color(0.25, 0.42, 0.15), 0.0)).box(fp + Vector3(-0.008, 0, -0.008), fp + Vector3(0.008, 0.2, 0.008), false)
-				bt.mb(Mats.plain(fc, 0.0)).box(fp + Vector3(-0.07, 0.2, -0.07), fp + Vector3(0.07, 0.28, 0.07), true)
+				var fh := 0.18 + rnd.f() * 0.08
+				var stem := bt.mb(Mats.plain(Color(0.22, 0.38, 0.14), 0.0))
+				stem.tri(fp + Vector3(-0.01, 0, 0), fp + Vector3(0.01, 0, 0), fp + Vector3(0, fh, 0))
+				var pm := bt.mb(Mats.plain(fc, 0.0))
+				var ctr := fp + Vector3(0, fh, 0)
+				for p_idx in 5:
+					var pa := (p_idx / 5.0) * TAU + rnd.f() * 0.3
+					var pdir := Vector3(cos(pa), 0, sin(pa))
+					var pside := Vector3(-pdir.z, 0, pdir.x) * 0.025
+					var ptip := ctr + pdir * 0.065 + Vector3(0, 0.022, 0)
+					pm.tri(ctr - pside, ctr + pside, ptip)
+					pm.tri(ctr + pside, ctr - pside, ptip)
 	for k in chunks: chunks[k].commit(root, "Meadow", false)
 
 

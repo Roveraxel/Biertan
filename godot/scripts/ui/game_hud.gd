@@ -381,8 +381,9 @@ func _draw_hud(p: Player) -> void:
 	if p.vamp_t > 0.0: box(full, Color(0.4, 0, 0.05, 0.12))
 	bar(R.call(24, 24, 250, 18), p.hp / p.max_hp, Color("b3372f"), k)
 	txt(R.call(30, 24, 250, 18), "HEALTH  %d / %d" % [int(p.hp), int(p.max_hp)], 13 * k, TEXT, ML)
-	var sub: Rect2 = R.call(24, 54, 250, 8)
-	var sub_label: Rect2 = R.call(284, 50, 400, 16)
+	bar(R.call(24, 45, 250, 6), p.stamina / p.max_stamina, Color("8a7038") if p.sprint_exhausted else Color("d8a84a"), k)
+	var sub: Rect2 = R.call(24, 56, 250, 8)
+	var sub_label: Rect2 = R.call(284, 52, 400, 16)
 	if G.current in ["forest", "hills", "vineyard"]:
 		bar(sub, G.dusk, Color("5a6aa8").lerp(Color("e8a94a"), 1.0 - G.dusk), k)
 		txt(sub_label, "DUSK" if G.dusk < 0.85 else ("NIGHT FALLS" if G.dusk < 1.0 else "MIDNIGHT"), 12 * k, TEXT if G.dusk < 0.85 else BLOOD, ML)
@@ -398,11 +399,11 @@ func _draw_hud(p: Player) -> void:
 			bar(sub, p.blood / 5.0, Color("8a0a14"), k)
 			txt(sub_label, "BLOOD CURSE", 12 * k, Color("d07070"), ML)
 	elif Mats.is_village(G.current):
-		txt(R.call(24, 50, 300, 16), "SAFE HAVEN", 12 * k, AMBER, ML)
+		txt(R.call(24, 53, 300, 16), "SAFE HAVEN", 12 * k, AMBER, ML)
 	if p.haste_t > 0.0: txt(R.call(284, 24, 200, 18), "SWIFT %ds" % int(p.haste_t), 12 * k, Color(0.7, 0.9, 0.6), ML)
 	var inv := "Coins %d      Tinctures %d  (Q)" % [p.coins, p.potions]
 	if p.salt_unlocked: inv += "      Salt %d  (R)" % p.salt
-	txt(R.call(24, 74, 800, 20), inv, 14 * k, AMBER)
+	txt(R.call(24, 76, 800, 20), inv, 14 * k, AMBER)
 	# the current objective, readable: a larger line on a dark strip
 	var ql := _short_objective(Quests.objective())
 	if ql != "":

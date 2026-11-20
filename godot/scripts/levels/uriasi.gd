@@ -59,9 +59,12 @@ func build() -> void:
 	add_wall(Vector2(size.x / 2.0, size.y + 20), Vector2(size.x, 40))
 	add_wall(Vector2(-20, size.y / 2.0), Vector2(40, size.y))
 	add_wall(Vector2(size.x + 20, size.y / 2.0), Vector2(40, size.y))
-	# the giant's toys: boulders stacked into little towers
+	# the giant's toys: boulders stacked into little towers, plus perimeter ruin stones and ferns
 	for o in [Vector2(-700, -300), Vector2(650, -450), Vector2(-400, 520), Vector2(800, 380)]:
 		for k in 3: add_decor(MID + o + Vector2(k * 18, -k * 52), "forest_boulder", 28.0 if k == 0 else 0.0, k % 2 == 1)
+	for o in [Vector2(-1050, -600), Vector2(1020, -560), Vector2(-1120, 420), Vector2(1060, 480), Vector2(0, -780)]:
+		add_decor(MID + o, "forest_boulder", 30.0, rng.f() < 0.5)
+		add_decor(MID + o + Vector2(90, 35), "fern", 0.0, rng.f() < 0.5)
 	exit_prop = add_prop("task", "exit", "Down to Saschiz", Vector2(2200, 3480), "")
 	add_trigger(Rect2(1900, 3540, 600, 60), func(): if G.side_has("sx_giant"): quest.use(exit_prop))
 	add_torch(MID, 420.0, Color(0.75, 0.8, 1), 0.3)
@@ -117,7 +120,7 @@ func _after_fight() -> void:
 		Audio.sfx("hit", -14.0, 0.4)
 		await get_tree().create_timer(0.35).timeout
 		if not is_instance_valid(giant): return
-	Fx.shake(6.0)
+	Fx.shake(0.28)
 	await get_tree().create_timer(1.6).timeout
 	if not is_instance_valid(giant): return
 	homecoming = true

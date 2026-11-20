@@ -6,7 +6,7 @@ extends RefCounted
 const VILLAGES := ["sighisoara", "viscri", "crit", "saschiz", "sapartoc", "apold", "cris", "malancrav", "richisvillage"]
 const OLD_VILLAGES := ["hub", "richis", "mosna", "biertan"]
 const WOODS := ["forest", "critforest", "crisforest", "richisforest", "ieleridge", "uriasi", "hollow"]
-const SAXON := [Color(0.97, 0.7, 0.32), Color(0.42, 0.62, 0.9), Color(0.52, 0.74, 0.42), Color(0.9, 0.5, 0.48), Color(1, 0.86, 0.36), Color(0.4, 0.78, 0.74), Color(0.74, 0.6, 0.86), Color(0.96, 0.93, 0.85)]
+const SAXON := [Color(0.92, 0.78, 0.56), Color(0.66, 0.77, 0.88), Color(0.68, 0.75, 0.62), Color(0.86, 0.66, 0.62), Color(0.94, 0.88, 0.72), Color(0.88, 0.70, 0.56), Color(0.78, 0.77, 0.74), Color(0.93, 0.89, 0.80)]
 const SHUTTERS := [Color(0.16, 0.36, 0.62), Color(0.55, 0.14, 0.12), Color(0.2, 0.42, 0.24), Color(0.12, 0.45, 0.48), Color(0.36, 0.24, 0.14)]
 
 static var _cache := {}

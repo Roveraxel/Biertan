@@ -7,7 +7,8 @@ extends RefCounted
 
 ## How long the model's long side is in life, in metres: sets how big the textures are on it.
 const NOMINAL := {"church": 26.0, "basilica": 28.0, "chapel": 12.0, "orthodox": 14.0, "reformed": 16.0,
-	"tower": 7.0, "clocktower": 9.0, "house": 11.0, "barn": 13.0, "hatch": 3.0}
+	"tower": 7.0, "clocktower": 9.0, "house": 11.0, "inn": 16.0, "portal_wall": 8.0, "barn": 13.0, "hatch": 3.0,
+	"bench": 2.2, "fence": 3.5, "bridge": 3.0, "stork": 7.5}
 
 static var _shapes := {}
 

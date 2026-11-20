@@ -236,7 +236,7 @@ func watch_barn(done: Callable) -> void:
 	var pl: Player = G.player
 	pl.frozen = true
 	pl.visible = false   # he is down in the hay: only his eyes show
-	var peep := add_decor(barn_at + Vector2(0, 18), "hay_eyes", 0.0)
+	var peep := add_decor(barn_at + Vector2(0, 18), "haystack_plain", 0.0)
 	# the village is asleep behind its shutters: nobody is out to see the sexton, or to talk to the hunter
 	var away: Array = []
 	for p in props:
@@ -260,9 +260,9 @@ func watch_barn(done: Callable) -> void:
 		Fx.text(stops[i], "...", Color(0.75, 0.72, 0.68), 30.0)
 		await get_tree().create_timer(1.1).timeout
 	# the geese see him
-	Audio.sfx("shriek", -4.0, 1.6)
+	Audio.sfx("crow", -2.0, 0.72)
 	Fx.text(goose_at, "HONK! HONK!", Fx.AMBER, 50.0)
-	Fx.shake(3.0)
+	Fx.shake(0.18)
 	await get_tree().create_timer(0.5).timeout
 	if is_instance_valid(s):
 		add_decor(s.pos + Vector2(10, 18), "key_iron" if PixelFigure.exists("key_iron") else "bone")

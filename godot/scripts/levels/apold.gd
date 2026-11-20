@@ -12,6 +12,7 @@ var grave_at: Array[Vector2] = []
 var wave := 0
 var food := 100.0
 var wave_t := 0.0
+var banner_pause_t := 0.0
 var restart_t := 0.0
 var between := ""          # "pot" or "candles" while the hunter helps between waves
 var dead: Array[Enemy] = []
@@ -47,12 +48,12 @@ func _quest_things() -> void:
 	add_prop("npc", "baker", "The baker's wife", baker, "E   Speak with the baker's wife", Color("6a5a4a"))
 	add_decor(baker + Vector2(110, -20), "oven", 40.0)
 	add_torch(baker + Vector2(110, -20), 200.0, Color(1, 0.55, 0.25), 0.6)
-	var cellar := cellar_tower(c + Vector2(700, -500), 700.0)   # the cellar opens in a little stone tower
+	var cellar := cellar_tower(c + Vector2(700, -500), 700.0, func(p): return not near_road(p, 90.0))   # the cellar opens in a little stone tower off the road
 	add_prop("task", "cellar", "The cellar", cellar + Vector2(0, 14), "E   Go down into the cellar")
 	var chairs := free_spot(Vector2(3600, 7300), 40.0)
 	add_decor(chairs, "feast_table", 30.0); add_decor(chairs + Vector2(-120, 20), "chair"); add_decor(chairs + Vector2(120, 20), "chair", 0.0, true)
 	add_prop("clue", "chairs", "Empty chairs", chairs + Vector2(0, 60), "E   Look at the table")
-	var steps := free_spot(Vector2(5000, 7700), 30.0)
+	var steps := free_spot(c + Vector2(260, 480), 30.0)
 	add_decor(steps, "wet_steps")
 	add_prop("clue", "footprints", "Footprints", steps + Vector2(0, 30), "E   Look at the footprints")
 	var cems := m.lines("cemeteries")
@@ -117,20 +118,21 @@ func _clear_dead() -> void:
 	dead.clear()
 
 func _start_wave(w: int) -> void:
-	wave = w; wave_t = 0.0; food = 100.0; between = ""
+	wave = w; wave_t = 0.0; food = 100.0; between = ""; banner_pause_t = 2.8
 	_clear_dead()
 	var n: int = [6, 8, 5][w - 1]
 	for i in n:
-		var a := (i / float(n)) * TAU + rng.f() * 0.5
-		var e := spawn_enemy("dead_big" if w == 3 else "dead", free_spot(table_at + Vector2(cos(a), sin(a)) * 1000.0, 30.0))
-		e.goal = grave_at[i % 3] if w == 3 else table_at
+		var g: Vector2 = grave_at[i % 3] if not grave_at.is_empty() else table_at + Vector2(800, -400)
+		var e := spawn_enemy("dead_big" if w == 3 else "dead", free_spot(g + Vector2(rng.f_range(-180.0, 180.0), rng.f_range(-180.0, 180.0)), 30.0))
+		e.goal = table_at
 		if w == 1: e.speed = 165.0
 		dead.append(e)
 	if w == 3 and not is_instance_valid(costache) and not costache_down:
-		costache = spawn_enemy("costache", free_spot(table_at + Vector2(-900, 300), 30.0))
+		var cg: Vector2 = grave_at[1] if grave_at.size() > 1 else table_at + Vector2(-900, 300)
+		costache = spawn_enemy("costache", free_spot(cg + Vector2(0, -120), 30.0))
 		costache.goal = table_at
 		costache.died.connect(func(_e): _costache_down())
-	Hud.banner(["THE FIRST WAVE", "THE SECOND WAVE", "THE LAST WAVE"][w - 1], ["Thin, quick, hungry. They go straight for the table.", "They grab what they can. Hit them and they drop it.", "Bigger ones, at the graves. And something very big in a bedsheet."][w - 1])
+	Hud.banner(["THE FIRST WAVE", "THE SECOND WAVE", "THE LAST WAVE"][w - 1], ["They rise from the cemetery and head straight for the table.", "They grab what they can. Hit them and they drop it.", "Bigger ones from the graves, and something very big in a bedsheet."][w - 1])
 	Audio.sfx("moroi", -6.0, 0.8)
 
 func _process(dt: float) -> void:
@@ -140,7 +142,13 @@ func _process(dt: float) -> void:
 		if pub_t > 0.8:
 			pub_pending = false
 			_pub_dialogue()
-	if wave == 0 or between != "" or G.state != G.State.PLAY: return
+	if wave == 0 or between != "": return
+	if G.state != G.State.PLAY or banner_pause_t > 0.0:
+		if banner_pause_t > 0.0 and G.state == G.State.PLAY: banner_pause_t = maxf(0.0, banner_pause_t - dt)
+		for e in dead:
+			if is_instance_valid(e): e.slow_k = 0.0
+		if is_instance_valid(costache): costache.slow_k = 0.0
+		return
 	if restart_t > 0.0:
 		restart_t -= dt
 		if restart_t <= 0.0: _start_wave(wave)
@@ -152,7 +160,11 @@ func _process(dt: float) -> void:
 		e.slow_k = 0.55 if fire else 1.0   # the firelight reaches every yard in the valley
 		if e.at_goal() and e.stun_t <= 0.0: food -= (1.8 if e.kind == "dead_big" else 2.4) * dt
 	var big := is_instance_valid(costache) and not costache_down
-	if big and costache.at_goal(): food -= 5.0 * dt
+	if big:
+		costache.slow_k = 1.0
+		if costache.at_goal(): food -= 5.0 * dt
+	var table_prop := prop("table")
+	if table_prop: table_prop.sub = "Table: %d%% left" % maxi(0, ceili(food))
 	if food <= 0.0:
 		Hud.banner("THE DEAD TAKE EVERYTHING", "The table is bare. Dumitru sighs and starts again.")
 		_clear_dead()
