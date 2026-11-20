@@ -179,15 +179,15 @@ func _row(b: Dictionary) -> void:
 		var off := Vector2.ZERO if rows == 1 else across * (-1.0 if row == 0 else 1.0) * (depth / 4.0)
 		for i in n:
 			var c: Vector2 = b.c + off + axis * (-length / 2.0 + seg * (i + 0.5))
-			var w := seg - 6.0
-			var h := 44.0 + rng.f() * 18.0
+			var w := seg + 4.0
+			var h := 46.0 + rng.f() * 18.0
 			var sz := Vector2(w, row_depth) if long_x else Vector2(row_depth, w)
 			# outlines fitted with boxes poke into the street: shrink a house until every street stays open
 			var tries := 0
 			var hit := func(s_sz: Vector2) -> bool:
-				var r := minf(s_sz.x, s_sz.y) * 0.44
-				var d := maxf(s_sz.x, s_sz.y) * 0.32
-				return blocks_street(c, s_sz, b.angle, 0.98) or blocked(c, r) or blocked(c + axis * d, r) or blocked(c - axis * d, r)
+				var r := minf(s_sz.x, s_sz.y) * 0.34
+				var d := maxf(s_sz.x, s_sz.y) * 0.28
+				return blocks_street(c, s_sz, b.angle, 0.96) or blocked(c, r) or blocked(c + axis * d, r) or blocked(c - axis * d, r)
 			while tries < 4 and hit.call(sz):
 				sz *= 0.82; tries += 1
 			if minf(sz.x, sz.y) < 110.0 or hit.call(sz) or _on_the_square(c, sz, b.angle): continue
