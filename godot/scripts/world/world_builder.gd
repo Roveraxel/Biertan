@@ -617,6 +617,7 @@ static func _gates() -> void:
 
 ## A gate tower you can walk through gets a dark vaulted passage across it and open oak doors.
 static func _passage(tower: Dictionary, wall_dir: Vector3) -> void:
+	if tower.style == "clocktower" and ModelKit.exists("clocktower"): return
 	var c := u(tower.c) + _yaw(-tower.angle) * Vector3(0, 0, tower.size.y * S / 2.0)
 	wall_dir.y = 0; wall_dir = wall_dir.normalized()
 	var across := wall_dir.cross(Vector3.UP)

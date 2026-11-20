@@ -115,7 +115,7 @@ static func see_through(src: Material) -> Material:
 
 # ---- the named surfaces of the Unity build ----
 static func ground() -> Material: return mat("px_meadow", 2.6, Color(0.74, 0.72, 0.62), 0.1) if px() else mat("grass_path_2", 5.0, Color(0.62, 0.66, 0.55))
-static func cobble() -> Material: return mat("px_cobble", 1.4, Color(1.0, 0.94, 0.84), 0.4) if px() else mat("cobblestone_floor_08", 2.4, Color(0.78, 0.76, 0.72), 0.2)
+static func cobble() -> Material: return mat("px_cobble", 2.2, Color(1.08, 1.03, 0.96), 0.25) if px() else mat("cobblestone_floor_08", 2.4, Color(0.78, 0.76, 0.72), 0.2)
 static func road() -> Material: return mat("forest_leaves_02", 3.0, Color(0.7, 0.62, 0.52))
 static func roof() -> Material: return mat("px_roof", 1.5, Color(1, 0.96, 0.94), 0.32) if px() else mat("clay_roof_tiles_02", 1.6, Color(0.85, 0.8, 0.78), 0.18)
 static func plaster() -> Material: return mat("px_plaster0", 1.8, Color.WHITE) if px() else mat("clay_plaster", 2.5, Color(0.92, 0.88, 0.8))

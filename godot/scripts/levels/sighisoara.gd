@@ -44,9 +44,12 @@ func build() -> void:
 	var east_gate_x: float = m.at(60, 0).x
 	for i in roads.size():
 		var pts: Array = []
+		var any_in := false
 		for rp in roads[i]:
-			if rp.x >= east_gate_x or inside(rp, _citadel): pts.append(rp)
-		if pts.size() >= 2: add_path(pts, m.road_width[i], Color.WHITE, -990, "Cobbles")
+			if rp.x >= east_gate_x or inside(rp, _citadel):
+				pts.append(rp)
+				if inside(rp, _citadel): any_in = true
+		if pts.size() >= 2: add_path(pts, m.road_width[i], Color.WHITE, -990, "Cobbles" if any_in else "Path")
 	# the Clock Tower is vaulted over a passage, the only way in or out; the wall stops at its sides
 	var gates := []
 	for t in m.boxes("towers"):
@@ -231,7 +234,7 @@ func _trees() -> void:
 			if not wood and inside(p, _citadel): continue
 			if p.x > lt0.x and p.y > lt0.y and p.y < lt1.y: continue   # the lower town
 			if not wood and rng.f() < 0.35: continue
-			if near_road(p, 70.0) or near_building(p, 90.0) or near_wall(p, 120.0): continue
+			if near_road(p, 70.0) or near_building(p, 90.0) or near_wall(p, 170.0): continue
 			add_tree(p, rng.f() < 0.2)
 			n += 1
 		x += 340.0
