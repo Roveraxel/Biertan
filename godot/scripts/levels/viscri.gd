@@ -280,7 +280,7 @@ func watch_barn(done: Callable) -> void:
 	done.call()
 
 func _walk_to(p: Prop, goal: Vector2, speed: float) -> void:
-	var path := find_path(p.pos, goal, 9.0, p, 220.0)
+	var path := find_path(p.pos, goal, 9.0, p, 1200.0)
 	if path.is_empty(): path = [goal]
 	var fin := [false]
 	p.walk(path, speed, func(): fin[0] = true)

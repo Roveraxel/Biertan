@@ -335,7 +335,10 @@ static func long_axis(b: Dictionary) -> Array:
 
 ## A church; a big one gets its bell tower at the west end.
 func add_church(b: Dictionary, h: float, with_tower: bool, tower_k := 0.5, tower_h := 200.0) -> void:
-	var cb := add_block_rotated(b.c, b.size, b.angle, "church", h)
+	var sz: Vector2 = b.size
+	if sz.x < sz.y * 0.52: sz.x = sz.y * 0.52
+	elif sz.y < sz.x * 0.52: sz.y = sz.x * 0.52
+	var cb := add_block_rotated(b.c, sz, b.angle, "church", h)
 	cb["big"] = with_tower; cb["name"] = b.get("name", "")   # for the church models (WorldBuilder)
 	if not with_tower: return
 	var la := long_axis(b)
