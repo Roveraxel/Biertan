@@ -47,10 +47,12 @@ func build() -> void:
 		var blk := add_block_rotated(b.c, sz, b.angle, "house", 58.0 if is_radu else (60.0 if b.style == "barn" else 44.0 + rng.f() * 12.0))
 		if is_radu: blk["inn"] = true
 	spawn = free_spot(m.at(-64, 28), 120.0)   # the lane from Saschiz comes in from the north
+	add_yard_walls()
 	plant_trees(400.0, 280.0, 0.55, 80.0, spawn)
 	_hillside()
 	_quest_things()
 	edge_walls()
+	add_street_dressing()
 	plant_gardens(9001, garden_ok)
 
 func _hillside() -> void:

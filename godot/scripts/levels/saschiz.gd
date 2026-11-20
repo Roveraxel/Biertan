@@ -30,6 +30,7 @@ func build() -> void:
 	plant_trees(400.0, 280.0, 0.55, 130.0, Vector2(6600, 15500))
 	_quest_things()
 	edge_walls()
+	add_street_dressing()
 	plant_gardens(9001, garden_ok)
 
 func _quest_things() -> void:

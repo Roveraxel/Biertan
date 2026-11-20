@@ -29,10 +29,12 @@ func build() -> void:
 	standard("apold", 1440)
 	churches_and_houses()
 	add_farms()
+	add_yard_walls()
 	var pub := G.side_has("ap_dawn") and not G.side_has("ap_done")
 	spawn = free_spot(Vector2(6800, 2200), 120.0)   # the road from Șapartoc comes down from the north
 	graves_and_trees()
 	_quest_things()
+	add_street_dressing()
 	if pub: spawn = pub_door + Vector2(0, 190)
 	finish()
 

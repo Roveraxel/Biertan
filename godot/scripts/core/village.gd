@@ -64,8 +64,50 @@ func add_houses(base_h: float, barn_h: float, no_overlap := false) -> void:
 
 ## The low yard walls that join house to house along the street.
 func add_yard_walls() -> void:
+	var use_wooden_only := id == "sapartoc"
 	for w in m.lines("yardwalls"):
-		if w.size() > 1: add_curtain(w, 16.0, 18.0, "ring")
+		if w.size() < 2: continue
+		if not ModelKit.exists("fence_post_rail") and not ModelKit.exists("portal_wall_arched"):
+			add_curtain(w, 16.0, 18.0, "ring")
+			continue
+		for i in w.size() - 1:
+			var a: Vector2 = w[i]; var b: Vector2 = w[i + 1]
+			var seg_len := a.distance_to(b)
+			if seg_len < 30.0: continue
+			var dir := (b - a) / seg_len
+			var ang := rad_to_deg(-dir.angle())
+			var mid := (a + b) * 0.5
+			var street_front := not use_wooden_only and near_road(mid, 140.0) and ModelKit.exists("portal_wall_arched")
+			var style := "portal_wall" if street_front else ("fence_rail" if ModelKit.exists("fence_post_rail") else "ring")
+			if style == "ring":
+				add_curtain([a, b], 16.0, 18.0, "ring")
+				continue
+			var step_len := 180.0 if style == "portal_wall" else 110.0
+			var count := maxi(1, int(round(seg_len / step_len)))
+			var piece_w := seg_len / float(count)
+			for k in count:
+				var c := a.lerp(b, (k + 0.5) / float(count))
+				if near_road(c, 36.0) or near_building(c, 16.0): continue
+				add_block_rotated(c, Vector2(piece_w, 22.0 if style == "portal_wall" else 14.0), ang, style, 36.0 if style == "portal_wall" else 18.0, true)
+
+## Street View roadside dressing: wooden benches, stork-nest utility poles, and culvert ditch bridges.
+func add_street_dressing() -> void:
+	var sq := centre_spot()
+	if ModelKit.exists("street_bench_wood"):
+		for o in [Vector2(-150, 90), Vector2(160, -80)]:
+			var bp := free_spot(sq + o, 30.0, func(p: Vector2) -> bool: return not near_road(p, 55.0))
+			if not near_building(bp, 25.0):
+				add_block_rotated(bp, Vector2(54.0, 20.0), 0.0, "street_bench", 14.0, true)
+	if ModelKit.exists("stork_nest_pole"):
+		var sp := free_spot(sq + Vector2(280, 160), 40.0, func(p: Vector2) -> bool: return near_road(p, 160.0) and not near_road(p, 60.0))
+		if not near_building(sp, 35.0):
+			add_block_rotated(sp, Vector2(28.0, 28.0), 0.0, "stork_pole", 110.0, true)
+	if id in ["apold", "saschiz", "viscri"] and ModelKit.exists("culvert_bridge"):
+		for h_idx in mini(3, m.boxes("houses").size()):
+			var h: Dictionary = m.boxes("houses")[h_idx * maxi(1, m.boxes("houses").size() / 4)]
+			var cp := free_spot(h.c + Vector2(0, maxf(h.size.x, h.size.y) * 0.5 + 48.0), 25.0, func(p: Vector2) -> bool: return not near_road(p, 28.0))
+			if not near_building(cp, 18.0):
+				add_block_rotated(cp, Vector2(68.0, 34.0), h.angle, "culvert_bridge", 12.0, false)
 
 ## Trees on a jittered grid: thick in the surveyed woods, thinned elsewhere, never on streets or against houses.
 func plant_trees(step: float, jitter: float, thin: float, wall_pad: float, keep_clear: Vector2, limit := 220) -> void:
