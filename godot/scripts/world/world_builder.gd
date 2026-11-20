@@ -152,7 +152,7 @@ static func _macro_veil(sz: Vector2, centre: Vector3) -> void:
 static func _roads() -> void:
 	for r in L.cobbles:
 		var b := Batch.new()
-		b.mb(Mats.cobble()).flat_rect(u(r.get_center(), 0.02), r.size.x * S, r.size.y * S)
+		b.mb(Mats.cobble()).flat_rect(u(r.get_center(), 0.045), r.size.x * S, r.size.y * S)
 		b.commit(root, "Cobbles", false)
 	for road in L.roads:
 		var cob: bool = road.cobble
@@ -162,11 +162,11 @@ static func _roads() -> void:
 		var w: float = road.width * S
 		for i in pts.size():
 			var a: Vector2 = pts[i]
-			mb.disc(u(a, 0.013 if cob else 0.011), w * 0.5, w * 0.5, 0.0, 16)
+			mb.disc(u(a, 0.035 if cob else 0.024), w * 0.5, w * 0.5, 0.0, 16)
 			if i == pts.size() - 1: break
 			var c: Vector2 = pts[i + 1]
 			var ang := rad_to_deg(atan2(-(c.y - a.y), c.x - a.x))
-			mb.flat_rect(u((a + c) / 2.0, 0.014 if cob else 0.012), a.distance_to(c) * S, w, -ang)
+			mb.flat_rect(u((a + c) / 2.0, 0.037 if cob else 0.026), a.distance_to(c) * S, w, -ang)
 		b.commit(root, "Road", false)
 
 ## Flat ground features (lakes, yards, carpets, graves, clearings): coloured shapes, one mesh per colour.
@@ -785,7 +785,7 @@ static func _meadow() -> void:
 			for j in range(maxi(0, int((cz - r) / cell)), mini(nz, int((cz + r) / cell) + 1)):
 				taken[i * nz + j] = 1
 	for b in L.blocks:
-		var rad := (maxf(b.size.x, b.size.y) * 0.5 + 18.0) * S
+		var rad := (maxf(b.size.x, b.size.y) * 0.5 + 24.0) * S
 		mark.call(b.c.x * S, b.c.y * S - b.size.y * S * 0.5, rad)
 	for t in L.trees: mark.call(t.p.x * S, t.p.y * S, 9.0 * t.sc * S)
 	for r in L.cobbles: mark.call(r.get_center().x * S, r.get_center().y * S, (maxf(r.size.x, r.size.y) * 0.5 + 10.0) * S)

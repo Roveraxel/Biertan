@@ -140,7 +140,7 @@ static func place(level: Node3D, base: Transform3D, w: float, d: float, name: St
 		node.set_surface_override_material(2, wood_mat)
 		bases.append(wood_mat)
 	level.add_child(node)
-	node.transform = base * Transform3D(Basis(Vector3.UP, yaw) * Basis.from_scale(sc), Vector3(0, 0, -d / 2.0))
+	node.transform = base * Transform3D(Basis(Vector3.UP, yaw) * Basis.from_scale(sc), Vector3(0, -0.04, -d / 2.0))
 	# the many small faces flicker in the moon's shadow map as the camera moves: the model takes no part in
 	# shadows, and a plain box the size of its body casts the house's shadow instead
 	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
