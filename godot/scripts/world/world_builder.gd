@@ -776,7 +776,7 @@ static func _wilds() -> void:
 ## occupied cells is marked first, so this stays cheap).
 static func _meadow() -> void:
 	if not (Mats.is_village(L.id) or L.id in ["stana", "vineyard", "hills", "ieleridge", "biertanfort"]): return
-	var cell := 0.95
+	var cell := 1.45
 	var map_m := L.size * S
 	var nx := int(map_m.x / cell) + 1; var nz := int(map_m.y / cell) + 1
 	var taken := PackedByteArray(); taken.resize(nx * nz)
@@ -809,22 +809,21 @@ static func _meadow() -> void:
 	for i in nx:
 		for j in nz:
 			if taken[i * nz + j] != 0: continue
-			if rnd.f() < 0.1: continue
+			if rnd.f() < 0.25: continue
 			var at := Vector3((i + rnd.f()) * cell, 0.0, -(j + rnd.f()) * cell)
 			var bt := _chunk(chunks, at)
 			bt.xf = Transform3D(Basis(), at)
 			var gc: Color = greens[int(rnd.f() * greens.size()) % greens.size()]
 			var m := bt.mb(Mats.plain(gc, 0.0))
-			var blades := 7 + int(rnd.f() * 6.0)
+			var blades := 4 + int(rnd.f() * 4.0)
 			for k in blades:
 				var ang := rnd.f() * TAU
 				var dir := Vector3(cos(ang), 0, sin(ang))
-				var side := Vector3(-dir.z, 0, dir.x) * 0.05
-				var base := dir * (0.05 + rnd.f() * 0.22)
-				var h := 0.26 + rnd.f() * 0.26
+				var side := Vector3(-dir.z, 0, dir.x) * 0.06
+				var base := dir * (0.05 + rnd.f() * 0.24)
+				var h := 0.28 + rnd.f() * 0.28
 				var tip := base + dir * (0.05 + rnd.f() * 0.08) + Vector3(0, h, 0)
 				m.tri(base - side, base + side, tip)
-				m.tri(base + side, base - side, tip)
 			if not is_autumn and rnd.f() < 0.14:
 				var fc: Color = flowers[int(rnd.f() * flowers.size()) % flowers.size()]
 				var fp := Vector3((rnd.f() - 0.5) * 0.4, 0, (rnd.f() - 0.5) * 0.4)
@@ -839,7 +838,6 @@ static func _meadow() -> void:
 					var pside := Vector3(-pdir.z, 0, pdir.x) * 0.025
 					var ptip := ctr + pdir * 0.065 + Vector3(0, 0.022, 0)
 					pm.tri(ctr - pside, ctr + pside, ptip)
-					pm.tri(ctr + pside, ctr - pside, ptip)
 	for k in chunks: chunks[k].commit(root, "Meadow", false)
 
 
