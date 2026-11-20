@@ -198,7 +198,7 @@ func _process(dt: float) -> void:
 func _hints(dt: float) -> void:
 	hint_t += dt
 	if hint == 0 and hint_t > 1.5:
-		hint = 1; Hud.toast("WASD to walk. Open the gate of the stână (E), then go to each cow: once it is moving it knows the way home.")
+		hint = 1; Hud.toast("WASD to move, Shift to sprint. Open the gate (E), then herd each cow inside.")
 	elif hint == 1 and hint_t > 14.0:
 		hint = 2; Hud.toast("SPACE to dash. The last ones have wandered far.")
 	if hint >= 1 and hint < 3 and penned() == cows.size():
