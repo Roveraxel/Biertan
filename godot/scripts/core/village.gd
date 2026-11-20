@@ -89,7 +89,7 @@ func add_yard_walls() -> void:
 			var piece_w := seg_len / float(count)
 			for k in count:
 				var c := a.lerp(b, (k + 0.5) / float(count))
-				if near_road(c, 36.0) or near_building(c, 16.0): continue
+				if near_road(c, 65.0) or near_building(c, 16.0): continue
 				add_block_rotated(c, Vector2(piece_w, 22.0 if style == "portal_wall" else 14.0), ang, style, 36.0 if style == "portal_wall" else 18.0, true)
 
 ## Street View roadside dressing: wooden benches, stork-nest utility poles, and culvert ditch bridges.

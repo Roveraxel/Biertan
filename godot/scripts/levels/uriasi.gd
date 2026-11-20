@@ -43,6 +43,11 @@ func build() -> void:
 	add_block_rotated(MID + Vector2(-1500, -80), Vector2(260, 260), 0.0, "tower", 120.0)
 	add_block_rotated(MID + Vector2(1480, 120), Vector2(240, 240), 0.0, "tower", 110.0)
 	add_block_rotated(MID + Vector2(300, -1060), Vector2(280, 220), 0.0, "tower", 130.0)
+	# flank the open south fortress entrance with stone pillars and torches so the breach reads clearly
+	for sx in [-180.0, 180.0]:
+		var gp := Vector2(2200 + sx, 3020)
+		add_decor(gp, "lantern", 12.0)
+		add_torch(gp, 240.0, Color(1, 0.65, 0.35), 0.75)
 	# the woods outside the wall
 	var x := 60.0
 	while x < size.x:

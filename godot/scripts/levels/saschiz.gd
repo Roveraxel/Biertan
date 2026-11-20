@@ -61,6 +61,8 @@ func _quest_things() -> void:
 	add_prop("task", "carts", "The neighbours' carts", carts + Vector2(60, 70), "E   Look at the carts")
 	var hill := free_spot(Vector2(320, 2850), 40.0)
 	SxQuest.hill_path = hill
+	add_decor(hill + Vector2(-45, -20), "lantern", 12.0)
+	add_torch(hill + Vector2(-45, -20), 220.0, Color(1, 0.65, 0.35), 0.7)
 	add_prop("task", "hill", "Path to the fortress", hill, "E   Climb to the fortress")
 	add_trigger(Rect2(0, hill.y - 260.0, 70, 520), func(): if G.side_has("sx_brawl"): Loader.goto_level("uriasi"))
 	add_prop("task", "road", "The road west", free_spot(Vector2(4400, 300), 40.0), "E   Take the road west")
